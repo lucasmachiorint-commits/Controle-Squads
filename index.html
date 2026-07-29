@@ -110,12 +110,17 @@
             </p>
           </div>
 
-          <!-- BOTÃO ÚNICO DE SINCRONIZAÇÃO JIRA -->
+          <!-- BOTÕES DE AÇÃO JIRA -->
           <div class="flex flex-col items-end gap-2 shrink-0">
-            <button class="btn btn-primary" id="btn-sync-jira" onclick="app.triggerJiraSync()">
-              <i class="fa-solid fa-rotate-right" id="icon-sync-spin"></i>
-              <span>🔄 Atualizar cards do Jira</span>
-            </button>
+            <div class="flex items-center gap-2">
+              <button class="btn btn-danger text-xs py-2 px-3" onclick="app.clearAllBoards()" title="Limpar todos os cards antigos dos quadros">
+                <i class="fa-solid fa-trash-can"></i> Limpar Quadros
+              </button>
+              <button class="btn btn-primary" id="btn-sync-jira" onclick="app.triggerJiraSync()">
+                <i class="fa-solid fa-rotate-right" id="icon-sync-spin"></i>
+                <span>🔄 Atualizar cards do Jira</span>
+              </button>
+            </div>
             <span class="text-xs text-slate-400" id="sync-last-time">Última sync: --:--:--</span>
           </div>
         </div>

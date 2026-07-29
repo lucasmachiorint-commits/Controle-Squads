@@ -18,10 +18,10 @@ const JiraSyncEngine = {
         }
       }
     } catch (e) {
-      console.warn('Proxy local não acessível (provavelmente rodando em hospedeiro estático web).');
+      console.warn('Proxy local não acessível.');
     }
 
-    // CAMADA 2: Tentar URL ou Token personalizado salvo em localStorage (se configurado)
+    // CAMADA 2: Tentar URL ou Token personalizado salvo em localStorage
     if (!cards.length) {
       const customUrl = localStorage.getItem('cs_jira_custom_url');
       if (customUrl) {
@@ -37,30 +37,66 @@ const JiraSyncEngine = {
       }
     }
 
-    // CAMADA 3: Fallback de Amostragem do Espaço GAU (garante funcionamento no GitHub Pages)
+    // CAMADA 3: Fallback com Demandas Reais do Espaço GAU (NaturaPay)
     if (!cards.length) {
       cards = [
         {
           key: "GAU-134",
           jiraKey: "GAU-134",
-          title: "TESTE 3 LUCAS - Demanda Operacional",
+          title: "TESTE 3 LUCAS",
           status: "Backlog",
           squad: "16005",
           squadTarget: "operacoes",
           requester: "Lucas da Silva Machiori - Natura",
-          description: "Validação de fluxo de triagem e atribuição para Squad de Operações NPay",
+          description: "TESTE 3 - Validação de fluxo de triagem e atribuição para Squad de Operações NPay",
           priority: "3 - Média",
           category: "Processos"
         },
         {
           key: "GAU-133",
           jiraKey: "GAU-133",
-          title: "Ajuste na Carga Noturna do Data Warehouse",
+          title: "TESTE 2 LUCAS",
           status: "Aberto",
           squad: "16006",
           squadTarget: "dados",
-          requester: "Carolina Santos",
-          description: "Otimização de rotina de ingestão e conciliação de dados diários",
+          requester: "Lucas da Silva Machiori - Natura",
+          description: "TESTE 2 LUCAS - Otimização de rotina de ingestão e conciliação de dados diários",
+          priority: "2 - Alta",
+          category: "Ingestão"
+        },
+        {
+          key: "GAU-132",
+          jiraKey: "GAU-132",
+          title: "TESTE AUTOMAÇÃO LUCAS",
+          status: "Aberto",
+          squad: "16007",
+          squadTarget: "rpa",
+          requester: "Lucas da Silva Machiori - Natura",
+          description: "TESTE AUTOMAÇÃO LUCAS - Robô para leitura e validação de extratos em lote",
+          priority: "1 - Urgente",
+          category: "Automação"
+        },
+        {
+          key: "GAU-131",
+          jiraKey: "GAU-131",
+          title: "Dados Operações Sustentação - Type Person Legal Base Cadastral",
+          status: "Backlog",
+          squad: "16006",
+          squadTarget: "dados",
+          requester: "Bruno Giglio Rocco",
+          description: "Identificamos um problema de descasamento entre a base da Dock e a Base Cadastral. Ajuste de tabela de pessoas e marcas PF x PJ.",
+          priority: "2 - Alta",
+          category: "Processos"
+        },
+        {
+          key: "GAU-130",
+          jiraKey: "GAU-130",
+          title: "Ingestão Dados DataBricks - Novas Tabelas Base Cadastral PJ",
+          status: "Backlog",
+          squad: "16006",
+          squadTarget: "dados",
+          requester: "Bruno Giglio Rocco",
+          description: "Criação de tabelas de Base Cadastral PJ para produtos de crédito e views nas camadas Raw/Trusted/Refined do Databricks.",
           priority: "2 - Alta",
           category: "Ingestão"
         },
@@ -84,7 +120,7 @@ const JiraSyncEngine = {
           squad: "16005",
           squadTarget: "operacoes",
           requester: "Rodrigo Mendonça",
-          description: "Análise de gargalos no fluxo de aprovação de estornos",
+          description: "Análise de gargalos no fluxo de aprovação de estornos e alçadas",
           priority: "3 - Média",
           category: "Processos"
         },
@@ -96,82 +132,9 @@ const JiraSyncEngine = {
           squad: "16007",
           squadTarget: "rpa",
           requester: "Camila Rocha",
-          description: "Desenvolvimento de automação de conferência de chaves de pagamentos",
+          description: "Desenvolvimento de automação de conferência no Dict Central de Chaves",
           priority: "1 - Urgente",
           category: "Automação"
-        },
-        {
-          key: "GAU-126",
-          jiraKey: "GAU-126",
-          title: "Integração de API Webhook do Gateway NPay",
-          status: "Aberto",
-          squad: "16006",
-          squadTarget: "dados",
-          requester: "Gabriel Alves",
-          description: "Consumo de eventos de liquidação de transações em tempo real",
-          priority: "2 - Alta",
-          category: "API"
-        },
-        {
-          key: "GAU-125",
-          jiraKey: "GAU-125",
-          title: "Automação de Envio de Relatórios Financeiros",
-          status: "Triagem",
-          squad: "16007",
-          squadTarget: "rpa",
-          requester: "Tatiana Silva",
-          description: "Robô para geração e envio por e-mail de fechamentos diários",
-          priority: "3 - Média",
-          category: "Automação"
-        },
-        {
-          key: "GAU-124",
-          jiraKey: "GAU-124",
-          title: "Construção do Dashboard de Performance Q3",
-          status: "Aberto",
-          squad: "16006",
-          squadTarget: "dados",
-          requester: "Marcelo Faria",
-          description: "Painel de acompanhamento de KPIs comerciais e operacionais",
-          priority: "2 - Alta",
-          category: "Dashboard"
-        },
-        {
-          key: "GAU-132",
-          jiraKey: "GAU-132",
-          title: "Automação RPA de Conciliação Bancária NPay",
-          status: "Em Andamento",
-          squad: "16007",
-          squadTarget: "rpa",
-          requester: "Marcelo Faria",
-          description: "Desenvolvimento de robô para leitura e validação de extratos em lote",
-          priority: "1 - Urgente",
-          category: "Automação"
-        },
-        {
-          key: "GAU-131",
-          jiraKey: "GAU-131",
-          title: "Mensuração de KPIs de Operações NPay",
-          status: "Coletar dados",
-          squad: "16005",
-          squadTarget: "operacoes",
-          requester: "Roberto Lima",
-          description: "Acompanhamento da fase de mensuração de ganhos do projeto concluído",
-          priority: "2 - Alta",
-          category: "Processos"
-        },
-        {
-          key: "GAU-130",
-          jiraKey: "GAU-130",
-          title: "Painel Consolidado de Vendas Q3",
-          status: "Concluído",
-          categoriaStatus: "Done",
-          squad: "16006",
-          squadTarget: "dados",
-          requester: "Juliana Andrade",
-          description: "Dashboard em produção validado pela diretoria comercial",
-          priority: "3 - Média",
-          category: "Dashboard"
         }
       ];
     }
@@ -207,7 +170,8 @@ const JiraSyncEngine = {
       const catStatusLower = rawCatStatus.toLowerCase();
       const squadLower = rawSquad.toLowerCase();
 
-      const jiraKey = card.key || card.jiraKey || card.id || `GAU-${100 + idx}`;
+      // Garantir chave Jira válida (ex: GAU-134)
+      const jiraKey = card.key || card.jiraKey || (card.id && card.id.toString().startsWith('GAU-') ? card.id : `GAU-${100 + idx}`);
       const title = card.title || card.summary || card.nome || 'Demanda do Jira';
       const description = card.description || card.descricao || card.notes || 'Sincronizado via Jira API';
       const requester = card.requester || card.reporter || card.solicitante || 'Solicitante Jira';

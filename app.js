@@ -247,6 +247,24 @@ const app = {
     if (badgeEl) badgeEl.textContent = pendingCount;
   },
 
+  // Limpar todos os quadros e remover cards antigos incorretos
+  clearAllBoards() {
+    if (confirm('Tem certeza que deseja limpar TODOS os cards antigos dos quadros? Essa ação não afetará os dados no Jira Cloud.')) {
+      this.state.triageItems = [];
+      ['dados', 'operacoes', 'rpa'].forEach(id => {
+        this.state.backlogItems[id] = [];
+        this.state.completedTasks[id] = [];
+      });
+      localStorage.removeItem('cs_triage_items');
+      ['dados', 'operacoes', 'rpa'].forEach(id => {
+        localStorage.removeItem(`cs_backlog_${id}`);
+        localStorage.removeItem(`cs_completed_${id}`);
+      });
+      this.saveState();
+      alert('Quadros limpos com sucesso! Agora clique em "🔄 Atualizar cards do Jira" para importar as solicitações atualizadas do GAU.');
+    }
+  },
+
   // Disparar sincronização com o Jira via JiraSyncEngine
   async triggerJiraSync() {
     const btn = document.getElementById('btn-sync-jira');

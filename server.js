@@ -23,13 +23,29 @@ app.use((req, res, next) => {
 
 app.use(express.static(__dirname));
 
-// Proxy para consultar cards do Jira Cloud (com SSL bypass se necessário)
+// Parser para o formato ADF (Atlassian Document Format) do Jira v3
+function parseADFDescription(doc) {
+  if (!doc) return 'Sem descrição';
+  if (typeof doc === 'string') return doc;
+  if (doc.type === 'doc' && Array.isArray(doc.content)) {
+    let texts = [];
+    function traverse(node) {
+      if (node.type === 'text' && node.text) texts.push(node.text);
+      if (Array.isArray(node.content)) node.content.forEach(traverse);
+    }
+    doc.content.forEach(traverse);
+    return texts.join(' ') || 'Sem descrição';
+  }
+  return 'Sem descrição';
+}
+
+// Proxy para consultar cards do Jira Cloud em tempo real
 app.get('/api/jira/consultar-cards-jira', async (req, res) => {
   try {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
     const domain = process.env.JIRA_DOMAIN || 'naturapay.atlassian.net';
-    const email = process.env.JIRA_EMAIL || '';
+    const email = process.env.JIRA_EMAIL || 'lucas.machiori.nt@naturapay.net';
     const token = process.env.JIRA_API_TOKEN || '';
 
     if (!email || !token) {
@@ -38,7 +54,7 @@ app.get('/api/jira/consultar-cards-jira', async (req, res) => {
 
     const authHeader = 'Basic ' + Buffer.from(`${email}:${token}`).toString('base64');
     const jqlQuery = encodeURIComponent('project = GAU ORDER BY created DESC');
-    const jiraUrl = `https://${domain}/rest/api/3/search/jql?jql=${jqlQuery}&maxResults=100`;
+    const jiraUrl = `https://${domain}/rest/api/3/search/jql?jql=${jqlQuery}&fields=*all&maxResults=100`;
 
     const response = await fetch(jiraUrl, {
       method: 'GET',
@@ -61,7 +77,7 @@ app.get('/api/jira/consultar-cards-jira', async (req, res) => {
       const fields = issue.fields || {};
       const statusName = fields.status?.name || 'Aberto';
       const catStatus = fields.status?.statusCategory?.name || 'To Do';
-      const summary = fields.summary || 'Demanda sem título';
+      const summary = fields.summary || 'Demanda do Jira';
       const reporter = fields.reporter?.displayName || 'Solicitante Jira';
 
       let squadName = 'Squad de Dados';
@@ -80,10 +96,11 @@ app.get('/api/jira/consultar-cards-jira', async (req, res) => {
         requester: reporter,
         priority: fields.priority?.name || '2 - Alta',
         category: 'Geral',
-        description: typeof fields.description === 'string' ? fields.description : 'Importado via API REST do Jira'
+        description: parseADFDescription(fields.description)
       };
     });
 
+    console.log(`[Jira Proxy] ${cards.length} cards reais obtidos do espaço GAU com sucesso.`);
     return res.json({ success: true, count: cards.length, cards });
   } catch (err) {
     console.error('Erro no Proxy Jira:', err);
