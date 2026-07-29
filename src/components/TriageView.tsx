@@ -29,6 +29,9 @@ interface TriageViewProps {
   onOpenJiraHub: () => void;
   onSimulateIncomingJira: () => void;
   onSyncJiraCards?: () => void;
+  isSyncingJira?: boolean;
+  lastJiraSyncTime?: string;
+  syncNotification?: string | null;
 }
 
 export default function TriageView({
@@ -37,7 +40,10 @@ export default function TriageView({
   onRejectTriage,
   onOpenJiraHub,
   onSimulateIncomingJira,
-  onSyncJiraCards
+  onSyncJiraCards,
+  isSyncingJira = false,
+  lastJiraSyncTime = '--:--:--',
+  syncNotification
 }: TriageViewProps) {
   const [filterStatus, setFilterStatus] = useState<'all' | 'Pendente' | 'Triado' | 'Rejeitado'>('Pendente');
   const [searchTerm, setSearchTerm] = useState('');
@@ -117,18 +123,33 @@ export default function TriageView({
           </div>
 
           {onSyncJiraCards && (
-            <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
+            <div className="flex flex-col items-end gap-1.5 shrink-0">
               <button
                 onClick={onSyncJiraCards}
-                className="px-4 py-2.5 bg-[#004D36] hover:bg-[#003B27] text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-2 cursor-pointer"
-                title="Sincronizar novos cards e atualizar movimentações"
+                disabled={isSyncingJira}
+                className={`px-4 py-2.5 bg-[#004D36] hover:bg-[#003B27] disabled:opacity-80 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-2 cursor-pointer ${
+                  isSyncingJira ? 'ring-2 ring-[#00B074]/50' : ''
+                }`}
+                title="Sincronizar novos cards do Jira via Edge Function ou Simulador"
               >
-                <RotateCcw size={15} className="text-[#00B074]" />
-                <span>🔄 Atualizar cards do Jira</span>
+                <RotateCcw size={15} className={`text-[#00B074] ${isSyncingJira ? 'animate-spin text-amber-400' : ''}`} />
+                <span>{isSyncingJira ? 'Atualizando cards...' : '🔄 Atualizar cards do Jira'}</span>
               </button>
+              <div className="text-[11px] font-semibold text-slate-500 flex items-center gap-1">
+                <Clock size={12} className="text-[#00B074]" />
+                <span>Última consulta: <strong className="text-slate-800">{lastJiraSyncTime}</strong></span>
+              </div>
             </div>
           )}
         </div>
+
+        {/* NOTIFICATION TOAST BANNER */}
+        {syncNotification && (
+          <div className="mt-4 p-3 bg-[#004D36]/10 border border-[#004D36]/30 rounded-2xl flex items-center gap-3 text-xs text-[#004D36] font-medium animate-scale-up">
+            <Sparkles size={16} className="text-[#00B074] shrink-0" />
+            <span className="flex-1">{syncNotification}</span>
+          </div>
+        )}
 
         {/* METRICS ROW */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 pt-6 border-t border-slate-100">
