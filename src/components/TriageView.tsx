@@ -117,14 +117,14 @@ export default function TriageView({
           </div>
 
           {onSyncJiraCards && (
-            <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
               <button
                 onClick={onSyncJiraCards}
                 className="px-4 py-2.5 bg-[#004D36] hover:bg-[#003B27] text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-2 cursor-pointer"
-                title="Sincronizar novos cards e atualizar movimentações mantendo o histórico de trabalho"
+                title="Sincronizar novos cards e atualizar movimentações"
               >
                 <RotateCcw size={15} className="text-[#00B074]" />
-                <span>Sincronizar com Jira</span>
+                <span>🔄 Atualizar cards do Jira</span>
               </button>
             </div>
           )}

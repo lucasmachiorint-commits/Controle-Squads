@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from './lib/supabase';
 import { Resource, Task, DpoMeetingLog, CompletedTask, BacklogItem, SquadId, TriageItem } from './types';
 import { 
   SQUADS_CONFIG, 
@@ -471,257 +472,260 @@ export default function App() {
     return 'Squad de RPA';
   };
 
-  // Função para processar e sincronizar cards recebidos da Supabase Edge Function consultar-cards-jira
-  // INCREMENTAL E NÃO DESTRUTIVA: Preserva todos os dados locais, adiciona novos cards do Jira e atualiza movimentações sem apagar histórico
-  const processConsultarCardsJira = React.useCallback((cards: any[]) => {
-    if (!Array.isArray(cards)) return;
+  // Estados e sincronizador proativo via Supabase Edge Function 'consultar-cards-jira'
+  const [isSyncingJira, setIsSyncingJira] = useState(false);
+  const [lastJiraSyncTime, setLastJiraSyncTime] = useState<string>(() => {
+    return localStorage.getItem('last_jira_sync_time') || '--:--:--';
+  });
 
-    // 1. Carregar itens atuais preservando o histórico existente no LocalStorage / State
-    let curTriage: TriageItem[] = [];
-    const savedTriage = localStorage.getItem('jira_triage_items');
-    if (savedTriage) {
-      try { curTriage = JSON.parse(savedTriage); } catch (e) { curTriage = []; }
-    }
-    if (!curTriage || curTriage.length === 0) {
-      curTriage = [...triageItems];
-    }
+  const sincronizarFilaJira = React.useCallback(async () => {
+    setIsSyncingJira(true);
+    let cards: any[] = [];
 
-    const getSavedBacklog = (sqId: SquadId): BacklogItem[] => {
-      const saved = localStorage.getItem(`squad_${sqId}_backlog_items`) || (sqId === 'dados' ? localStorage.getItem('squad_backlog_items') : null);
-      if (saved) {
-        try { return JSON.parse(saved); } catch (e) {}
+    try {
+      // 1. Invocar Supabase Edge Function 'consultar-cards-jira'
+      const { data, error } = await supabase.functions.invoke('consultar-cards-jira');
+      if (!error && data) {
+        cards = data.cards || data.data || (Array.isArray(data) ? data : []);
+      } else {
+        if (error) console.warn('Supabase edge function invoke notice:', error);
+        // Fallback local caso o Supabase não esteja provisionado
+        const edgeUrl = localStorage.getItem('supabase_edge_function_url') || '/api/jira/consultar-cards-jira';
+        const res = await fetch(edgeUrl);
+        if (res.ok) {
+          const json = await res.json();
+          cards = json.cards || json.data || [];
+        }
       }
-      if (sqId === 'dados') return initialBacklogItems;
-      return [];
-    };
-
-    let curDadosBacklog = getSavedBacklog('dados');
-    let curOperacoesBacklog = getSavedBacklog('operacoes');
-    let curRpaBacklog = getSavedBacklog('rpa');
-
-    const getSavedCompleted = (sqId: SquadId): CompletedTask[] => {
-      const saved = localStorage.getItem(`squad_${sqId}_completed_tasks`) || (sqId === 'dados' ? localStorage.getItem('squad_completed_tasks') : null);
-      if (saved) {
-        try { return JSON.parse(saved); } catch (e) {}
+    } catch (err) {
+      console.warn('Erro ao chamar Supabase Edge Function, tentando fallback local:', err);
+      try {
+        const edgeUrl = localStorage.getItem('supabase_edge_function_url') || '/api/jira/consultar-cards-jira';
+        const res = await fetch(edgeUrl);
+        if (res.ok) {
+          const json = await res.json();
+          cards = json.cards || json.data || [];
+        }
+      } catch (e) {
+        console.error('Falha em todas as tentativas de consulta ao Jira:', e);
       }
-      if (sqId === 'dados') return initialCompletedTasks;
-      return [];
-    };
+    }
 
-    let curDadosCompleted = getSavedCompleted('dados');
-    let curOperacoesCompleted = getSavedCompleted('operacoes');
-    let curRpaCompleted = getSavedCompleted('rpa');
+    // 2. Limpar todas as colunas/filas antes de repovoar e aplicar as regras estritas de De/Para
+    const newTriageItems: TriageItem[] = [];
+    const newDadosBacklog: BacklogItem[] = [];
+    const newOperacoesBacklog: BacklogItem[] = [];
+    const newRpaBacklog: BacklogItem[] = [];
 
-    cards.forEach((card: any, index: number) => {
-      const rawStatus = (card.status || card.fields?.status?.name || '').toString().trim();
-      const rawCategoriaStatus = (card.categoriaStatus || card.fields?.status?.statusCategory?.name || '').toString().trim();
-      const rawSquad = (card.squad || card.squadTarget || card.fields?.customfield_squad || '').toString().trim();
-      const jiraKey = card.key || card.jiraKey || card.id || `KAN-${100 + index}`;
-      const summary = card.summary || card.title || card.nome || 'Demanda do Jira';
-      const description = card.description || card.descricao || card.notes || 'Sincronizado da Edge Function consultar-cards-jira';
-      const requester = card.requester || card.requesterName || card.solicitante || 'Solicitante Jira';
-      const nowStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const newDadosCompleted: CompletedTask[] = [];
+    const newOperacoesCompleted: CompletedTask[] = [];
+    const newRpaCompleted: CompletedTask[] = [];
 
-      const statusLower = rawStatus.toLowerCase();
-      const categoriaLower = rawCategoriaStatus.toLowerCase();
-      const squadId = parseSquadIdFromCard(rawSquad);
-      const squadName = parseSquadNameFromCard(rawSquad);
+    if (Array.isArray(cards)) {
+      cards.forEach((card: any, idx: number) => {
+        const rawStatus = (card.status || card.fields?.status?.name || '').toString().trim();
+        const rawCatStatus = (card.categoriaStatus || card.fields?.status?.statusCategory?.name || '').toString().trim();
+        const rawSquad = (card.squad || card.squadTarget || card.fields?.customfield_squad || '').toString().trim();
 
-      const isDone = (
-        statusLower === 'concluído' ||
-        statusLower === 'concluido' ||
-        statusLower === 'finalizado' ||
-        statusLower === 'done' ||
-        categoriaLower === 'done'
-      );
+        const statusLower = rawStatus.toLowerCase();
+        const catStatusLower = rawCatStatus.toLowerCase();
+        const squadLower = rawSquad.toLowerCase();
 
-      const isOpenTriage = (
-        statusLower === 'aberto' ||
-        statusLower === 'triagem' ||
-        statusLower === 'pendente' ||
-        statusLower === 'to do'
-      );
+        const jiraKey = card.key || card.jiraKey || card.id || `JIRA-${100 + idx}`;
+        const title = card.title || card.summary || card.nome || 'Demanda do Jira';
+        const description = card.description || card.descricao || card.notes || 'Sincronizado da Edge Function consultar-cards-jira';
+        const requester = card.requester || card.reporter || card.solicitante || 'Solicitante Jira';
 
-      // CASO 1: CARD CONCLUÍDO NO JIRA
-      if (isDone) {
-        // Remover da mesa de triagem se ainda estiver lá
-        curTriage = curTriage.filter(t => t.jiraKey !== jiraKey);
+        // REGRA DE/PARA 1: Fila 'Aberto' ➔ status === 'Aberto' ou 'Triagem'
+        if (statusLower === 'aberto' || statusLower === 'triagem') {
+          let suggested: SquadId = 'dados';
+          if (
+            squadLower === 'squad de operações' ||
+            squadLower === 'squad de operacoes' ||
+            squadLower === 'operacoes' ||
+            squadLower.includes('operaç') ||
+            squadLower.includes('operac')
+          ) {
+            suggested = 'operacoes';
+          } else if (
+            squadLower === 'squad de rpa' ||
+            squadLower === 'rpa' ||
+            squadLower.includes('rpa')
+          ) {
+            suggested = 'rpa';
+          }
 
-        // Remover dos backlogs se ainda estiver lá (transição para concluídos)
-        curDadosBacklog = curDadosBacklog.filter(b => b.gau !== jiraKey && b.jiraMetadata?.jiraKey !== jiraKey);
-        curOperacoesBacklog = curOperacoesBacklog.filter(b => b.gau !== jiraKey && b.jiraMetadata?.jiraKey !== jiraKey);
-        curRpaBacklog = curRpaBacklog.filter(b => b.gau !== jiraKey && b.jiraMetadata?.jiraKey !== jiraKey);
+          newTriageItems.push({
+            id: card.id || `triage-${jiraKey}`,
+            jiraKey,
+            jiraUrl: card.jiraUrl || `https://jira.empresa.com/browse/${jiraKey}`,
+            title,
+            description,
+            requesterName: requester,
+            requesterEmail: card.requesterEmail || 'solicitante@empresa.com',
+            requesterArea: card.requesterArea || 'Área Demandante',
+            issueType: card.issueType || 'Triagem Jira',
+            priority: card.priority || '2 - Alta',
+            category: card.category || 'Geral',
+            suggestedSquad: suggested,
+            createdAt: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            status: 'Pendente'
+          });
+        }
+        // REGRA DE/PARA 3: Fila 'Concluídos' ➔ status === 'Concluído', 'Finalizado' ou categoriaStatus === 'Done'
+        else if (
+          statusLower === 'concluído' ||
+          statusLower === 'concluido' ||
+          statusLower === 'finalizado' ||
+          catStatusLower === 'done'
+        ) {
+          let targetSquadId: SquadId = 'dados';
+          let squadName = 'Squad de Dados';
 
-        // Adicionar aos Concluídos sem duplicar e sem apagar o histórico existente
-        let targetCompletedList = squadId === 'dados' ? curDadosCompleted : squadId === 'operacoes' ? curOperacoesCompleted : curRpaCompleted;
-        const alreadyInCompleted = targetCompletedList.some(c => c.taskTitle.includes(jiraKey) || c.id.includes(jiraKey));
+          if (
+            squadLower === 'squad de operações' ||
+            squadLower === 'squad de operacoes' ||
+            squadLower === 'operacoes' ||
+            squadLower.includes('operaç') ||
+            squadLower.includes('operac')
+          ) {
+            targetSquadId = 'operacoes';
+            squadName = 'Squad de Operações';
+          } else if (
+            squadLower === 'squad de rpa' ||
+            squadLower === 'rpa' ||
+            squadLower.includes('rpa')
+          ) {
+            targetSquadId = 'rpa';
+            squadName = 'Squad de RPA';
+          }
 
-        if (!alreadyInCompleted) {
-          const newCompleted: CompletedTask = {
-            id: `comp-jira-${jiraKey}-${Date.now()}`,
-            taskTitle: `${summary} (${jiraKey})`,
+          const completedTask: CompletedTask = {
+            id: card.id || `completed-${jiraKey}`,
+            taskTitle: `${title} (${jiraKey})`,
             taskDescription: description,
             area: 'Geral',
             completedBy: squadName,
             resourceId: 'jira-sync',
             dueDate: card.dueDate || new Date().toISOString().split('T')[0],
             completionDate: card.completionDate || new Date().toISOString().split('T')[0],
-            gains: 'Sincronizado e concluído via Supabase Edge Function consultar-cards-jira',
-            requesterArea: card.requesterArea || 'Atendimento Jira'
+            gains: 'Concluído via sincronização com Supabase Edge Function consultar-cards-jira',
+            requesterArea: card.requesterArea || requester
           };
-          if (squadId === 'dados') curDadosCompleted = [newCompleted, ...curDadosCompleted];
-          else if (squadId === 'operacoes') curOperacoesCompleted = [newCompleted, ...curOperacoesCompleted];
-          else if (squadId === 'rpa') curRpaCompleted = [newCompleted, ...curRpaCompleted];
+
+          if (targetSquadId === 'dados') newDadosCompleted.push(completedTask);
+          else if (targetSquadId === 'operacoes') newOperacoesCompleted.push(completedTask);
+          else if (targetSquadId === 'rpa') newRpaCompleted.push(completedTask);
         }
-        return;
-      }
+        // REGRA DE/PARA 2: Filas de Squads ('Aguardando Squads' / 'Em Andamento')
+        else {
+          let itemStatus: BacklogItem['status'] = 'Em Andamento';
+          if (statusLower.includes('pausad')) itemStatus = 'Pausado';
+          else if (statusLower.includes('impedid')) itemStatus = 'Impedido';
+          else if (statusLower.includes('aguardando') || statusLower.includes('pendente')) itemStatus = 'Pendente';
 
-      // CASO 2: CARD ABERTO / TRIAGEM NO JIRA
-      if (isOpenTriage) {
-        const inCompleted = (
-          curDadosCompleted.some(c => c.taskTitle.includes(jiraKey)) ||
-          curOperacoesCompleted.some(c => c.taskTitle.includes(jiraKey)) ||
-          curRpaCompleted.some(c => c.taskTitle.includes(jiraKey))
-        );
-        const inBacklog = (
-          curDadosBacklog.some(b => b.gau === jiraKey || b.jiraMetadata?.jiraKey === jiraKey) ||
-          curOperacoesBacklog.some(b => b.gau === jiraKey || b.jiraMetadata?.jiraKey === jiraKey) ||
-          curRpaBacklog.some(b => b.gau === jiraKey || b.jiraMetadata?.jiraKey === jiraKey)
-        );
+          let squadName = 'Squad de Dados';
+          let targetSquadId: SquadId = 'dados';
 
-        // Se o card ainda não foi nem triado nem concluído, mantemos ou adicionamos na triagem
-        if (!inCompleted && !inBacklog) {
-          const existingTriageIdx = curTriage.findIndex(t => t.jiraKey === jiraKey);
-          if (existingTriageIdx >= 0) {
-            curTriage[existingTriageIdx] = {
-              ...curTriage[existingTriageIdx],
-              title: summary,
-              description: description || curTriage[existingTriageIdx].description,
-              requesterName: requester || curTriage[existingTriageIdx].requesterName,
-              priority: (card.priority as any) || curTriage[existingTriageIdx].priority
-            };
-          } else {
-            curTriage.unshift({
-              id: `triage-${jiraKey}-${Date.now()}`,
+          if (
+            squadLower === 'squad de operações' ||
+            squadLower === 'squad de operacoes' ||
+            squadLower === 'operacoes' ||
+            squadLower.includes('operaç') ||
+            squadLower.includes('operac')
+          ) {
+            squadName = 'Squad de Operações';
+            targetSquadId = 'operacoes';
+          } else if (
+            squadLower === 'squad de rpa' ||
+            squadLower === 'rpa' ||
+            squadLower.includes('rpa')
+          ) {
+            squadName = 'Squad de RPA';
+            targetSquadId = 'rpa';
+          }
+
+          const backlogItem: BacklogItem = {
+            id: card.id || `backlog-${jiraKey}`,
+            gau: jiraKey,
+            title,
+            notes: description,
+            requesterArea: card.requesterArea || requester,
+            requester,
+            team: squadName,
+            date: card.dueDate || card.date || new Date().toISOString().split('T')[0],
+            dueDate: card.dueDate || card.date || new Date().toISOString().split('T')[0],
+            priority: card.priority || '2 - Alta',
+            category: card.category || 'Processos',
+            treatmentOrder: idx + 1,
+            status: itemStatus,
+            progress: typeof card.progress === 'number' ? card.progress : (itemStatus === 'Em Andamento' ? 50 : 0),
+            jiraMetadata: {
               jiraKey,
               jiraUrl: card.jiraUrl || `https://jira.empresa.com/browse/${jiraKey}`,
-              title: summary,
-              description,
-              requesterName: requester,
-              requesterEmail: card.requesterEmail || 'solicitante@empresa.com',
-              requesterArea: card.requesterArea || 'Área Solicitante',
-              issueType: card.issueType || 'Formulário Jira',
-              priority: (card.priority as any) || '2 - Alta',
-              category: (card.category as any) || 'Automação',
-              suggestedSquad: squadId,
-              createdAt: nowStr,
-              status: 'Pendente'
-            });
-          }
-        }
-        return;
-      }
-
-      // CASO 3: CARD EM ANDAMENTO / SQUAD NO JIRA
-      curTriage = curTriage.filter(t => t.jiraKey !== jiraKey);
-
-      const inCompleted = (
-        curDadosCompleted.some(c => c.taskTitle.includes(jiraKey)) ||
-        curOperacoesCompleted.some(c => c.taskTitle.includes(jiraKey)) ||
-        curRpaCompleted.some(c => c.taskTitle.includes(jiraKey))
-      );
-
-      if (!inCompleted) {
-        let targetBacklog = squadId === 'dados' ? [...curDadosBacklog] : squadId === 'operacoes' ? [...curOperacoesBacklog] : [...curRpaBacklog];
-        const existingIdx = targetBacklog.findIndex(b => b.gau === jiraKey || b.jiraMetadata?.jiraKey === jiraKey);
-
-        if (existingIdx >= 0) {
-          targetBacklog[existingIdx] = {
-            ...targetBacklog[existingIdx],
-            title: summary,
-            notes: description || targetBacklog[existingIdx].notes,
-            requester: requester || targetBacklog[existingIdx].requester,
-            jiraMetadata: {
-              ...targetBacklog[existingIdx].jiraMetadata,
-              jiraStatus: rawStatus,
-              jiraKey
-            }
-          };
-        } else {
-          targetBacklog.unshift({
-            id: `backlog-jira-${jiraKey}-${Date.now()}`,
-            gau: jiraKey,
-            title: summary,
-            requester: requester,
-            team: squadName,
-            date: card.date || new Date().toISOString().split('T')[0],
-            priority: (card.priority as any) || '2 - Alta',
-            category: (card.category as any) || 'Dashboard',
-            treatmentOrder: targetBacklog.length + 1,
-            status: 'Pendente',
-            notes: description,
-            jiraMetadata: {
-              jiraKey,
-              jiraUrl: `https://jira.empresa.com/browse/${jiraKey}`,
               reporterName: requester,
               jiraStatus: rawStatus || 'Em Andamento',
-              squadTarget: squadId,
-              receivedAt: nowStr
+              squadTarget: targetSquadId,
+              receivedAt: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
             }
-          });
+          };
+
+          if (targetSquadId === 'dados') newDadosBacklog.push(backlogItem);
+          else if (targetSquadId === 'operacoes') newOperacoesBacklog.push(backlogItem);
+          else if (targetSquadId === 'rpa') newRpaBacklog.push(backlogItem);
         }
+      });
+    }
 
-        if (squadId === 'dados') curDadosBacklog = targetBacklog;
-        else if (squadId === 'operacoes') curOperacoesBacklog = targetBacklog;
-        else if (squadId === 'rpa') curRpaBacklog = targetBacklog;
-      }
-    });
+    // Limpar e repovoar estado no LocalStorage
+    saveTriageState(newTriageItems);
 
-    // SALVAR PERSISTENTEMENTE MANTENDO TODO O HISTÓRICO LOCAL
-    setTriageItems(curTriage);
-    localStorage.setItem('jira_triage_items', JSON.stringify(curTriage));
+    localStorage.setItem('squad_dados_backlog_items', JSON.stringify(newDadosBacklog));
+    localStorage.setItem('squad_operacoes_backlog_items', JSON.stringify(newOperacoesBacklog));
+    localStorage.setItem('squad_rpa_backlog_items', JSON.stringify(newRpaBacklog));
 
-    localStorage.setItem('squad_dados_backlog_items', JSON.stringify(curDadosBacklog));
-    localStorage.setItem('squad_operacoes_backlog_items', JSON.stringify(curOperacoesBacklog));
-    localStorage.setItem('squad_rpa_backlog_items', JSON.stringify(curRpaBacklog));
+    localStorage.setItem('squad_dados_completed_tasks', JSON.stringify(newDadosCompleted));
+    localStorage.setItem('squad_operacoes_completed_tasks', JSON.stringify(newOperacoesCompleted));
+    localStorage.setItem('squad_rpa_completed_tasks', JSON.stringify(newRpaCompleted));
 
-    localStorage.setItem('squad_dados_completed_tasks', JSON.stringify(curDadosCompleted));
-    localStorage.setItem('squad_operacoes_completed_tasks', JSON.stringify(curOperacoesCompleted));
-    localStorage.setItem('squad_rpa_completed_tasks', JSON.stringify(curRpaCompleted));
-
+    // Atualizar estado da squad ativa no momento
     if (currentSquadId === 'dados') {
-      setBacklogItems(curDadosBacklog);
-      setCompletedTasks(curDadosCompleted);
+      setBacklogItems(newDadosBacklog);
+      setCompletedTasks(newDadosCompleted);
     } else if (currentSquadId === 'operacoes') {
-      setBacklogItems(curOperacoesBacklog);
-      setCompletedTasks(curOperacoesCompleted);
+      setBacklogItems(newOperacoesBacklog);
+      setCompletedTasks(newOperacoesCompleted);
     } else if (currentSquadId === 'rpa') {
-      setBacklogItems(curRpaBacklog);
-      setCompletedTasks(curRpaCompleted);
+      setBacklogItems(newRpaBacklog);
+      setCompletedTasks(newRpaCompleted);
     }
-  }, [currentSquadId, triageItems]);
 
-  // Sincronizador ativo dos cards do Jira via Edge Function / API
-  const handleSyncJiraCards = React.useCallback(async () => {
-    try {
-      const edgeUrl = localStorage.getItem('supabase_edge_function_url') || '/api/jira/consultar-cards-jira';
-      const res = await fetch(edgeUrl);
-      if (res.ok) {
-        const data = await res.json();
-        const cards = data.cards || data.data || (Array.isArray(data) ? data : []);
-        if (Array.isArray(cards)) {
-          processConsultarCardsJira(cards);
-        }
-      }
-    } catch (err) {
-      console.error('Erro na sincronização de cards do Jira:', err);
-    }
-  }, [processConsultarCardsJira]);
+    // Registrar e exibir o horário da última atualização
+    const nowTime = new Date().toLocaleTimeString('pt-BR');
+    setLastJiraSyncTime(nowTime);
+    localStorage.setItem('last_jira_sync_time', nowTime);
 
-  // Sincronizar filas automaticamente no carregamento inicial da aplicação
+    setIsSyncingJira(false);
+  }, [currentSquadId]);
+
+  // Executar no evento DOMContentLoaded e no carregamento da página
   useEffect(() => {
-    handleSyncJiraCards();
-  }, [handleSyncJiraCards]);
+    (window as any).sincronizarFilaJira = sincronizarFilaJira;
+
+    const handleDOMContentLoaded = () => {
+      sincronizarFilaJira();
+    };
+
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', handleDOMContentLoaded);
+    } else {
+      sincronizarFilaJira();
+    }
+
+    return () => {
+      window.removeEventListener('DOMContentLoaded', handleDOMContentLoaded);
+    };
+  }, [sincronizarFilaJira]);
 
   // Real-time Poller for Jira Events from backend
   useEffect(() => {
@@ -1360,7 +1364,30 @@ export default function App() {
                 </div>
 
                 {/* Core Interactive Meeting Switcher */}
-                <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto justify-end">
+                  {/* Botão de Atualização do Jira + Horário da Última Atualização */}
+                  <div className="flex flex-col sm:flex-row items-center gap-2">
+                    <button
+                      id="btnAtualizarJira"
+                      onClick={sincronizarFilaJira}
+                      disabled={isSyncingJira}
+                      className="w-full sm:w-auto px-4 py-2.5 bg-[#004D36] hover:bg-[#003B27] disabled:bg-slate-400 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed shrink-0"
+                      title="Sincronizar e consultar cards do Jira via Supabase Edge Function"
+                    >
+                      {isSyncingJira ? (
+                        <>
+                          <span className="animate-spin text-white">🔄</span>
+                          <span>Carregando...</span>
+                        </>
+                      ) : (
+                        <span>🔄 Atualizar cards do Jira</span>
+                      )}
+                    </button>
+                    <span id="lastJiraSyncTime" className="text-xs text-slate-600 font-semibold whitespace-nowrap">
+                      Última atualização: {lastJiraSyncTime}
+                    </span>
+                  </div>
+
                   <button
                     onClick={() => setIsClearModalOpen(true)}
                     className="w-full sm:w-auto px-3.5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5"
@@ -1475,7 +1502,7 @@ export default function App() {
                 onRejectTriage={handleRejectTriage}
                 onOpenJiraHub={() => setIsJiraHubOpen(true)}
                 onSimulateIncomingJira={() => setIsJiraHubOpen(true)}
-                onSyncJiraCards={handleSyncJiraCards}
+                onSyncJiraCards={sincronizarFilaJira}
               />
             ) : activeTab === 'dashboard' ? (
               <MultiSquadDashboard 
@@ -1797,7 +1824,7 @@ export default function App() {
         isOpen={isJiraHubOpen}
         onClose={() => setIsJiraHubOpen(false)}
         onTriggerSimulatedWebhook={handleTriggerSimulatedWebhook}
-        onConsultarCardsJira={processConsultarCardsJira}
+        onConsultarCardsJira={sincronizarFilaJira}
       />
 
       {/* 6. PRINT PDF REPORT VIEW */}
