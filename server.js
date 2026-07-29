@@ -39,7 +39,7 @@ function parseADFDescription(doc) {
   return 'Sem descrição';
 }
 
-// Proxy para consultar cards do Jira Cloud em tempo real com paginação completa
+// Proxy para consultar cards do Jira Cloud em tempo real com paginação nextPageToken (100% dos chamados)
 app.get('/api/jira/consultar-cards-jira', async (req, res) => {
   try {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -54,14 +54,16 @@ app.get('/api/jira/consultar-cards-jira', async (req, res) => {
 
     const authHeader = 'Basic ' + Buffer.from(`${email}:${token}`).toString('base64');
     
-    let startAt = 0;
-    let maxResults = 100;
     let allIssues = [];
+    let nextPageToken = null;
 
-    // Paginação para buscar todos os chamados do Jira
+    // Paginação baseada em nextPageToken (exigida pela API REST v3 do Jira Cloud) sem limite de 100 itens
     while (true) {
       const jqlQuery = encodeURIComponent('project = GAU ORDER BY created DESC');
-      const jiraUrl = `https://${domain}/rest/api/3/search/jql?jql=${jqlQuery}&fields=*all&startAt=${startAt}&maxResults=${maxResults}`;
+      let jiraUrl = `https://${domain}/rest/api/3/search/jql?jql=${jqlQuery}&fields=*all&maxResults=100`;
+      if (nextPageToken) {
+        jiraUrl += `&nextPageToken=${encodeURIComponent(nextPageToken)}`;
+      }
 
       const response = await fetch(jiraUrl, {
         method: 'GET',
@@ -82,8 +84,9 @@ app.get('/api/jira/consultar-cards-jira', async (req, res) => {
       if (!issues.length) break;
 
       allIssues = allIssues.concat(issues);
-      startAt += issues.length;
-      if (allIssues.length >= (json.total || 0) || issues.length < maxResults) break;
+      
+      if (json.isLast || !json.nextPageToken) break;
+      nextPageToken = json.nextPageToken;
     }
 
     const cards = allIssues.map((issue, idx) => {
@@ -136,7 +139,7 @@ app.get('/api/jira/consultar-cards-jira', async (req, res) => {
       };
     });
 
-    console.log(`[Jira Proxy] ${cards.length} cards reais obtidos do espaço GAU com sucesso.`);
+    console.log(`[Jira Proxy] ${cards.length} cards reais obtidos do espaço GAU com sucesso via nextPageToken.`);
     return res.json({ success: true, count: cards.length, cards });
   } catch (err) {
     console.error('Erro no Proxy Jira:', err);
