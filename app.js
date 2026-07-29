@@ -268,15 +268,18 @@ const app = {
   // Disparar sincronização com o Jira via JiraSyncEngine
   async triggerJiraSync() {
     const btn = document.getElementById('btn-sync-jira');
-    const icon = document.getElementById('icon-sync-spin');
+    const icon = document.getElementById('icon-spin-jira');
+    const statusTxt = document.getElementById('sync-status-txt');
     
     if (btn) btn.disabled = true;
     if (icon) icon.classList.add('fa-spin');
+    if (statusTxt) statusTxt.textContent = 'Sincronizando com Jira Cloud...';
 
     const result = await JiraSyncEngine.syncJiraCards(this.state, () => this.saveState());
 
     if (btn) btn.disabled = false;
     if (icon) icon.classList.remove('fa-spin');
+    if (statusTxt) statusTxt.textContent = 'Sincronização concluída';
 
     // Toast Feedback
     const toast = document.getElementById('sync-toast-banner');
@@ -294,7 +297,7 @@ const app = {
     }
   },
 
-  // RENDER: Mesa de Triagem
+  // RENDER: Mesa de Triagem (Resumido & Consultivo com Pop-up de Detalhes)
   renderTriageView() {
     const container = document.getElementById('triage-cards-container');
     if (!container) return;
@@ -305,48 +308,81 @@ const app = {
       const matchSearch = !searchTerm || 
         i.title.toLowerCase().includes(searchTerm) || 
         i.jiraKey.toLowerCase().includes(searchTerm) ||
-        i.requesterName.toLowerCase().includes(searchTerm);
+        (i.requesterName || '').toLowerCase().includes(searchTerm);
       return matchSearch;
     });
 
-    // Atualizar cards de métricas
-    document.getElementById('metric-triage-pending').textContent = this.state.triageItems.filter(i => i.status === 'Pendente').length;
-    document.getElementById('metric-triage-triaged').textContent = this.state.triageItems.filter(i => i.status === 'Triado').length;
-    document.getElementById('metric-triage-rejected').textContent = this.state.triageItems.filter(i => i.status === 'Rejeitado').length;
+    // Atualizar métricas (1 linha: Aguardando Triagem e Triados)
+    const pendingCount = this.state.triageItems.filter(i => i.status === 'Pendente' || i.status === 'Aberto' || i.status === 'Backlog').length;
+    const triagedCount = this.state.triageItems.filter(i => i.status === 'Triado' || i.status === 'Aguardando Squad').length;
+
+    const elPending = document.getElementById('metric-triage-pending');
+    const elTriaged = document.getElementById('metric-triage-triaged');
+    if (elPending) elPending.textContent = pendingCount;
+    if (elTriaged) elTriaged.textContent = triagedCount;
 
     if (pendingItems.length === 0) {
       container.innerHTML = `
-        <div class="col-span-full text-center py-12 text-slate-400">
-          <i class="fa-solid fa-inbox text-4xl mb-3 text-slate-600"></i>
+        <div class="glass-panel p-8 text-center text-slate-400">
+          <i class="fa-solid fa-inbox text-3xl mb-2 text-slate-600"></i>
           <p class="font-semibold text-sm">Nenhuma solicitação pendente na fila de Triagem.</p>
-          <p class="text-xs text-slate-500 mt-1">Clique no botão "🔄 Atualizar cards do Jira" acima para puxar novas solicitações do Jira Cloud.</p>
+          <p class="text-xs text-slate-500 mt-1">Clique no botão "🔄 Sincronizar com Jira" no topo da página para atualizar os chamados.</p>
         </div>
       `;
       return;
     }
 
+    // Renderizar cards resumidos sem blocos enormes de texto e sem linhas vazias abaixo
     container.innerHTML = pendingItems.map(item => `
-      <div class="glass-panel p-5 flex flex-col justify-between" style="border-left: 4px solid var(--color-dados);">
-        <div>
-          <div class="flex items-center justify-between gap-2 mb-2">
-            <span class="font-extrabold text-xs text-emerald-400 tracking-wider">${item.jiraKey}</span>
-            <span class="badge badge-high">${item.priority || '2 - Alta'}</span>
-          </div>
-          <h4 class="text-base font-bold text-white mb-2 leading-snug">${item.title}</h4>
-          <p class="text-xs text-slate-400 mb-4 line-clamp-2">${item.description}</p>
-          
-          <div class="flex items-center gap-2 text-xs text-slate-300 mb-4">
-            <i class="fa-solid fa-user text-slate-500"></i>
-            <span>${item.requesterName}</span>
-          </div>
+      <div class="glass-panel p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:border-emerald-500/40 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          <span class="font-extrabold text-xs text-emerald-400 tracking-wider shrink-0 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">${item.jiraKey}</span>
+          <span class="badge ${item.priority?.includes('1') ? 'badge-urgent' : 'badge-high'} shrink-0">${item.priority || '2 - Alta'}</span>
+          <h4 class="text-sm font-bold text-white truncate flex-1">${item.title}</h4>
         </div>
 
-        <div class="pt-3 border-t border-white/10 flex items-center justify-between text-xs">
-          <span class="text-slate-400"><i class="fa-solid fa-clock me-1 text-amber-400"></i> Fila de Triagem</span>
-          <span class="badge badge-medium"><i class="fa-solid fa-eye me-1"></i> Aguardando Atendimento</span>
+        <div class="flex items-center gap-4 text-xs text-slate-400 shrink-0">
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-user text-slate-500"></i>
+            <span class="text-slate-300 font-medium">${item.requesterName || 'Solicitante Jira'}</span>
+          </div>
+          <button class="btn btn-secondary text-xs py-1 px-3" onclick="event.stopPropagation(); app.openDemandDetailsModal('${item.id}')">
+            <i class="fa-solid fa-up-right-and-down-left-from-center text-emerald-400 me-1"></i> Detalhes
+          </button>
         </div>
       </div>
     `).join('');
+  },
+
+  // Pop-up Modal de Detalhes da Demanda
+  openDemandDetailsModal(itemId) {
+    const item = this.state.triageItems.find(i => i.id === itemId) || 
+                 (this.state.backlogItems.dados || []).find(i => i.id === itemId || i.gau === itemId) ||
+                 (this.state.backlogItems.operacoes || []).find(i => i.id === itemId || i.gau === itemId) ||
+                 (this.state.backlogItems.rpa || []).find(i => i.id === itemId || i.gau === itemId);
+
+    if (!item) return;
+
+    document.getElementById('detail-gau-key').textContent = item.jiraKey || item.gau || 'GAU-000';
+    document.getElementById('detail-priority').textContent = item.priority || '2 - Alta';
+    document.getElementById('detail-title').textContent = item.title;
+    document.getElementById('detail-requester').textContent = item.requesterName || item.requester || 'Solicitante Jira';
+    document.getElementById('detail-status').textContent = item.status || 'Aguardando Triagem';
+    document.getElementById('detail-squad').textContent = item.squad || item.team || 'Mesa de Triagem';
+    
+    const descEl = document.getElementById('detail-description');
+    descEl.textContent = item.description || item.notes || 'Sem descrição fornecida no chamado do Jira.';
+
+    const modal = document.getElementById('modal-demand-details');
+    if (modal) modal.classList.add('open');
+  },
+
+  closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.classList.remove('open');
+      modal.classList.remove('active');
+    }
   },
 
   // Ação: Encaminhar card da Triagem para Squad (com Sincronização Bidirecional no Jira Cloud)
