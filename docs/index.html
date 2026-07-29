@@ -109,18 +109,12 @@
               Sincronize novas solicitações do Jira (projeto GAU), analise a demanda e encaminhe para a Squad responsável.
             </p>
           </div>
-
-          <!-- BOTÕES DE AÇÃO JIRA -->
+                    <!-- BOTÕES DE AÇÃO JIRA (CONSULTIVO) -->
           <div class="flex flex-col items-end gap-2 shrink-0">
-            <div class="flex items-center gap-2">
-              <button class="btn btn-danger text-xs py-2 px-3" onclick="app.clearAllBoards()" title="Limpar todos os cards antigos dos quadros">
-                <i class="fa-solid fa-trash-can"></i> Limpar Quadros
-              </button>
-              <button class="btn btn-primary" id="btn-sync-jira" onclick="app.triggerJiraSync()">
-                <i class="fa-solid fa-rotate-right" id="icon-sync-spin"></i>
-                <span>🔄 Atualizar cards do Jira</span>
-              </button>
-            </div>
+            <button class="btn btn-primary" id="btn-sync-jira" onclick="app.triggerJiraSync()">
+              <i class="fa-solid fa-rotate-right" id="icon-sync-spin"></i>
+              <span>🔄 Sincronizar com Jira</span>
+            </button>
             <span class="text-xs text-slate-400" id="sync-last-time">Última sync: --:--:--</span>
           </div>
         </div>
@@ -131,8 +125,8 @@
         </div>
       </div>
 
-      <!-- METRICS ROW -->
-      <div class="grid-metrics">
+      <!-- METRIC CARDS -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div class="glass-panel metric-card">
           <div>
             <div class="metric-val" id="metric-triage-pending">0</div>
@@ -144,30 +138,31 @@
         <div class="glass-panel metric-card">
           <div>
             <div class="metric-val" id="metric-triage-triaged">0</div>
-            <div class="metric-lbl">Triados & Enviados</div>
+            <div class="metric-lbl">Aguardando Squad</div>
           </div>
-          <div class="metric-icon bg-emerald-500/20 text-emerald-400"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="metric-icon bg-emerald-500/20 text-emerald-400"><i class="fa-solid fa-users-gear"></i></div>
         </div>
 
         <div class="glass-panel metric-card">
           <div>
             <div class="metric-val" id="metric-triage-rejected">0</div>
-            <div class="metric-lbl">Demandas Rejeitadas</div>
+            <div class="metric-lbl">Concluídos / Encerrados</div>
           </div>
-          <div class="metric-icon bg-rose-500/20 text-rose-400"><i class="fa-solid fa-ban"></i></div>
+          <div class="metric-icon bg-rose-500/20 text-rose-400"><i class="fa-solid fa-circle-check"></i></div>
         </div>
       </div>
 
-      <!-- CARDS LIST CONTAINER -->
-      <div class="glass-panel p-6">
-        <div class="flex items-center justify-between mb-6">
+      <!-- TRIAGE CARDS LIST -->
+      <div class="flex flex-col gap-4">
+        <div class="flex items-center justify-between">
           <h3 class="text-lg font-bold text-white">Solicitações na Fila</h3>
-          <div class="flex items-center gap-2">
-            <input type="text" class="form-control" id="search-triage" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderTriageView()" style="width: 260px;">
+          <div class="search-box max-w-xs">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" class="input-field pl-9 py-1.5 text-xs" id="search-triage" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderTriageView()">
           </div>
         </div>
 
-        <div class="grid-cards" id="triage-cards-container">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="triage-cards-container">
           <!-- Dinamicamente gerado via JS -->
         </div>
       </div>
@@ -180,9 +175,9 @@
         <div class="glass-panel metric-card">
           <div>
             <div class="metric-val" id="dash-total-members">0</div>
-            <div class="metric-lbl">Total de Membros</div>
+            <div class="metric-lbl">Total de Chamados</div>
           </div>
-          <div class="metric-icon bg-blue-500/20 text-blue-400"><i class="fa-solid fa-users"></i></div>
+          <div class="metric-icon bg-blue-500/20 text-blue-400"><i class="fa-solid fa-folder-open"></i></div>
         </div>
 
         <div class="glass-panel metric-card">
@@ -206,7 +201,7 @@
             <div class="metric-val" id="dash-total-completed">0</div>
             <div class="metric-lbl">Entregas Concluídas</div>
           </div>
-          <div class="metric-icon bg-purple-500/20 text-purple-400"><i class="fa-solid fa-trophy"></i></div>
+          <div class="metric-icon bg-emerald-500/20 text-emerald-400"><i class="fa-solid fa-circle-check"></i></div>
         </div>
       </div>
 
@@ -240,12 +235,9 @@
 
       <div class="flex items-center justify-between mb-6">
         <div>
-          <h2 class="text-xl font-bold text-white" id="board-squad-title">Quadro de Membros - Squad de Dados</h2>
-          <p class="text-xs text-slate-400" id="board-squad-desc">Distribuição de capacidade (Ops vs Fin) e tarefas ativas</p>
+          <h2 class="text-xl font-bold text-white" id="board-squad-title">Quadro da Squad</h2>
+          <p class="text-xs text-slate-400" id="board-squad-desc">Acompanhamento e monitoramento consultivo de demandas</p>
         </div>
-        <button class="btn btn-primary" id="board-action-btn" onclick="app.openMemberModal()">
-          <i class="fa-solid fa-plus"></i> Novo Membro
-        </button>
       </div>
 
       <div class="grid-cards" id="board-members-container">
@@ -271,14 +263,11 @@
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
           <div>
             <h2 class="text-xl font-bold text-white">Backlog da Squad</h2>
-            <p class="text-xs text-slate-400">Gestão de prioridade e ordem de tratamento (1 a 100)</p>
+            <p class="text-xs text-slate-400">Listagem consultiva de demandas e ordem de tratamento no Jira</p>
           </div>
           <div class="flex items-center gap-2">
             <button class="btn btn-secondary" onclick="app.exportExcel()">
               <i class="fa-solid fa-file-excel text-emerald-400"></i> Exportar Excel
-            </button>
-            <button class="btn btn-primary" onclick="app.openTaskModal()">
-              <i class="fa-solid fa-plus"></i> Nova Demanda
             </button>
           </div>
         </div>
@@ -294,7 +283,6 @@
                 <th>Prioridade</th>
                 <th>Categoria</th>
                 <th>Status</th>
-                <th>Ações</th>
               </tr>
             </thead>
             <tbody id="backlog-table-body">

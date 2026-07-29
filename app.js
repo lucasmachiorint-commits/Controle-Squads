@@ -341,22 +341,9 @@ const app = {
           </div>
         </div>
 
-        <div class="pt-4 border-t border-white/10 flex flex-col gap-2">
-          <span class="text-[11px] font-bold text-slate-400 uppercase">Encaminhar para Squad:</span>
-          <div class="grid grid-cols-3 gap-1.5">
-            <button class="btn btn-secondary text-xs py-1.5 px-2" onclick="app.triageToSquad('${item.id}', 'dados')">
-              <i class="fa-solid fa-database text-emerald-400"></i> Dados
-            </button>
-            <button class="btn btn-secondary text-xs py-1.5 px-2" onclick="app.triageToSquad('${item.id}', 'operacoes')">
-              <i class="fa-solid fa-gears text-orange-400"></i> Ops
-            </button>
-            <button class="btn btn-secondary text-xs py-1.5 px-2" onclick="app.triageToSquad('${item.id}', 'rpa')">
-              <i class="fa-solid fa-robot text-pink-400"></i> RPA
-            </button>
-          </div>
-          <button class="btn btn-danger text-xs py-1 mt-1" onclick="app.rejectTriage('${item.id}')">
-            <i class="fa-solid fa-xmark"></i> Rejeitar
-          </button>
+        <div class="pt-3 border-t border-white/10 flex items-center justify-between text-xs">
+          <span class="text-slate-400"><i class="fa-solid fa-clock me-1 text-amber-400"></i> Fila de Triagem</span>
+          <span class="badge badge-medium"><i class="fa-solid fa-eye me-1"></i> Aguardando Atendimento</span>
         </div>
       </div>
     `).join('');
@@ -529,9 +516,7 @@ const app = {
             <div class="p-3 rounded-lg bg-white/5 border border-white/10">
               <div class="flex items-center justify-between mb-1">
                 <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Próxima Fila:</span>
-                <button class="btn btn-secondary text-[10px] py-0.5 px-2" onclick="app.promoteNextTask('${m.id}')">
-                  <i class="fa-solid fa-arrow-up text-emerald-400"></i> Promover
-                </button>
+                <span class="badge badge-low text-[10px]">Aguardando</span>
               </div>
               <div class="font-semibold text-xs text-slate-300">${m.nextTask.title}</div>
             </div>
@@ -541,12 +526,8 @@ const app = {
     } else {
       // CONTROLE POR DEMANDA (Squad de Operações & Squad de RPA)
       const squadLabel = squadNames[this.activeSquad];
-      if (titleEl) titleEl.textContent = `Controle Por Demanda - ${squadLabel}`;
-      if (descEl) descEl.textContent = 'Acompanhamento contínuo de demandas ativas, prazos, prioridades e avanço de entregas (sem dev fixo atrelado)';
-      if (actionBtn) {
-        actionBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i> Nova Demanda da Squad';
-        actionBtn.onclick = () => this.openTaskModal();
-      }
+      if (titleEl) titleEl.textContent = `Monitor de Demandas - ${squadLabel}`;
+      if (descEl) descEl.textContent = 'Acompanhamento consultivo de demandas ativas, prazos, prioridades e avanço no Jira';
 
       const demands = this.state.backlogItems[this.activeSquad] || [];
       if (demands.length === 0) {
@@ -554,7 +535,6 @@ const app = {
           <div class="col-span-full text-center py-12 text-slate-400">
             <i class="fa-solid fa-clipboard-list text-4xl mb-3 text-slate-600"></i>
             <p class="font-semibold text-sm">Nenhuma demanda em acompanhamento nesta Squad.</p>
-            <p class="text-xs text-slate-500 mt-1">Encaminhe um card da Mesa de Triagem ou clique em "+ Nova Demanda" acima.</p>
           </div>
         `;
         return;
@@ -588,7 +568,7 @@ const app = {
             <!-- BARRA DE PROGRESSO DA DEMANDA -->
             <div class="mb-4">
               <div class="flex justify-between text-xs text-slate-400 mb-1">
-                <span>Progresso da Demanda</span>
+                <span>Progresso no Jira</span>
                 <span class="font-bold text-emerald-400">${d.progress || 50}%</span>
               </div>
               <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
@@ -597,67 +577,16 @@ const app = {
             </div>
           </div>
 
-          <div class="pt-3 border-t border-white/10 flex items-center justify-between gap-2">
-            <button class="btn btn-secondary text-xs py-1.5 px-3 flex-1" onclick="app.updateDemandProgress('${d.id}')">
-              <i class="fa-solid fa-sliders text-emerald-400"></i> Atualizar Progresso
-            </button>
-            <button class="btn btn-primary text-xs py-1.5 px-3" onclick="app.completeDemand('${d.id}')">
-              <i class="fa-solid fa-check"></i> Concluir
-            </button>
+          <div class="pt-3 border-t border-white/10 flex items-center justify-between text-xs">
+            <span class="text-slate-400"><i class="fa-solid fa-chart-line text-emerald-400 me-1"></i> Acompanhamento Jira</span>
+            <span class="badge badge-medium">${d.status || 'Em Andamento'}</span>
           </div>
         </div>
       `).join('');
     }
   },
 
-  updateDemandProgress(demandId) {
-    const demand = (this.state.backlogItems[this.activeSquad] || []).find(d => d.id === demandId);
-    if (!demand) return;
-    const currentProgress = demand.progress || 50;
-    const newProgress = prompt(`Atualizar progresso da demanda "${demand.title}" (0 a 100%):`, currentProgress);
-    if (newProgress !== null) {
-      const val = parseInt(newProgress);
-      if (!isNaN(val) && val >= 0 && val <= 100) {
-        demand.progress = val;
-        if (val === 100) demand.status = 'Concluído';
-        this.saveState();
-      }
-    }
-  },
-
-  completeDemand(demandId) {
-    const demandIdx = (this.state.backlogItems[this.activeSquad] || []).findIndex(d => d.id === demandId);
-    if (demandIdx === -1) return;
-    const demand = this.state.backlogItems[this.activeSquad][demandIdx];
-    
-    // Remover do backlog e mover para concluídos
-    this.state.backlogItems[this.activeSquad].splice(demandIdx, 1);
-    const squadNames = { dados: 'Squad de Dados', operacoes: 'Squad de Operações', rpa: 'Squad de RPA' };
-    this.state.completedTasks[this.activeSquad].unshift({
-      id: `completed-${demand.gau || Date.now()}`,
-      taskTitle: `${demand.title} (${demand.gau || 'GAU'})`,
-      taskDescription: demand.notes || '',
-      area: 'Geral',
-      completedBy: squadNames[this.activeSquad],
-      dueDate: demand.dueDate || new Date().toISOString().split('T')[0],
-      completionDate: new Date().toISOString().split('T')[0],
-      gains: 'Concluído pelo coordenador de demandas',
-      requesterArea: demand.requester
-    });
-
-    this.saveState();
-  },
-
-  promoteNextTask(memberId) {
-    const member = (this.state.resources.dados || []).find(m => m.id === memberId);
-    if (member && member.nextTask) {
-      member.currentTask = { ...member.nextTask, status: 'Em Andamento' };
-      member.nextTask = null;
-      this.saveState();
-    }
-  },
-
-  // RENDER: Backlog View
+  // RENDER: Backlog View (Consultivo)
   renderBacklogView() {
     const tbody = document.getElementById('backlog-table-body');
     if (!tbody) return;
@@ -665,7 +594,7 @@ const app = {
     const items = this.state.backlogItems[this.activeSquad] || [];
 
     if (items.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-500">Nenhuma demanda no backlog desta squad.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-500">Nenhuma demanda no backlog desta squad.</td></tr>`;
       return;
     }
 
@@ -678,11 +607,6 @@ const app = {
         <td><span class="badge badge-high">${item.priority}</span></td>
         <td class="text-slate-400">${item.category}</td>
         <td><span class="badge badge-medium">${item.status}</span></td>
-        <td>
-          <button class="btn btn-secondary text-xs py-1 px-2" onclick="app.deleteBacklogItem('${item.id}')">
-            <i class="fa-solid fa-trash text-rose-400"></i>
-          </button>
-        </td>
       </tr>
     `).join('');
   },
