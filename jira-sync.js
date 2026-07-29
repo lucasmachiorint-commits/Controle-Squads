@@ -177,27 +177,28 @@ const JiraSyncEngine = {
       const requester = card.requester || card.reporter || card.solicitante || 'Solicitante Jira';
 
       // 1. Mapeamento de Squad (16005 -> Operações, 16006 -> Dados, 16007 -> RPA)
-      let targetSquadId = 'dados';
+      let targetSquadId = card.squadTarget || 'dados';
       let targetSquadName = 'Squad de Dados';
 
-      if (
-        squadLower === '16005' ||
-        squadLower === 'squad de operações' ||
-        squadLower === 'squad de operacoes' ||
-        squadLower === 'operacoes' ||
-        squadLower.includes('operaç') ||
-        squadLower.includes('operac')
-      ) {
+      const cfSquad = card.customfield_12475 || card.squad || card.squadTarget || card.fields?.customfield_12475 || card.fields?.customfield_squad;
+      let cfStr = '';
+      if (cfSquad) {
+        if (typeof cfSquad === 'object') {
+          cfStr = (cfSquad.id || cfSquad.value || JSON.stringify(cfSquad)).toString().toLowerCase();
+        } else {
+          cfStr = cfSquad.toString().toLowerCase();
+        }
+      }
+
+      if (cfStr.includes('16005') || cfStr.includes('operac') || cfStr.includes('operaç')) {
         targetSquadId = 'operacoes';
         targetSquadName = 'Squad de Operações';
-      } else if (
-        squadLower === '16007' ||
-        squadLower === 'squad de rpa' ||
-        squadLower === 'rpa' ||
-        squadLower.includes('rpa')
-      ) {
+      } else if (cfStr.includes('16007') || cfStr.includes('rpa')) {
         targetSquadId = 'rpa';
         targetSquadName = 'Squad de RPA';
+      } else if (cfStr.includes('16006') || cfStr.includes('dados')) {
+        targetSquadId = 'dados';
+        targetSquadName = 'Squad de Dados';
       }
 
       // 2. Mapeamento de Fila por Status (Abertos -> Triagem, Aguardando -> Backlog, Coletar dados/Done -> Concluídos)

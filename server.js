@@ -39,7 +39,7 @@ function parseADFDescription(doc) {
   return 'Sem descrição';
 }
 
-// Proxy para consultar cards do Jira Cloud em tempo real
+// Proxy para consultar cards do Jira Cloud em tempo real com paginação completa
 app.get('/api/jira/consultar-cards-jira', async (req, res) => {
   try {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -53,36 +53,70 @@ app.get('/api/jira/consultar-cards-jira', async (req, res) => {
     }
 
     const authHeader = 'Basic ' + Buffer.from(`${email}:${token}`).toString('base64');
-    const jqlQuery = encodeURIComponent('project = GAU ORDER BY created DESC');
-    const jiraUrl = `https://${domain}/rest/api/3/search/jql?jql=${jqlQuery}&fields=*all&maxResults=100`;
+    
+    let startAt = 0;
+    let maxResults = 100;
+    let allIssues = [];
 
-    const response = await fetch(jiraUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': authHeader,
-        'Accept': 'application/json'
+    // Paginação para buscar todos os chamados do Jira
+    while (true) {
+      const jqlQuery = encodeURIComponent('project = GAU ORDER BY created DESC');
+      const jiraUrl = `https://${domain}/rest/api/3/search/jql?jql=${jqlQuery}&fields=*all&startAt=${startAt}&maxResults=${maxResults}`;
+
+      const response = await fetch(jiraUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': authHeader,
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error('[Jira API Error]:', response.status, errText);
+        break;
       }
-    });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error('[Jira API Error]:', response.status, errText);
-      return res.status(response.status).json({ success: false, error: errText, cards: [] });
+      const json = await response.json();
+      const issues = json.issues || [];
+      if (!issues.length) break;
+
+      allIssues = allIssues.concat(issues);
+      startAt += issues.length;
+      if (allIssues.length >= (json.total || 0) || issues.length < maxResults) break;
     }
 
-    const json = await response.json();
-    const issues = json.issues || [];
-
-    const cards = issues.map((issue, idx) => {
+    const cards = allIssues.map((issue, idx) => {
       const fields = issue.fields || {};
       const statusName = fields.status?.name || 'Aberto';
       const catStatus = fields.status?.statusCategory?.name || 'To Do';
       const summary = fields.summary || 'Demanda do Jira';
       const reporter = fields.reporter?.displayName || 'Solicitante Jira';
 
+      // Identificar a Squad de Atendimento a partir do customfield_12475 (16005 = Operações NPay, 16006 = Dados Operações, 16007 = RPA)
+      let squadId = 'dados';
       let squadName = 'Squad de Dados';
-      if (fields.customfield_16005 || fields.customfield_squad === '16005') squadName = 'Squad de Operações';
-      else if (fields.customfield_16007 || fields.customfield_squad === '16007') squadName = 'Squad de RPA';
+
+      const cfSquad = fields.customfield_12475 || fields.customfield_16005 || fields.customfield_16006 || fields.customfield_16007 || fields.customfield_squad;
+      let cfStr = '';
+      if (cfSquad) {
+        if (typeof cfSquad === 'object') {
+          cfStr = (cfSquad.id || cfSquad.value || JSON.stringify(cfSquad)).toString().toLowerCase();
+        } else {
+          cfStr = cfSquad.toString().toLowerCase();
+        }
+      }
+
+      if (cfStr.includes('16005') || cfStr.includes('operac') || cfStr.includes('operaç')) {
+        squadId = 'operacoes';
+        squadName = 'Squad de Operações';
+      } else if (cfStr.includes('16007') || cfStr.includes('rpa')) {
+        squadId = 'rpa';
+        squadName = 'Squad de RPA';
+      } else if (cfStr.includes('16006') || cfStr.includes('dados')) {
+        squadId = 'dados';
+        squadName = 'Squad de Dados';
+      }
 
       return {
         id: issue.id || `jira-${idx}`,
@@ -93,6 +127,8 @@ app.get('/api/jira/consultar-cards-jira', async (req, res) => {
         status: statusName,
         categoriaStatus: catStatus,
         squad: squadName,
+        squadTarget: squadId,
+        customfield_12475: cfSquad,
         requester: reporter,
         priority: fields.priority?.name || '2 - Alta',
         category: 'Geral',
