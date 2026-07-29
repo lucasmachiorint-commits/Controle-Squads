@@ -41,55 +41,38 @@
       </div>
     </div>
 
-    <!-- SQUAD SELECTOR -->
-    <div class="squad-selector">
-      <span class="selector-label">Squad Ativa</span>
-      <div class="squad-btn-group">
-        <button class="squad-tab-btn active-dados" id="btn-squad-dados" onclick="app.setSquad('dados')">
-          <span><i class="fa-solid fa-database me-2"></i> Squad de Dados</span>
-          <i class="fa-solid fa-chevron-right text-xs"></i>
-        </button>
-        <button class="squad-tab-btn" id="btn-squad-operacoes" onclick="app.setSquad('operacoes')">
-          <span><i class="fa-solid fa-gears me-2"></i> Squad de Operações</span>
-          <i class="fa-solid fa-chevron-right text-xs"></i>
-        </button>
-        <button class="squad-tab-btn" id="btn-squad-rpa" onclick="app.setSquad('rpa')">
-          <span><i class="fa-solid fa-robot me-2"></i> Squad de RPA</span>
-          <i class="fa-solid fa-chevron-right text-xs"></i>
-        </button>
-      </div>
-    </div>
-
     <!-- MAIN NAVIGATION LINKS -->
     <nav class="sidebar-nav">
+      <!-- 1. MESA DE TRIAGEM -->
       <a class="nav-item active" id="nav-triagem" onclick="app.navigate('triagem')">
         <i class="fa-solid fa-inbox"></i>
         <span>Mesa de Triagem</span>
         <span class="nav-badge" id="badge-triage-count">0</span>
       </a>
-      <a class="nav-item" id="nav-dashboard" onclick="app.navigate('dashboard')">
+
+      <!-- 2. SQUADS -->
+      <div class="squad-selector mt-4">
+        <span class="selector-label">Squads</span>
+        <div class="squad-btn-group">
+          <button class="squad-tab-btn" id="btn-squad-dados" onclick="app.selectSquadAndView('dados', 'board')">
+            <span><i class="fa-solid fa-database text-emerald-400 me-2"></i> Squad de Dados</span>
+            <i class="fa-solid fa-chevron-right text-xs"></i>
+          </button>
+          <button class="squad-tab-btn" id="btn-squad-operacoes" onclick="app.selectSquadAndView('operacoes', 'board')">
+            <span><i class="fa-solid fa-gears text-orange-400 me-2"></i> Squad de Operações</span>
+            <i class="fa-solid fa-chevron-right text-xs"></i>
+          </button>
+          <button class="squad-tab-btn" id="btn-squad-rpa" onclick="app.selectSquadAndView('rpa', 'board')">
+            <span><i class="fa-solid fa-robot text-pink-400 me-2"></i> Squad de RPA</span>
+            <i class="fa-solid fa-chevron-right text-xs"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. DASHBOARD CONSOLIDADO -->
+      <a class="nav-item mt-4" id="nav-dashboard" onclick="app.navigate('dashboard')">
         <i class="fa-solid fa-chart-pie"></i>
         <span>Dashboard Consolidado</span>
-      </a>
-      <a class="nav-item" id="nav-board" onclick="app.navigate('board')">
-        <i class="fa-solid fa-users-gear"></i>
-        <span>Quadro da Squad</span>
-      </a>
-      <a class="nav-item" id="nav-backlog" onclick="app.navigate('backlog')">
-        <i class="fa-solid fa-list-check"></i>
-        <span>Backlog de Demandas</span>
-      </a>
-      <a class="nav-item" id="nav-concluidos" onclick="app.navigate('concluidos')">
-        <i class="fa-solid fa-circle-check"></i>
-        <span>Entregas Concluídas</span>
-      </a>
-      <a class="nav-item" id="nav-dpo-sync" onclick="app.navigate('dpo-sync')">
-        <i class="fa-solid fa-handshake"></i>
-        <span>Modo Reunião DPO</span>
-      </a>
-      <a class="nav-item" id="nav-dpo-logs" onclick="app.navigate('dpo-logs')">
-        <i class="fa-solid fa-clock-rotate-left"></i>
-        <span>Histórico DPO</span>
       </a>
     </nav>
   </aside>
@@ -240,6 +223,19 @@
 
     <!-- VIEW 3: QUADRO DA SQUAD -->
     <div class="view-container" id="view-board">
+      <!-- SUB-NAVEGAÇÃO DA SQUAD -->
+      <div class="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
+        <button class="btn btn-primary text-xs py-1.5 px-3" onclick="app.navigate('board')">
+          <i class="fa-solid fa-users-gear"></i> Quadro da Squad
+        </button>
+        <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('backlog')">
+          <i class="fa-solid fa-list-check"></i> Backlog de Demandas
+        </button>
+        <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('concluidos')">
+          <i class="fa-solid fa-circle-check"></i> Entregas Concluídas
+        </button>
+      </div>
+
       <div class="flex items-center justify-between mb-6">
         <div>
           <h2 class="text-xl font-bold text-white" id="board-squad-title">Quadro de Membros - Squad de Dados</h2>
@@ -257,6 +253,18 @@
 
     <!-- VIEW 4: BACKLOG DE DEMANDAS -->
     <div class="view-container" id="view-backlog">
+      <!-- SUB-NAVEGAÇÃO DA SQUAD -->
+      <div class="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
+        <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('board')">
+          <i class="fa-solid fa-users-gear"></i> Quadro da Squad
+        </button>
+        <button class="btn btn-primary text-xs py-1.5 px-3" onclick="app.navigate('backlog')">
+          <i class="fa-solid fa-list-check"></i> Backlog de Demandas
+        </button>
+        <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('concluidos')">
+          <i class="fa-solid fa-circle-check"></i> Entregas Concluídas
+        </button>
+      </div>
       <div class="glass-panel p-6 mb-6">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
           <div>
@@ -297,6 +305,18 @@
 
     <!-- VIEW 5: ENTREGAS CONCLUÍDAS -->
     <div class="view-container" id="view-concluidos">
+      <!-- SUB-NAVEGAÇÃO DA SQUAD -->
+      <div class="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
+        <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('board')">
+          <i class="fa-solid fa-users-gear"></i> Quadro da Squad
+        </button>
+        <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('backlog')">
+          <i class="fa-solid fa-list-check"></i> Backlog de Demandas
+        </button>
+        <button class="btn btn-primary text-xs py-1.5 px-3" onclick="app.navigate('concluidos')">
+          <i class="fa-solid fa-circle-check"></i> Entregas Concluídas
+        </button>
+      </div>
       <div class="glass-panel p-6">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-xl font-bold text-white">Histórico de Entregas Concluídas</h2>

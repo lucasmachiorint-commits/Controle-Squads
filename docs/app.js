@@ -60,6 +60,11 @@ const app = {
     this.render();
   },
 
+  selectSquadAndView(squadId, viewId = 'board') {
+    this.setSquad(squadId);
+    this.navigate(viewId);
+  },
+
   // Alternar View Ativa
   navigate(viewId) {
     this.activeView = viewId;
