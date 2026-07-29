@@ -303,14 +303,68 @@ const app = {
     }
   },
 
-  // RENDER: Mesa de Triagem (Resumido com Data de Criação & Pop-up de Detalhes)
+  triageFilter: 'pending',
+
+  setTriageFilter(filterName) {
+    this.triageFilter = filterName;
+
+    // Atualizar classe ativa visual nos 3 quadros de métricas
+    ['pending', 'triaged', 'rejected'].forEach(f => {
+      const card = document.getElementById(`card-filter-${f}`);
+      if (card) {
+        if (f === filterName) card.classList.add('active');
+        else card.classList.remove('active');
+      }
+    });
+
+    this.renderTriageView();
+  },
+
+  // RENDER: Mesa de Triagem (Filtro por Quadros do Modelo Exato da Imagem)
   renderTriageView() {
     const container = document.getElementById('triage-cards-container');
     if (!container) return;
 
     const searchTerm = (document.getElementById('search-triage')?.value || '').toLowerCase();
-    
+
+    // Contagem real baseada no status exato do Jira
     const pendingItems = this.state.triageItems.filter(i => {
+      const s = (i.status || '').toLowerCase();
+      return s === 'backlog' || s === 'pendente' || s === 'aberto' || s === 'triagem';
+    });
+
+    const triagedItems = this.state.triageItems.filter(i => {
+      const s = (i.status || '').toLowerCase();
+      return s.includes('squad') || s.includes('análise') || s.includes('analise') || s === 'triado' || s.includes('coletar');
+    });
+
+    const rejectedItems = this.state.triageItems.filter(i => {
+      const s = (i.status || '').toLowerCase();
+      return s.includes('rejeitado') || s.includes('cancelado') || s.includes('arquivado') || s === 'done';
+    });
+
+    // Atualizar texto dos quadros com o sufixo "cards" exatamente como na imagem
+    const elPending = document.getElementById('metric-triage-pending');
+    const elTriaged = document.getElementById('metric-triage-triaged');
+    const elRejected = document.getElementById('metric-triage-rejected');
+
+    if (elPending) elPending.textContent = `${pendingItems.length} cards`;
+    if (elTriaged) elTriaged.textContent = `${triagedItems.length} cards`;
+    if (elRejected) elRejected.textContent = `${rejectedItems.length} cards`;
+
+    // Selecionar lista conforme o filtro ativo do quadro clicado
+    let currentList = pendingItems;
+    let emptyMessage = 'Nenhuma solicitação aguardando triagem.';
+    if (this.triageFilter === 'triaged') {
+      currentList = triagedItems;
+      emptyMessage = 'Nenhum chamado triado ou atribuído a squads nesta lista.';
+    } else if (this.triageFilter === 'rejected') {
+      currentList = rejectedItems;
+      emptyMessage = 'Nenhum chamado rejeitado ou arquivado nesta lista.';
+    }
+
+    // Filtrar por busca textual
+    const filteredDisplayItems = currentList.filter(i => {
       const matchSearch = !searchTerm || 
         i.title.toLowerCase().includes(searchTerm) || 
         i.jiraKey.toLowerCase().includes(searchTerm) ||
@@ -318,20 +372,11 @@ const app = {
       return matchSearch;
     });
 
-    // Atualizar métricas (1 linha: Aguardando Triagem e Triados)
-    const pendingCount = this.state.triageItems.filter(i => i.status === 'Pendente' || i.status === 'Aberto' || i.status === 'Backlog').length;
-    const triagedCount = this.state.triageItems.filter(i => i.status === 'Triado' || i.status === 'Aguardando Squad').length;
-
-    const elPending = document.getElementById('metric-triage-pending');
-    const elTriaged = document.getElementById('metric-triage-triaged');
-    if (elPending) elPending.textContent = pendingCount;
-    if (elTriaged) elTriaged.textContent = triagedCount;
-
-    if (pendingItems.length === 0) {
+    if (filteredDisplayItems.length === 0) {
       container.innerHTML = `
         <div class="glass-panel p-8 text-center text-slate-400">
           <i class="fa-solid fa-inbox text-3xl mb-2 text-slate-600"></i>
-          <p class="font-semibold text-sm">Nenhuma solicitação pendente na fila de Triagem.</p>
+          <p class="font-semibold text-sm">${emptyMessage}</p>
           <p class="text-xs text-slate-500 mt-1">Clique no botão "🔄 Sincronizar com Jira" no topo da página para atualizar os chamados.</p>
         </div>
       `;
@@ -339,7 +384,7 @@ const app = {
     }
 
     // Renderizar cards resumidos com Data de Criação e sem linhas vazias abaixo
-    container.innerHTML = pendingItems.map(item => `
+    container.innerHTML = filteredDisplayItems.map(item => `
       <div class="glass-panel p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:border-emerald-500/40 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
         <div class="flex items-center gap-3 min-w-0 flex-1">
           <span class="font-extrabold text-xs text-emerald-400 tracking-wider shrink-0 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">${item.jiraKey}</span>

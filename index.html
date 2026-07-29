@@ -122,22 +122,45 @@
         </div>
       </div>
 
-      <!-- MÉTRICAS DA MESA DE TRIAGEM (APENAS 1 LINHA: AGUARDANDO TRIAGEM E TRIADOS) -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div class="glass-panel metric-card p-4">
-          <div>
-            <div class="metric-val text-amber-400" id="metric-triage-pending">0</div>
-            <div class="metric-lbl">Aguardando Triagem</div>
+      <!-- TRÊS QUADROS DE MÉTRICAS DA MESA DE TRIAGEM (MODELO EXATO DA IMAGEM) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <!-- 1. AGUARDANDO TRIAGEM -->
+        <div class="metric-box-card metric-box-amber cursor-pointer active" id="card-filter-pending" onclick="app.setTriageFilter('pending')">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="metric-box-lbl text-amber-500">AGUARDANDO TRIAGEM</span>
+              <div class="metric-box-val text-amber-400" id="metric-triage-pending">0 cards</div>
+            </div>
+            <div class="metric-box-icon-bg bg-amber-500/20 text-amber-400">
+              <i class="fa-solid fa-clock"></i>
+            </div>
           </div>
-          <div class="metric-icon bg-amber-500/20 text-amber-400"><i class="fa-solid fa-clock"></i></div>
         </div>
 
-        <div class="glass-panel metric-card p-4">
-          <div>
-            <div class="metric-val text-emerald-400" id="metric-triage-triaged">0</div>
-            <div class="metric-lbl">Triados</div>
+        <!-- 2. TRIADOS & ATRIBUÍDOS -->
+        <div class="metric-box-card metric-box-emerald cursor-pointer" id="card-filter-triaged" onclick="app.setTriageFilter('triaged')">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="metric-box-lbl text-emerald-400">TRIADOS & ATRIBUÍDOS</span>
+              <div class="metric-box-val text-emerald-400" id="metric-triage-triaged">0 cards</div>
+            </div>
+            <div class="metric-box-icon-bg bg-emerald-500/20 text-emerald-400">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
           </div>
-          <div class="metric-icon bg-emerald-500/20 text-emerald-400"><i class="fa-solid fa-circle-check"></i></div>
+        </div>
+
+        <!-- 3. REJEITADOS / ARQUIVADOS -->
+        <div class="metric-box-card metric-box-slate cursor-pointer" id="card-filter-rejected" onclick="app.setTriageFilter('rejected')">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="metric-box-lbl text-slate-400">REJEITADOS / ARQUIVADOS</span>
+              <div class="metric-box-val text-slate-300" id="metric-triage-rejected">0 cards</div>
+            </div>
+            <div class="metric-box-icon-bg bg-slate-500/20 text-slate-400">
+              <i class="fa-solid fa-circle-xmark"></i>
+            </div>
+          </div>
         </div>
       </div>
 
