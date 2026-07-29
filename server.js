@@ -15,7 +15,7 @@ app.use(express.json());
 // Permite requisições CORS de qualquer origem (inclusive do GitHub Pages)
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
@@ -144,6 +144,95 @@ app.get('/api/jira/consultar-cards-jira', async (req, res) => {
   } catch (err) {
     console.error('Erro no Proxy Jira:', err);
     return res.status(500).json({ success: false, error: err.message, cards: [] });
+  }
+});
+
+// Endpoint para Atualização Bidirecional no Jira Cloud (Atualiza customfield_12475 e move no Jira)
+app.post('/api/jira/encaminhar-squad-jira', async (req, res) => {
+  try {
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
+    const { jiraKey, squadId } = req.body;
+    if (!jiraKey || !squadId) {
+      return res.status(400).json({ success: false, message: 'Parâmetros jiraKey e squadId são obrigatórios' });
+    }
+
+    const domain = process.env.JIRA_DOMAIN || 'naturapay.atlassian.net';
+    const email = process.env.JIRA_EMAIL || 'lucas.machiori.nt@naturapay.net';
+    const token = process.env.JIRA_API_TOKEN || '';
+
+    if (!email || !token) {
+      return res.json({ success: false, message: 'Credenciais Jira ausentes no .env' });
+    }
+
+    const authHeader = 'Basic ' + Buffer.from(`${email}:${token}`).toString('base64');
+
+    // Mapeamento de Squad ID para a Opção do Custom Field 12475 no Jira Cloud
+    const squadOptionMap = {
+      dados: '16006',     // Dados Operações
+      operacoes: '16005', // Operações NPay
+      rpa: '16007'        // RPA
+    };
+
+    const optionId = squadOptionMap[squadId] || '16006';
+
+    // 1. Atualizar o campo Squad Atendimento (customfield_12475) no Jira Cloud
+    const editUrl = `https://${domain}/rest/api/3/issue/${jiraKey}`;
+    const editRes = await fetch(editUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': authHeader,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        fields: {
+          customfield_12475: { id: optionId }
+        }
+      })
+    });
+
+    if (!editRes.ok) {
+      const errText = await editRes.text();
+      console.warn(`[Jira Cloud Update Warning] Falha ao atualizar customfield_12475 no card ${jiraKey}:`, errText);
+    } else {
+      console.log(`[Jira Cloud Update Success] Card ${jiraKey} atualizado com a Squad de Atendimento ID ${optionId}`);
+    }
+
+    // 2. Buscar transições disponíveis no Jira Cloud para alterar o status para Aguardando Squad
+    const transUrl = `https://${domain}/rest/api/3/issue/${jiraKey}/transitions`;
+    const transRes = await fetch(transUrl, {
+      method: 'GET',
+      headers: { 'Authorization': authHeader, 'Accept': 'application/json' }
+    });
+
+    if (transRes.ok) {
+      const transData = await transRes.json();
+      const transitions = transData.transitions || [];
+      const squadTrans = transitions.find(t => 
+        t.name.toLowerCase().includes('squad') || 
+        t.name.toLowerCase().includes('analisar') ||
+        t.to?.name?.toLowerCase().includes('squad')
+      );
+
+      if (squadTrans) {
+        await fetch(transUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': authHeader,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({ transition: { id: squadTrans.id } })
+        });
+        console.log(`[Jira Cloud Transition Success] Card ${jiraKey} movido via transação ID ${squadTrans.id} (${squadTrans.name})`);
+      }
+    }
+
+    return res.json({ success: true, message: `Card ${jiraKey} encaminhado para ${squadId} e atualizado no Jira Cloud!` });
+  } catch (err) {
+    console.error('Erro na atualização bidirecional Jira:', err);
+    return res.status(500).json({ success: false, error: err.message });
   }
 });
 

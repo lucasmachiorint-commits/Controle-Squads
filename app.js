@@ -362,8 +362,8 @@ const app = {
     `).join('');
   },
 
-  // Ação: Encaminhar card da Triagem para Squad
-  triageToSquad(triageId, targetSquadId) {
+  // Ação: Encaminhar card da Triagem para Squad (com Sincronização Bidirecional no Jira Cloud)
+  async triageToSquad(triageId, targetSquadId) {
     const itemIdx = this.state.triageItems.findIndex(i => i.id === triageId);
     if (itemIdx === -1) return;
 
@@ -388,6 +388,28 @@ const app = {
     });
 
     this.saveState();
+
+    // Sincronização Bidirecional com o Jira Cloud
+    if (item.jiraKey && item.jiraKey.startsWith('GAU-')) {
+      try {
+        const res = await fetch('http://localhost:3000/api/jira/encaminhar-squad-jira', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jiraKey: item.jiraKey, squadId: targetSquadId })
+        });
+        if (res.ok) {
+          const toast = document.getElementById('sync-toast-banner');
+          const toastMsg = document.getElementById('sync-toast-message');
+          if (toast && toastMsg) {
+            toastMsg.textContent = `✅ Card ${item.jiraKey} encaminhado para ${squadNames[targetSquadId]} e ATUALIZADO NO JIRA CLOUD!`;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 5000);
+          }
+        }
+      } catch (e) {
+        console.warn('Backend local não acessível para sincronizar com Jira Cloud em tempo real.', e);
+      }
+    }
   },
 
   // Ação: Rejeitar solicitação na Triagem
