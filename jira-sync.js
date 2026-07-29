@@ -43,7 +43,7 @@ const JiraSyncEngine = {
         {
           key: "GAU-134",
           jiraKey: "GAU-134",
-          title: "TESTE 3 LUCAS",
+          title: "TESTE 3 LUCAS - Demanda Operacional",
           status: "Backlog",
           squad: "16005",
           squadTarget: "operacoes",
@@ -63,6 +63,78 @@ const JiraSyncEngine = {
           description: "Otimização de rotina de ingestão e conciliação de dados diários",
           priority: "2 - Alta",
           category: "Ingestão"
+        },
+        {
+          key: "GAU-129",
+          jiraKey: "GAU-129",
+          title: "Solicitação de Ingestão de Dados Billing NPay",
+          status: "Aberto",
+          squad: "16006",
+          squadTarget: "dados",
+          requester: "Fernanda Costa",
+          description: "Mapeamento das tabelas de faturamento e extratos de pagamentos",
+          priority: "2 - Alta",
+          category: "Ingestão"
+        },
+        {
+          key: "GAU-128",
+          jiraKey: "GAU-128",
+          title: "Revisão dos Processos de Reembolso Operacional",
+          status: "Triagem",
+          squad: "16005",
+          squadTarget: "operacoes",
+          requester: "Rodrigo Mendonça",
+          description: "Análise de gargalos no fluxo de aprovação de estornos",
+          priority: "3 - Média",
+          category: "Processos"
+        },
+        {
+          key: "GAU-127",
+          jiraKey: "GAU-127",
+          title: "Robô RPA de Validação de Chaves Pix",
+          status: "Aberto",
+          squad: "16007",
+          squadTarget: "rpa",
+          requester: "Camila Rocha",
+          description: "Desenvolvimento de automação de conferência de chaves de pagamentos",
+          priority: "1 - Urgente",
+          category: "Automação"
+        },
+        {
+          key: "GAU-126",
+          jiraKey: "GAU-126",
+          title: "Integração de API Webhook do Gateway NPay",
+          status: "Aberto",
+          squad: "16006",
+          squadTarget: "dados",
+          requester: "Gabriel Alves",
+          description: "Consumo de eventos de liquidação de transações em tempo real",
+          priority: "2 - Alta",
+          category: "API"
+        },
+        {
+          key: "GAU-125",
+          jiraKey: "GAU-125",
+          title: "Automação de Envio de Relatórios Financeiros",
+          status: "Triagem",
+          squad: "16007",
+          squadTarget: "rpa",
+          requester: "Tatiana Silva",
+          description: "Robô para geração e envio por e-mail de fechamentos diários",
+          priority: "3 - Média",
+          category: "Automação"
+        },
+        {
+          key: "GAU-124",
+          jiraKey: "GAU-124",
+          title: "Construção do Dashboard de Performance Q3",
+          status: "Aberto",
+          squad: "16006",
+          squadTarget: "dados",
+          requester: "Marcelo Faria",
+          description: "Painel de acompanhamento de KPIs comerciais e operacionais",
+          priority: "2 - Alta",
+          category: "Dashboard"
         },
         {
           key: "GAU-132",
