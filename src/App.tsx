@@ -485,160 +485,142 @@ export default function App() {
     let cards: any[] = [];
 
     try {
-      // 1. Invocar Supabase Edge Function 'consultar-cards-jira'
-      const { data, error } = await supabase.functions.invoke('consultar-cards-jira');
-      if (!error && data) {
-        cards = data.cards || data.data || (Array.isArray(data) ? data : []);
+      const edgeUrl = localStorage.getItem('supabase_edge_function_url') || '/api/jira/consultar-cards-jira';
+      const res = await fetch(edgeUrl);
+      if (res.ok) {
+        const json = await res.json();
+        cards = json.cards || json.data || [];
       } else {
-        if (error) console.warn('Supabase edge function invoke notice:', error);
-        // Fallback local caso o Supabase não esteja provisionado
-        const edgeUrl = localStorage.getItem('supabase_edge_function_url') || '/api/jira/consultar-cards-jira';
-        const res = await fetch(edgeUrl);
-        if (res.ok) {
-          const json = await res.json();
-          cards = json.cards || json.data || [];
-        }
+        console.warn('Proxy local retornou erro:', res.statusText);
       }
     } catch (err) {
-      console.warn('Erro ao chamar Supabase Edge Function, tentando fallback local:', err);
-      try {
-        const edgeUrl = localStorage.getItem('supabase_edge_function_url') || '/api/jira/consultar-cards-jira';
-        const res = await fetch(edgeUrl);
-        if (res.ok) {
-          const json = await res.json();
-          cards = json.cards || json.data || [];
-        }
-      } catch (e) {
-        console.error('Falha em todas as tentativas de consulta ao Jira:', e);
-      }
+      console.error('Falha ao consultar a API do Jira:', err);
     }
 
-    // Se nenhuma fonte remota retornou cards (ex: em hospedagem estática GitHub Pages ou sem credenciais Supabase), usar o conjunto completo de cards de amostragem Jira
     if (!Array.isArray(cards) || cards.length === 0) {
-      cards = [
-        {
-          key: "KAN-201",
-          title: "Nova Solicitação de Ingestão de Dados DW",
-          status: "Aberto",
-          squad: "Squad de Dados",
-          requester: "Carolina Santos",
-          description: "Ajuste e otimização na carga noturna do Data Warehouse",
-          priority: "2 - Alta",
-          category: "Ingestão"
-        },
-        {
-          key: "KAN-202",
-          title: "Validação de Processos de Pedidos em Triagem",
-          status: "Triagem",
-          squad: "Squad de Operações",
-          requester: "Roberto Lima",
-          description: "Análise de gargalos no fluxo de aprovações de novos pedidos",
-          priority: "3 - Média",
-          category: "Processos"
-        },
-        {
-          key: "KAN-203",
-          title: "Construção do Dashboard de Performance Q3",
-          status: "Em Andamento",
-          squad: "Squad de Dados",
-          requester: "Juliana Andrade",
-          description: "Desenvolvimento de painel consolidado para a diretoria comercial",
-          priority: "1 - Urgente",
-          category: "Dashboard"
-        },
-        {
-          key: "KAN-204",
-          title: "Automação RPA de Conciliação Bancária",
-          status: "Em Andamento",
-          squad: "Squad de RPA",
-          requester: "Marcelo Faria",
-          description: "Robô para extração e validação dos extratos bancários",
-          priority: "2 - Alta",
-          category: "Automação"
-        },
-        {
-          key: "KAN-205",
-          title: "Acompanhamento da Fila de Ordens de Serviço",
-          status: "Aguardando Squads",
-          squad: "Squad de Operações",
-          requester: "Luciana Mello",
-          description: "Gestão operacional das ordens de serviço pendentes",
-          priority: "2 - Alta",
-          category: "Processos"
-        },
-        {
-          key: "KAN-206",
-          title: "Integração API do Gateway de Pagamentos",
-          status: "Concluído",
-          squad: "Squad de Dados",
-          categoriaStatus: "Done",
-          requester: "Felipe Nogueira",
-          description: "API de webhook configurada e testada em produção",
-          priority: "2 - Alta",
-          category: "API"
-        },
-        {
-          key: "KAN-207",
-          title: "Disparo Automático de Boletos em Lote",
-          status: "Finalizado",
-          squad: "Squad de RPA",
-          categoriaStatus: "Done",
-          requester: "Aline Castro",
-          description: "Automação de envio concluída e validada",
-          priority: "3 - Média",
-          category: "Automação"
-        }
-      ];
+      const nowTime = new Date().toLocaleTimeString('pt-BR');
+      setLastJiraSyncTime(nowTime);
+      setJiraSyncNotification('Nenhum card retornado da API do Jira.');
+      setTimeout(() => setJiraSyncNotification(null), 5000);
+      setIsSyncingJira(false);
+      return;
     }
 
-    // 2. Limpar todas as colunas/filas antes de repovoar e aplicar as regras estritas de De/Para
-    const newTriageItems: TriageItem[] = [];
-    const newDadosBacklog: BacklogItem[] = [];
-    const newOperacoesBacklog: BacklogItem[] = [];
-    const newRpaBacklog: BacklogItem[] = [];
+    // Carregar estado atual de todas as filas do LocalStorage
+    let curTriage: TriageItem[] = [];
+    try { curTriage = JSON.parse(localStorage.getItem('jira_triage_items') || '[]'); } catch (e) {}
 
-    const newDadosCompleted: CompletedTask[] = [];
-    const newOperacoesCompleted: CompletedTask[] = [];
-    const newRpaCompleted: CompletedTask[] = [];
+    let curDadosBacklog: BacklogItem[] = [];
+    try { curDadosBacklog = JSON.parse(localStorage.getItem('squad_dados_backlog_items') || '[]'); } catch (e) {}
+    let curOperacoesBacklog: BacklogItem[] = [];
+    try { curOperacoesBacklog = JSON.parse(localStorage.getItem('squad_operacoes_backlog_items') || '[]'); } catch (e) {}
+    let curRpaBacklog: BacklogItem[] = [];
+    try { curRpaBacklog = JSON.parse(localStorage.getItem('squad_rpa_backlog_items') || '[]'); } catch (e) {}
 
-    if (Array.isArray(cards)) {
-      cards.forEach((card: any, idx: number) => {
-        const rawStatus = (card.status || card.fields?.status?.name || '').toString().trim();
-        const rawCatStatus = (card.categoriaStatus || card.fields?.status?.statusCategory?.name || '').toString().trim();
-        const rawSquad = (card.squad || card.squadTarget || card.fields?.customfield_squad || '').toString().trim();
+    let curDadosCompleted: CompletedTask[] = [];
+    try { curDadosCompleted = JSON.parse(localStorage.getItem('squad_dados_completed_tasks') || '[]'); } catch (e) {}
+    let curOperacoesCompleted: CompletedTask[] = [];
+    try { curOperacoesCompleted = JSON.parse(localStorage.getItem('squad_operacoes_completed_tasks') || '[]'); } catch (e) {}
+    let curRpaCompleted: CompletedTask[] = [];
+    try { curRpaCompleted = JSON.parse(localStorage.getItem('squad_rpa_completed_tasks') || '[]'); } catch (e) {}
 
-        const statusLower = rawStatus.toLowerCase();
-        const catStatusLower = rawCatStatus.toLowerCase();
-        const squadLower = rawSquad.toLowerCase();
+    // Mapa auxiliar para localização atual de cada card por jiraKey
+    // Key: jiraKey -> Value: { location: 'triage'|'backlog_dados'|'backlog_operacoes'|'backlog_rpa'|'completed_dados'|'completed_operacoes'|'completed_rpa' }
+    const existingMap = new Map<string, string>();
 
-        const jiraKey = card.key || card.jiraKey || card.id || `JIRA-${100 + idx}`;
-        const title = card.title || card.summary || card.nome || 'Demanda do Jira';
-        const description = card.description || card.descricao || card.notes || 'Sincronizado da Edge Function consultar-cards-jira';
-        const requester = card.requester || card.reporter || card.solicitante || 'Solicitante Jira';
+    curTriage.forEach(item => existingMap.set(item.jiraKey, 'triage'));
+    curDadosBacklog.forEach(item => existingMap.set(item.gau, 'backlog_dados'));
+    curOperacoesBacklog.forEach(item => existingMap.set(item.gau, 'backlog_operacoes'));
+    curRpaBacklog.forEach(item => existingMap.set(item.gau, 'backlog_rpa'));
+    
+    // Função auxiliar para extrair chave Jira do título da tarefa concluída
+    const extractKeyFromCompleted = (title: string): string => {
+      const match = title.match(/\((GAU-\d+|KAN-\d+|JIRA-\d+)\)/);
+      return match ? match[1] : '';
+    };
 
-        // REGRA DE/PARA 1: Fila 'Aberto' ➔ status === 'Aberto' ou 'Triagem'
-        if (statusLower === 'aberto' || statusLower === 'triagem') {
-          let suggested: SquadId = 'dados';
-          if (
-            squadLower === 'squad de operações' ||
-            squadLower === 'squad de operacoes' ||
-            squadLower === 'operacoes' ||
-            squadLower.includes('operaç') ||
-            squadLower.includes('operac')
-          ) {
-            suggested = 'operacoes';
-          } else if (
-            squadLower === 'squad de rpa' ||
-            squadLower === 'rpa' ||
-            squadLower.includes('rpa')
-          ) {
-            suggested = 'rpa';
-          }
+    curDadosCompleted.forEach(item => {
+      const k = extractKeyFromCompleted(item.taskTitle);
+      if (k) existingMap.set(k, 'completed_dados');
+    });
+    curOperacoesCompleted.forEach(item => {
+      const k = extractKeyFromCompleted(item.taskTitle);
+      if (k) existingMap.set(k, 'completed_operacoes');
+    });
+    curRpaCompleted.forEach(item => {
+      const k = extractKeyFromCompleted(item.taskTitle);
+      if (k) existingMap.set(k, 'completed_rpa');
+    });
 
-          newTriageItems.push({
+    let countNew = 0;
+    let countUpdated = 0;
+    let countUnchanged = 0;
+
+    cards.forEach((card: any, idx: number) => {
+      const rawStatus = (card.status || card.fields?.status?.name || '').toString().trim();
+      const rawCatStatus = (card.categoriaStatus || card.fields?.status?.statusCategory?.name || '').toString().trim();
+      const rawSquad = (card.squad || card.squadTarget || card.fields?.customfield_squad || '').toString().trim();
+
+      const statusLower = rawStatus.toLowerCase();
+      const catStatusLower = rawCatStatus.toLowerCase();
+      const squadLower = rawSquad.toLowerCase();
+
+      const jiraKey = card.key || card.jiraKey || card.id || `JIRA-${100 + idx}`;
+      const title = card.title || card.summary || card.nome || 'Demanda do Jira';
+      const description = card.description || card.descricao || card.notes || 'Sincronizado via API do Jira';
+      const requester = card.requester || card.reporter || card.solicitante || 'Solicitante Jira';
+
+      // Determinar squad de destino
+      let targetSquadId: SquadId = 'dados';
+      let targetSquadName = 'Squad de Dados';
+
+      if (
+        squadLower === 'squad de operações' ||
+        squadLower === 'squad de operacoes' ||
+        squadLower === 'operacoes' ||
+        squadLower.includes('operaç') ||
+        squadLower.includes('operac')
+      ) {
+        targetSquadId = 'operacoes';
+        targetSquadName = 'Squad de Operações';
+      } else if (
+        squadLower === 'squad de rpa' ||
+        squadLower === 'rpa' ||
+        squadLower.includes('rpa')
+      ) {
+        targetSquadId = 'rpa';
+        targetSquadName = 'Squad de RPA';
+      }
+
+      // Determinar fila de destino baseada no status do Jira
+      let targetQueue = '';
+      if (statusLower === 'aberto' || statusLower === 'abertos' || statusLower === 'triagem' || statusLower === 'backlog') {
+        targetQueue = 'triage';
+      } else if (
+        statusLower === 'concluído' ||
+        statusLower === 'concluido' ||
+        statusLower === 'finalizado' ||
+        statusLower.includes('coletar dados') ||
+        statusLower.includes('conclu') ||
+        catStatusLower === 'done'
+      ) {
+        targetQueue = `completed_${targetSquadId}`;
+      } else {
+        targetQueue = `backlog_${targetSquadId}`;
+      }
+
+      const currentLoc = existingMap.get(jiraKey);
+
+      // CASO 1: Ticket NOVO (não existe em nenhuma fila)
+      if (!currentLoc) {
+        countNew++;
+        existingMap.set(jiraKey, targetQueue);
+
+        if (targetQueue === 'triage') {
+          curTriage.unshift({
             id: card.id || `triage-${jiraKey}`,
             jiraKey,
-            jiraUrl: card.jiraUrl || `https://jira.empresa.com/browse/${jiraKey}`,
+            jiraUrl: card.jiraUrl || `https://naturapay.atlassian.net/browse/${jiraKey}`,
             title,
             description,
             requesterName: requester,
@@ -647,92 +629,40 @@ export default function App() {
             issueType: card.issueType || 'Triagem Jira',
             priority: card.priority || '2 - Alta',
             category: card.category || 'Geral',
-            suggestedSquad: suggested,
+            suggestedSquad: targetSquadId,
             createdAt: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
             status: 'Pendente'
           });
-        }
-        // REGRA DE/PARA 3: Fila 'Concluídos' ➔ status === 'Concluído', 'Finalizado' ou categoriaStatus === 'Done'
-        else if (
-          statusLower === 'concluído' ||
-          statusLower === 'concluido' ||
-          statusLower === 'finalizado' ||
-          catStatusLower === 'done'
-        ) {
-          let targetSquadId: SquadId = 'dados';
-          let squadName = 'Squad de Dados';
-
-          if (
-            squadLower === 'squad de operações' ||
-            squadLower === 'squad de operacoes' ||
-            squadLower === 'operacoes' ||
-            squadLower.includes('operaç') ||
-            squadLower.includes('operac')
-          ) {
-            targetSquadId = 'operacoes';
-            squadName = 'Squad de Operações';
-          } else if (
-            squadLower === 'squad de rpa' ||
-            squadLower === 'rpa' ||
-            squadLower.includes('rpa')
-          ) {
-            targetSquadId = 'rpa';
-            squadName = 'Squad de RPA';
-          }
-
-          const completedTask: CompletedTask = {
+        } else if (targetQueue.startsWith('completed_')) {
+          const newComp: CompletedTask = {
             id: card.id || `completed-${jiraKey}`,
             taskTitle: `${title} (${jiraKey})`,
             taskDescription: description,
             area: 'Geral',
-            completedBy: squadName,
+            completedBy: targetSquadName,
             resourceId: 'jira-sync',
             dueDate: card.dueDate || new Date().toISOString().split('T')[0],
             completionDate: card.completionDate || new Date().toISOString().split('T')[0],
-            gains: 'Concluído via sincronização com Supabase Edge Function consultar-cards-jira',
+            gains: 'Concluído via sincronização com API do Jira',
             requesterArea: card.requesterArea || requester
           };
-
-          if (targetSquadId === 'dados') newDadosCompleted.push(completedTask);
-          else if (targetSquadId === 'operacoes') newOperacoesCompleted.push(completedTask);
-          else if (targetSquadId === 'rpa') newRpaCompleted.push(completedTask);
-        }
-        // REGRA DE/PARA 2: Filas de Squads ('Aguardando Squads' / 'Em Andamento')
-        else {
+          if (targetSquadId === 'dados') curDadosCompleted.unshift(newComp);
+          else if (targetSquadId === 'operacoes') curOperacoesCompleted.unshift(newComp);
+          else if (targetSquadId === 'rpa') curRpaCompleted.unshift(newComp);
+        } else {
           let itemStatus: BacklogItem['status'] = 'Em Andamento';
           if (statusLower.includes('pausad')) itemStatus = 'Pausado';
           else if (statusLower.includes('impedid')) itemStatus = 'Impedido';
           else if (statusLower.includes('aguardando') || statusLower.includes('pendente')) itemStatus = 'Pendente';
 
-          let squadName = 'Squad de Dados';
-          let targetSquadId: SquadId = 'dados';
-
-          if (
-            squadLower === 'squad de operações' ||
-            squadLower === 'squad de operacoes' ||
-            squadLower === 'operacoes' ||
-            squadLower.includes('operaç') ||
-            squadLower.includes('operac')
-          ) {
-            squadName = 'Squad de Operações';
-            targetSquadId = 'operacoes';
-          } else if (
-            squadLower === 'squad de rpa' ||
-            squadLower === 'rpa' ||
-            squadLower.includes('rpa')
-          ) {
-            squadName = 'Squad de RPA';
-            targetSquadId = 'rpa';
-          }
-
-          const backlogItem: BacklogItem = {
+          const newBacklog: BacklogItem = {
             id: card.id || `backlog-${jiraKey}`,
             gau: jiraKey,
             title,
             notes: description,
             requesterArea: card.requesterArea || requester,
             requester,
-            team: squadName,
+            team: targetSquadName,
             date: card.dueDate || card.date || new Date().toISOString().split('T')[0],
             dueDate: card.dueDate || card.date || new Date().toISOString().split('T')[0],
             priority: card.priority || '2 - Alta',
@@ -742,42 +672,145 @@ export default function App() {
             progress: typeof card.progress === 'number' ? card.progress : (itemStatus === 'Em Andamento' ? 50 : 0),
             jiraMetadata: {
               jiraKey,
-              jiraUrl: card.jiraUrl || `https://jira.empresa.com/browse/${jiraKey}`,
+              jiraUrl: card.jiraUrl || `https://naturapay.atlassian.net/browse/${jiraKey}`,
               reporterName: requester,
               jiraStatus: rawStatus || 'Em Andamento',
               squadTarget: targetSquadId,
               receivedAt: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
             }
           };
-
-          if (targetSquadId === 'dados') newDadosBacklog.push(backlogItem);
-          else if (targetSquadId === 'operacoes') newOperacoesBacklog.push(backlogItem);
-          else if (targetSquadId === 'rpa') newRpaBacklog.push(backlogItem);
+          if (targetSquadId === 'dados') curDadosBacklog.unshift(newBacklog);
+          else if (targetSquadId === 'operacoes') curOperacoesBacklog.unshift(newBacklog);
+          else if (targetSquadId === 'rpa') curRpaBacklog.unshift(newBacklog);
         }
-      });
-    }
+      }
+      // CASO 2: Ticket EXISTE mas MUDOU DE FILA NO JIRA
+      else if (currentLoc !== targetQueue) {
+        countUpdated++;
 
-    // Limpar e repovoar estado no LocalStorage
-    saveTriageState(newTriageItems);
+        // Remover da fila antiga
+        if (currentLoc === 'triage') {
+          curTriage = curTriage.filter(t => t.jiraKey !== jiraKey);
+        } else if (currentLoc === 'backlog_dados') {
+          curDadosBacklog = curDadosBacklog.filter(b => b.gau !== jiraKey);
+        } else if (currentLoc === 'backlog_operacoes') {
+          curOperacoesBacklog = curOperacoesBacklog.filter(b => b.gau !== jiraKey);
+        } else if (currentLoc === 'backlog_rpa') {
+          curRpaBacklog = curRpaBacklog.filter(b => b.gau !== jiraKey);
+        } else if (currentLoc === 'completed_dados') {
+          curDadosCompleted = curDadosCompleted.filter(c => !c.taskTitle.includes(jiraKey));
+        } else if (currentLoc === 'completed_operacoes') {
+          curOperacoesCompleted = curOperacoesCompleted.filter(c => !c.taskTitle.includes(jiraKey));
+        } else if (currentLoc === 'completed_rpa') {
+          curRpaCompleted = curRpaCompleted.filter(c => !c.taskTitle.includes(jiraKey));
+        }
 
-    localStorage.setItem('squad_dados_backlog_items', JSON.stringify(newDadosBacklog));
-    localStorage.setItem('squad_operacoes_backlog_items', JSON.stringify(newOperacoesBacklog));
-    localStorage.setItem('squad_rpa_backlog_items', JSON.stringify(newRpaBacklog));
+        // Inserir na nova fila
+        existingMap.set(jiraKey, targetQueue);
 
-    localStorage.setItem('squad_dados_completed_tasks', JSON.stringify(newDadosCompleted));
-    localStorage.setItem('squad_operacoes_completed_tasks', JSON.stringify(newOperacoesCompleted));
-    localStorage.setItem('squad_rpa_completed_tasks', JSON.stringify(newRpaCompleted));
+        if (targetQueue === 'triage') {
+          curTriage.unshift({
+            id: card.id || `triage-${jiraKey}`,
+            jiraKey,
+            jiraUrl: card.jiraUrl || `https://naturapay.atlassian.net/browse/${jiraKey}`,
+            title,
+            description,
+            requesterName: requester,
+            requesterEmail: card.requesterEmail || 'solicitante@empresa.com',
+            requesterArea: card.requesterArea || 'Área Demandante',
+            issueType: card.issueType || 'Triagem Jira',
+            priority: card.priority || '2 - Alta',
+            category: card.category || 'Geral',
+            suggestedSquad: targetSquadId,
+            createdAt: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            status: 'Pendente'
+          });
+        } else if (targetQueue.startsWith('completed_')) {
+          const newComp: CompletedTask = {
+            id: card.id || `completed-${jiraKey}`,
+            taskTitle: `${title} (${jiraKey})`,
+            taskDescription: description,
+            area: 'Geral',
+            completedBy: targetSquadName,
+            resourceId: 'jira-sync',
+            dueDate: card.dueDate || new Date().toISOString().split('T')[0],
+            completionDate: card.completionDate || new Date().toISOString().split('T')[0],
+            gains: 'Concluído via sincronização com API do Jira',
+            requesterArea: card.requesterArea || requester
+          };
+          if (targetSquadId === 'dados') curDadosCompleted.unshift(newComp);
+          else if (targetSquadId === 'operacoes') curOperacoesCompleted.unshift(newComp);
+          else if (targetSquadId === 'rpa') curRpaCompleted.unshift(newComp);
+        } else {
+          let itemStatus: BacklogItem['status'] = 'Em Andamento';
+          if (statusLower.includes('pausad')) itemStatus = 'Pausado';
+          else if (statusLower.includes('impedid')) itemStatus = 'Impedido';
+          else if (statusLower.includes('aguardando') || statusLower.includes('pendente')) itemStatus = 'Pendente';
+
+          const newBacklog: BacklogItem = {
+            id: card.id || `backlog-${jiraKey}`,
+            gau: jiraKey,
+            title,
+            notes: description,
+            requesterArea: card.requesterArea || requester,
+            requester,
+            team: targetSquadName,
+            date: card.dueDate || card.date || new Date().toISOString().split('T')[0],
+            dueDate: card.dueDate || card.date || new Date().toISOString().split('T')[0],
+            priority: card.priority || '2 - Alta',
+            category: card.category || 'Processos',
+            treatmentOrder: idx + 1,
+            status: itemStatus,
+            progress: typeof card.progress === 'number' ? card.progress : (itemStatus === 'Em Andamento' ? 50 : 0),
+            jiraMetadata: {
+              jiraKey,
+              jiraUrl: card.jiraUrl || `https://naturapay.atlassian.net/browse/${jiraKey}`,
+              reporterName: requester,
+              jiraStatus: rawStatus || 'Em Andamento',
+              squadTarget: targetSquadId,
+              receivedAt: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+            }
+          };
+          if (targetSquadId === 'dados') curDadosBacklog.unshift(newBacklog);
+          else if (targetSquadId === 'operacoes') curOperacoesBacklog.unshift(newBacklog);
+          else if (targetSquadId === 'rpa') curRpaBacklog.unshift(newBacklog);
+        }
+      }
+      // CASO 3: Ticket EXISTE na MESMA FILA (Atualizar apenas metadados sem duplicar)
+      else {
+        countUnchanged++;
+        if (currentLoc === 'triage') {
+          curTriage = curTriage.map(t => t.jiraKey === jiraKey ? { ...t, title, description, requesterName: requester } : t);
+        } else if (currentLoc.startsWith('backlog_')) {
+          const updateBacklog = (list: BacklogItem[]) => list.map(b => b.gau === jiraKey ? { ...b, title, notes: description, requester } : b);
+          if (currentLoc === 'backlog_dados') curDadosBacklog = updateBacklog(curDadosBacklog);
+          else if (currentLoc === 'backlog_operacoes') curOperacoesBacklog = updateBacklog(curOperacoesBacklog);
+          else if (currentLoc === 'backlog_rpa') curRpaBacklog = updateBacklog(curRpaBacklog);
+        }
+      }
+    });
+
+    // Salvar estado atualizado no LocalStorage
+    saveTriageState(curTriage);
+
+    localStorage.setItem('squad_dados_backlog_items', JSON.stringify(curDadosBacklog));
+    localStorage.setItem('squad_operacoes_backlog_items', JSON.stringify(curOperacoesBacklog));
+    localStorage.setItem('squad_rpa_backlog_items', JSON.stringify(curRpaBacklog));
+
+    localStorage.setItem('squad_dados_completed_tasks', JSON.stringify(curDadosCompleted));
+    localStorage.setItem('squad_operacoes_completed_tasks', JSON.stringify(curOperacoesCompleted));
+    localStorage.setItem('squad_rpa_completed_tasks', JSON.stringify(curRpaCompleted));
 
     // Atualizar estado da squad ativa no momento
     if (currentSquadId === 'dados') {
-      setBacklogItems(newDadosBacklog);
-      setCompletedTasks(newDadosCompleted);
+      setBacklogItems(curDadosBacklog);
+      setCompletedTasks(curDadosCompleted);
     } else if (currentSquadId === 'operacoes') {
-      setBacklogItems(newOperacoesBacklog);
-      setCompletedTasks(newOperacoesCompleted);
+      setBacklogItems(curOperacoesBacklog);
+      setCompletedTasks(curOperacoesCompleted);
     } else if (currentSquadId === 'rpa') {
-      setBacklogItems(newRpaBacklog);
-      setCompletedTasks(newRpaCompleted);
+      setBacklogItems(curRpaBacklog);
+      setCompletedTasks(curRpaCompleted);
     }
 
     // Registrar e exibir o horário da última atualização
@@ -785,8 +818,7 @@ export default function App() {
     setLastJiraSyncTime(nowTime);
     localStorage.setItem('last_jira_sync_time', nowTime);
 
-    const totalProcessed = cards.length;
-    setJiraSyncNotification(`Sincronização do Jira realizada com sucesso às ${nowTime}! ${totalProcessed} cards atualizados e sincronizados.`);
+    setJiraSyncNotification(`✅ Sincronização Jira concluída às ${nowTime}: ${countNew} novos | ${countUpdated} atualizados | ${countUnchanged} mantidos.`);
     setTimeout(() => {
       setJiraSyncNotification(null);
     }, 7000);
@@ -794,23 +826,9 @@ export default function App() {
     setIsSyncingJira(false);
   }, [currentSquadId]);
 
-  // Executar no evento DOMContentLoaded e no carregamento da página
+  // Expor a função para chamadas manuais se necessário
   useEffect(() => {
     (window as any).sincronizarFilaJira = sincronizarFilaJira;
-
-    const handleDOMContentLoaded = () => {
-      sincronizarFilaJira();
-    };
-
-    if (document.readyState === 'loading') {
-      window.addEventListener('DOMContentLoaded', handleDOMContentLoaded);
-    } else {
-      sincronizarFilaJira();
-    }
-
-    return () => {
-      window.removeEventListener('DOMContentLoaded', handleDOMContentLoaded);
-    };
   }, [sincronizarFilaJira]);
 
   // Real-time Poller for Jira Events from backend
@@ -1373,16 +1391,6 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
-                  <button
-                    onClick={() => setIsJiraHubOpen(true)}
-                    className="w-full sm:w-auto px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
-                    title="Configurações e simulação de Webhook Jira"
-                  >
-                    <Zap size={14} className="fill-white" />
-                    <span>Hub de Integração Jira</span>
-                  </button>
-                </div>
               </div>
             ) : activeTab === 'dashboard' ? (
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
@@ -1885,13 +1893,7 @@ export default function App() {
         </div>
       )}
 
-      {/* JIRA INTEGRATION & WEBHOOK HUB MODAL */}
-      <JiraIntegrationModal
-        isOpen={isJiraHubOpen}
-        onClose={() => setIsJiraHubOpen(false)}
-        onTriggerSimulatedWebhook={handleTriggerSimulatedWebhook}
-        onConsultarCardsJira={sincronizarFilaJira}
-      />
+
 
       {/* 6. PRINT PDF REPORT VIEW */}
       <PrintReport 

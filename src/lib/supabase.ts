@@ -8,29 +8,15 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function consultarCardsJiraEdgeFunction() {
   try {
-    const { data, error } = await supabase.functions.invoke('consultar-cards-jira');
-    if (error) {
-      console.warn('Supabase functions.invoke notice:', error);
-      // Fallback to local server proxy if Edge function is not provisioned or returns error
-      const response = await fetch('/api/jira/consultar-cards-jira');
-      if (response.ok) {
-        const json = await response.json();
-        return json.cards || json.data || [];
-      }
-      return [];
+    const response = await fetch('/api/jira/consultar-cards-jira');
+    if (response.ok) {
+      const json = await response.json();
+      return json.cards || json.data || [];
     }
-    return data?.cards || data?.data || (Array.isArray(data) ? data : []);
+    console.warn('Proxy local retornou status não OK ao consultar Jira:', response.statusText);
+    return [];
   } catch (err) {
-    console.warn('Fallback para proxy local ao chamar consultar-cards-jira:', err);
-    try {
-      const response = await fetch('/api/jira/consultar-cards-jira');
-      if (response.ok) {
-        const json = await response.json();
-        return json.cards || json.data || [];
-      }
-    } catch (e) {
-      console.error('Erro geral ao consultar cards do Jira:', e);
-    }
+    console.error('Erro ao consultar cards do Jira via proxy local:', err);
     return [];
   }
 }

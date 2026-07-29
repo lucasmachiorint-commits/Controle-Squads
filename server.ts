@@ -1,6 +1,9 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 interface WebhookLog {
   id: string;
@@ -203,7 +206,94 @@ app.post("/api/jira/simulate", (req, res) => {
   });
 });
 
-// 4. Supabase Edge Function consultar-cards-jira Simulator / Proxy Endpoint
+// Helper: Extrair texto limpo de descrições no formato ADF (Atlassian Document Format)
+function extractAdfText(doc: any): string {
+  if (!doc) return '';
+  if (typeof doc === 'string') return doc;
+  if (doc.type === 'text') return doc.text || '';
+  if (Array.isArray(doc.content)) {
+    return doc.content.map(extractAdfText).join(' ');
+  }
+  return '';
+}
+
+// Helper: Mapear squad baseado nas opções Jira (16005 = Operações, 16006 = Dados, 16007 = RPA) ou por nome
+function parseSquadFromFields(fields: any): string {
+  const fieldsJson = JSON.stringify(fields);
+  if (fieldsJson.includes('16006') || fieldsJson.toLowerCase().includes('dados operações') || fieldsJson.toLowerCase().includes('squad de dados')) {
+    return 'Squad de Dados';
+  }
+  if (fieldsJson.includes('16005') || fieldsJson.toLowerCase().includes('operações npay') || fieldsJson.toLowerCase().includes('squad de operações')) {
+    return 'Squad de Operações';
+  }
+  if (fieldsJson.includes('16007') || fieldsJson.toLowerCase().includes('rpa') || fieldsJson.toLowerCase().includes('squad de rpa')) {
+    return 'Squad de RPA';
+  }
+  return 'Squad de Operações';
+}
+
+// Helper: Mapear prioridades
+function parsePriority(priorityName?: string): '1 - Urgente' | '2 - Alta' | '3 - Média' | '4 - Baixa' {
+  if (!priorityName) return '3 - Média';
+  const p = priorityName.toLowerCase();
+  if (p.includes('highest') || p.includes('urgente') || p.includes('blocker')) return '1 - Urgente';
+  if (p.includes('high') || p.includes('alta')) return '2 - Alta';
+  if (p.includes('medium') || p.includes('média') || p.includes('media')) return '3 - Média';
+  return '4 - Baixa';
+}
+
+// Endpoint de Diagnóstico/Health-Check da Conexão Jira
+app.get("/api/jira/health-check", async (req, res) => {
+  const domain = (process.env.JIRA_DOMAIN || "").replace(/^https?:\/\//, "").replace(/\/$/, "");
+  const email = process.env.JIRA_EMAIL || "";
+  const token = process.env.JIRA_API_TOKEN || "";
+
+  if (!domain || !email || !token || domain === "seu-dominio.atlassian.net") {
+    return res.status(400).json({
+      configured: false,
+      message: "Credenciais do Jira ausentes ou não configuradas no arquivo .env (preencha JIRA_DOMAIN, JIRA_EMAIL e JIRA_API_TOKEN)"
+    });
+  }
+
+  try {
+    // Desabilitar temporariamente a rejeição de certificados SSL de redes corporativas/proxy
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+    const auth = Buffer.from(`${email}:${token}`).toString("base64");
+    const response = await fetch(`https://${domain}/rest/api/3/myself`, {
+      headers: {
+        Authorization: `Basic ${auth}`,
+        Accept: "application/json"
+      }
+    });
+
+    if (response.ok) {
+      const userData = await response.json();
+      return res.json({
+        configured: true,
+        success: true,
+        authenticatedUser: userData.displayName || userData.emailAddress,
+        domain
+      });
+    } else {
+      const errText = await response.text();
+      return res.status(401).json({
+        configured: true,
+        success: false,
+        status: response.status,
+        error: "Falha na autenticação com a API do Jira Cloud. Verifique o email e o API Token.",
+        details: errText
+      });
+    }
+  } catch (error: any) {
+    return res.status(500).json({
+      configured: true,
+      success: false,
+      error: error.message || "Erro ao tentar conectar ao Jira Cloud"
+    });
+  }
+});
+
+// 4. Supabase Edge Function / Proxy Local para Consultar Cards Reais do Jira (Projeto GAU)
 app.all("/api/jira/consultar-cards-jira", async (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
@@ -213,87 +303,100 @@ app.all("/api/jira/consultar-cards-jira", async (req, res) => {
     return res.status(200).end();
   }
 
-  // Sample cards mapping to the exact application rules
-  const sampleCards = [
-    {
-      key: "KAN-201",
-      title: "Nova Solicitação de Ingestão de Dados DW",
-      status: "Aberto",
-      squad: "Squad de Dados",
-      requester: "Carolina Santos",
-      description: "Ajuste e otimização na carga noturna do Data Warehouse",
-      priority: "2 - Alta",
-      category: "Ingestão"
-    },
-    {
-      key: "KAN-202",
-      title: "Validação de Processos de Pedidos em Triagem",
-      status: "Triagem",
-      squad: "Squad de Operações",
-      requester: "Roberto Lima",
-      description: "Análise de gargalos no fluxo de aprovações de novos pedidos",
-      priority: "3 - Média",
-      category: "Processos"
-    },
-    {
-      key: "KAN-203",
-      title: "Construção do Dashboard de Performance Q3",
-      status: "Em Andamento",
-      squad: "Squad de Dados",
-      requester: "Juliana Andrade",
-      description: "Desenvolvimento de painel consolidado para a diretoria comercial",
-      priority: "1 - Urgente",
-      category: "Dashboard"
-    },
-    {
-      key: "KAN-204",
-      title: "Automação RPA de Conciliação Bancária",
-      status: "Em Andamento",
-      squad: "Squad de RPA",
-      requester: "Marcelo Faria",
-      description: "Robô para extração e validação dos extratos bancários",
-      priority: "2 - Alta",
-      category: "Automação"
-    },
-    {
-      key: "KAN-205",
-      title: "Acompanhamento da Fila de Ordens de Serviço",
-      status: "Aguardando Squads",
-      squad: "Squad de Operações",
-      requester: "Luciana Mello",
-      description: "Gestão operacional das ordens de serviço pendentes",
-      priority: "2 - Alta",
-      category: "Processos"
-    },
-    {
-      key: "KAN-206",
-      title: "Integração API do Gateway de Pagamentos",
-      status: "Concluído",
-      squad: "Squad de Dados",
-      categoriaStatus: "Done",
-      requester: "Felipe Nogueira",
-      description: "API de webhook configurada e testada em produção",
-      priority: "2 - Alta",
-      category: "API"
-    },
-    {
-      key: "KAN-207",
-      title: "Disparo Automático de Boletos em Lote",
-      status: "Finalizado",
-      squad: "Squad de RPA",
-      categoriaStatus: "Done",
-      requester: "Aline Castro",
-      description: "Automação de envio concluída e validada",
-      priority: "3 - Média",
-      category: "Automação"
-    }
-  ];
+  const domain = (process.env.JIRA_DOMAIN || "").replace(/^https?:\/\//, "").replace(/\/$/, "");
+  const email = process.env.JIRA_EMAIL || "";
+  const token = process.env.JIRA_API_TOKEN || "";
 
-  return res.status(200).json({
-    success: true,
-    source: "consultar-cards-jira",
-    cards: sampleCards
-  });
+  // Se credenciais do Jira não estiverem preenchidas no .env, avisa no log e usa fallback
+  if (!domain || !email || !token) {
+    console.warn("[Jira Proxy] Credenciais do Jira não preenchidas no .env. Retornando cards de demonstração.");
+    const sampleCards = [
+      {
+        key: "GAU-101",
+        title: "Demanda de Teste: Ingestão de Dados DW (Insira credenciais reais no .env)",
+        status: "Abertos",
+        squad: "Squad de Dados",
+        requester: "Sistema GAU",
+        description: "Configure JIRA_DOMAIN, JIRA_EMAIL e JIRA_API_TOKEN no arquivo .env para buscar dados reais do espaço GAU",
+        priority: "2 - Alta",
+        category: "Ingestão"
+      }
+    ];
+    return res.status(200).json({
+      success: true,
+      source: "mock-fallback",
+      message: "Aviso: Preencha as credenciais no .env para buscar os cards reais do projeto GAU.",
+      cards: sampleCards
+    });
+  }
+
+  try {
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+    const auth = Buffer.from(`${email}:${token}`).toString("base64");
+    
+    // Consulta JQL focada no projeto GAU (Governança Automação) usando a nova API v3 search/jql
+    const jqlQuery = req.query.jql as string || "project = GAU ORDER BY created DESC";
+    const jiraUrl = `https://${domain}/rest/api/3/search/jql?jql=${encodeURIComponent(jqlQuery)}&fields=*all&maxResults=100`;
+
+    console.log(`[Jira Proxy] Consultando Jira Cloud (Projeto GAU): ${jiraUrl}`);
+
+    const response = await fetch(jiraUrl, {
+      headers: {
+        Authorization: `Basic ${auth}`,
+        Accept: "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error(`[Jira Proxy] Erro na API do Jira (${response.status}):`, errText);
+      return res.status(response.status).json({
+        success: false,
+        error: `Erro da API do Jira: ${response.statusText}`,
+        details: errText
+      });
+    }
+
+    const data = await response.json();
+    const issues = data.issues || [];
+
+    // Mapeamento das issues reais para a estrutura aceita pelo Frontend
+    const mappedCards = issues.map((issue: any) => {
+      const fields = issue.fields || {};
+      const rawStatus = fields.status?.name || 'Abertos';
+      const squad = parseSquadFromFields(fields);
+      const description = extractAdfText(fields.description) || fields.description || 'Sem descrição cadastrada';
+
+      return {
+        key: issue.key,
+        title: fields.summary || 'Sem título',
+        status: rawStatus,
+        squad: squad,
+        requester: fields.reporter?.displayName || 'Solicitante Jira',
+        requesterEmail: fields.reporter?.emailAddress,
+        description: description,
+        priority: parsePriority(fields.priority?.name),
+        category: fields.components?.[0]?.name || 'Processos',
+        created: fields.created
+      };
+    });
+
+    console.log(`[Jira Proxy] ${mappedCards.length} cards reais obtidos do espaço GAU com sucesso.`);
+
+    return res.status(200).json({
+      success: true,
+      source: "jira-cloud-api-real",
+      totalIssues: data.total,
+      cards: mappedCards
+    });
+
+  } catch (error: any) {
+    console.error("[Jira Proxy] Exceção ao consultar API do Jira:", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || "Erro interno ao conectar ao Jira"
+    });
+  }
 });
 
 // Health check endpoint
