@@ -1,0 +1,575 @@
+/* ==========================================================================
+   Controle de Squads & Governança Jira - Core Application Script (Padrão Painel-OPS)
+   ========================================================================== */
+
+const SUPABASE_URL = 'https://maguyzjhldcgpcvkvkqe.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hZ3V5empobGRjZ3Bjdmt2a3FlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2NTU0MDMsImV4cCI6MjEwMDIzMTQwM30.Ow9xruE1qAFTX3mqELERxrY3CRBOdV_n4MoXXhtt3Y8';
+
+let supabaseClient = null;
+if (window.supabase) {
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+// Global Application State
+const app = {
+  activeSquad: 'dados',
+  activeView: 'triagem',
+  
+  state: {
+    triageItems: [],
+    backlogItems: { dados: [], operacoes: [], rpa: [] },
+    completedTasks: { dados: [], operacoes: [], rpa: [] },
+    resources: { dados: [], operacoes: [], rpa: [] },
+    dpoLogs: []
+  },
+
+  init() {
+    this.loadLocalState();
+    this.seedDefaultDataIfEmpty();
+    this.setupRealtimeSync();
+    this.updateHeaderClock();
+    setInterval(() => this.updateHeaderClock(), 1000);
+    this.render();
+  },
+
+  updateHeaderClock() {
+    const clock = document.getElementById('header-clock');
+    if (clock) clock.textContent = new Date().toLocaleTimeString('pt-BR');
+  },
+
+  // Alternar Squad Ativa
+  setSquad(squadId) {
+    this.activeSquad = squadId;
+    
+    // Atualizar visual dos botões da sidebar
+    ['dados', 'operacoes', 'rpa'].forEach(id => {
+      const btn = document.getElementById(`btn-squad-${id}`);
+      if (btn) {
+        btn.className = `squad-tab-btn ${id === squadId ? `active-${id}` : ''}`;
+      }
+    });
+
+    // Atualizar badge no header
+    const squadBadge = document.getElementById('header-squad-badge');
+    if (squadBadge) {
+      const names = { dados: 'Squad de Dados', operacoes: 'Squad de Operações', rpa: 'Squad de RPA' };
+      const icons = { dados: 'fa-database', operacoes: 'fa-gears', rpa: 'fa-robot' };
+      squadBadge.innerHTML = `<i class="fa-solid ${icons[squadId]}"></i> ${names[squadId]}`;
+    }
+
+    this.render();
+  },
+
+  // Alternar View Ativa
+  navigate(viewId) {
+    this.activeView = viewId;
+
+    // Atualizar links da sidebar
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    const activeNav = document.getElementById(`nav-${viewId}`);
+    if (activeNav) activeNav.classList.add('active');
+
+    // Alternar visibilidade das views
+    document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active-view'));
+    const targetView = document.getElementById(`view-${viewId}`);
+    if (targetView) targetView.classList.add('active-view');
+
+    // Atualizar título da página
+    const titleMap = {
+      triagem: 'Mesa de Triagem & Governança Jira',
+      dashboard: 'Dashboard Consolidado 3 Squads',
+      board: 'Quadro da Squad',
+      backlog: 'Backlog de Demandas',
+      concluidos: 'Entregas Concluídas',
+      'dpo-sync': 'Modo Reunião DPO',
+      'dpo-logs': 'Histórico de Alinhamentos DPO'
+    };
+    const titleEl = document.getElementById('page-title');
+    if (titleEl) titleEl.textContent = titleMap[viewId] || 'Controle de Squads';
+
+    this.render();
+  },
+
+  // Carregar dados salvos no LocalStorage
+  loadLocalState() {
+    try {
+      const savedTriage = localStorage.getItem('cs_triage_items');
+      if (savedTriage) this.state.triageItems = JSON.parse(savedTriage);
+
+      ['dados', 'operacoes', 'rpa'].forEach(id => {
+        const b = localStorage.getItem(`cs_backlog_${id}`);
+        if (b) this.state.backlogItems[id] = JSON.parse(b);
+
+        const c = localStorage.getItem(`cs_completed_${id}`);
+        if (c) this.state.completedTasks[id] = JSON.parse(c);
+
+        const r = localStorage.getItem(`cs_resources_${id}`);
+        if (r) this.state.resources[id] = JSON.parse(r);
+      });
+    } catch (e) {
+      console.warn('Erro ao carregar LocalStorage:', e);
+    }
+  },
+
+  // Salvar estado atual no LocalStorage e no Supabase
+  saveState() {
+    try {
+      localStorage.setItem('cs_triage_items', JSON.stringify(this.state.triageItems));
+      ['dados', 'operacoes', 'rpa'].forEach(id => {
+        localStorage.setItem(`cs_backlog_${id}`, JSON.stringify(this.state.backlogItems[id]));
+        localStorage.setItem(`cs_completed_${id}`, JSON.stringify(this.state.completedTasks[id]));
+        localStorage.setItem(`cs_resources_${id}`, JSON.stringify(this.state.resources[id]));
+      });
+    } catch (e) {
+      console.warn('Erro ao salvar LocalStorage:', e);
+    }
+
+    this.render();
+  },
+
+  // Dados Iniciais Fictícios (caso o banco esteja limpo)
+  seedDefaultDataIfEmpty() {
+    if (!this.state.resources.dados.length) {
+      this.state.resources.dados = [
+        {
+          id: 'res-1',
+          name: 'Carolina Santos',
+          role: 'Engenheira de Dados Sr.',
+          status: 'Ativo',
+          allocationOps: 60,
+          allocationFin: 40,
+          currentTask: { id: 'task-1', title: 'Pipeline Noturno Data Warehouse (GAU-102)', status: 'Em Andamento', dueDate: '2026-08-05' },
+          nextTask: { id: 'task-2', title: 'Integração API Billing (GAU-108)', status: 'A Fazer', dueDate: '2026-08-15' }
+        },
+        {
+          id: 'res-2',
+          name: 'Roberto Lima',
+          role: 'Analista BI Pleno',
+          status: 'Ativo',
+          allocationOps: 80,
+          allocationFin: 20,
+          currentTask: { id: 'task-3', title: 'Dashboard Executivo Q3 (GAU-105)', status: 'Em Andamento', dueDate: '2026-08-02' },
+          nextTask: null
+        }
+      ];
+    }
+  },
+
+  // Supabase Realtime Sync (Multi-User)
+  setupRealtimeSync() {
+    if (!supabaseClient) return;
+    try {
+      supabaseClient.channel('controle_squads_realtime')
+        .on('postgres_changes', { event: '*', schema: 'public' }, () => {
+          console.log('[Realtime] Atualização recebida de outro usuário.');
+          this.loadLocalState();
+          this.render();
+        })
+        .subscribe();
+    } catch (e) {
+      console.warn('Realtime sync offline:', e);
+    }
+  },
+
+  // Renderizador principal da interface
+  render() {
+    this.renderBadgeCounts();
+
+    if (this.activeView === 'triagem') this.renderTriageView();
+    else if (this.activeView === 'dashboard') this.renderDashboardView();
+    else if (this.activeView === 'board') this.renderBoardView();
+    else if (this.activeView === 'backlog') this.renderBacklogView();
+    else if (this.activeView === 'concluidos') this.renderCompletedView();
+  },
+
+  // Badges da Sidebar
+  renderBadgeCounts() {
+    const pendingCount = this.state.triageItems.filter(i => i.status === 'Pendente').length;
+    const badgeEl = document.getElementById('badge-triage-count');
+    if (badgeEl) badgeEl.textContent = pendingCount;
+  },
+
+  // Disparar sincronização com o Jira via JiraSyncEngine
+  async triggerJiraSync() {
+    const btn = document.getElementById('btn-sync-jira');
+    const icon = document.getElementById('icon-sync-spin');
+    
+    if (btn) btn.disabled = true;
+    if (icon) icon.classList.add('fa-spin');
+
+    const result = await JiraSyncEngine.syncJiraCards(this.state, () => this.saveState());
+
+    if (btn) btn.disabled = false;
+    if (icon) icon.classList.remove('fa-spin');
+
+    // Toast Feedback
+    const toast = document.getElementById('sync-toast-banner');
+    const toastMsg = document.getElementById('sync-toast-message');
+    const timeEl = document.getElementById('sync-last-time');
+
+    if (toast && toastMsg) {
+      toastMsg.textContent = result.message;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 7000);
+    }
+
+    if (timeEl && result.time) {
+      timeEl.textContent = `Última sync: ${result.time}`;
+    }
+  },
+
+  // RENDER: Mesa de Triagem
+  renderTriageView() {
+    const container = document.getElementById('triage-cards-container');
+    if (!container) return;
+
+    const searchTerm = (document.getElementById('search-triage')?.value || '').toLowerCase();
+    
+    const pendingItems = this.state.triageItems.filter(i => {
+      const matchSearch = !searchTerm || 
+        i.title.toLowerCase().includes(searchTerm) || 
+        i.jiraKey.toLowerCase().includes(searchTerm) ||
+        i.requesterName.toLowerCase().includes(searchTerm);
+      return matchSearch;
+    });
+
+    // Atualizar cards de métricas
+    document.getElementById('metric-triage-pending').textContent = this.state.triageItems.filter(i => i.status === 'Pendente').length;
+    document.getElementById('metric-triage-triaged').textContent = this.state.triageItems.filter(i => i.status === 'Triado').length;
+    document.getElementById('metric-triage-rejected').textContent = this.state.triageItems.filter(i => i.status === 'Rejeitado').length;
+
+    if (pendingItems.length === 0) {
+      container.innerHTML = `
+        <div class="col-span-full text-center py-12 text-slate-400">
+          <i class="fa-solid fa-inbox text-4xl mb-3 text-slate-600"></i>
+          <p class="font-semibold text-sm">Nenhuma solicitação pendente na fila de Triagem.</p>
+          <p class="text-xs text-slate-500 mt-1">Clique no botão "🔄 Atualizar cards do Jira" acima para puxar novas solicitações do Jira Cloud.</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = pendingItems.map(item => `
+      <div class="glass-panel p-5 flex flex-col justify-between" style="border-left: 4px solid var(--color-dados);">
+        <div>
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <span class="font-extrabold text-xs text-emerald-400 tracking-wider">${item.jiraKey}</span>
+            <span class="badge badge-high">${item.priority || '2 - Alta'}</span>
+          </div>
+          <h4 class="text-base font-bold text-white mb-2 leading-snug">${item.title}</h4>
+          <p class="text-xs text-slate-400 mb-4 line-clamp-2">${item.description}</p>
+          
+          <div class="flex items-center gap-2 text-xs text-slate-300 mb-4">
+            <i class="fa-solid fa-user text-slate-500"></i>
+            <span>${item.requesterName}</span>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-white/10 flex flex-col gap-2">
+          <span class="text-[11px] font-bold text-slate-400 uppercase">Encaminhar para Squad:</span>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button class="btn btn-secondary text-xs py-1.5 px-2" onclick="app.triageToSquad('${item.id}', 'dados')">
+              <i class="fa-solid fa-database text-emerald-400"></i> Dados
+            </button>
+            <button class="btn btn-secondary text-xs py-1.5 px-2" onclick="app.triageToSquad('${item.id}', 'operacoes')">
+              <i class="fa-solid fa-gears text-orange-400"></i> Ops
+            </button>
+            <button class="btn btn-secondary text-xs py-1.5 px-2" onclick="app.triageToSquad('${item.id}', 'rpa')">
+              <i class="fa-solid fa-robot text-pink-400"></i> RPA
+            </button>
+          </div>
+          <button class="btn btn-danger text-xs py-1 mt-1" onclick="app.rejectTriage('${item.id}')">
+            <i class="fa-solid fa-xmark"></i> Rejeitar
+          </button>
+        </div>
+      </div>
+    `).join('');
+  },
+
+  // Ação: Encaminhar card da Triagem para Squad
+  triageToSquad(triageId, targetSquadId) {
+    const itemIdx = this.state.triageItems.findIndex(i => i.id === triageId);
+    if (itemIdx === -1) return;
+
+    const item = this.state.triageItems[itemIdx];
+    item.status = 'Triado';
+    item.triagedSquadId = targetSquadId;
+
+    // Inserir no backlog da Squad
+    const squadNames = { dados: 'Squad de Dados', operacoes: 'Squad de Operações', rpa: 'Squad de RPA' };
+    this.state.backlogItems[targetSquadId].unshift({
+      id: `backlog-${item.jiraKey}`,
+      gau: item.jiraKey,
+      title: item.title,
+      notes: item.description,
+      requester: item.requesterName,
+      team: squadNames[targetSquadId],
+      priority: item.priority || '2 - Alta',
+      category: item.category || 'Geral',
+      treatmentOrder: 1,
+      status: 'Em Andamento',
+      progress: 0
+    });
+
+    this.saveState();
+  },
+
+  // Ação: Rejeitar solicitação na Triagem
+  rejectTriage(triageId) {
+    const item = this.state.triageItems.find(i => i.id === triageId);
+    if (item) {
+      item.status = 'Rejeitado';
+      this.saveState();
+    }
+  },
+
+  // RENDER: Dashboard Consolidado
+  renderDashboardView() {
+    let totalMembers = 0;
+    let activeMembers = 0;
+    let totalPending = 0;
+    let totalCompleted = 0;
+
+    ['dados', 'operacoes', 'rpa'].forEach(id => {
+      const resList = this.state.resources[id] || [];
+      totalMembers += resList.length;
+      activeMembers += resList.filter(r => r.status === 'Ativo').length;
+      totalPending += (this.state.backlogItems[id] || []).length;
+      totalCompleted += (this.state.completedTasks[id] || []).length;
+    });
+
+    document.getElementById('dash-total-members').textContent = totalMembers;
+    document.getElementById('dash-active-members').textContent = activeMembers;
+    document.getElementById('dash-pending-backlog').textContent = totalPending;
+    document.getElementById('dash-total-completed').textContent = totalCompleted;
+
+    this.renderCharts();
+  },
+
+  renderCharts() {
+    // Gráfico de Distribuição por Squad
+    const ctxSquad = document.getElementById('chart-squad-dist')?.getContext('2d');
+    if (ctxSquad) {
+      if (window.squadChart) window.squadChart.destroy();
+      window.squadChart = new Chart(ctxSquad, {
+        type: 'doughnut',
+        data: {
+          labels: ['Squad de Dados', 'Squad de Operações', 'Squad de RPA'],
+          datasets: [{
+            data: [
+              (this.state.backlogItems.dados || []).length,
+              (this.state.backlogItems.operacoes || []).length,
+              (this.state.backlogItems.rpa || []).length
+            ],
+            backgroundColor: ['#00B074', '#FF5E00', '#E31C79']
+          }]
+        },
+        options: { responsive: true, plugins: { legend: { labels: { color: '#94a3b8' } } } }
+      });
+    }
+  },
+
+  // RENDER: Quadro da Squad (Resource Cards)
+  renderBoardView() {
+    const container = document.getElementById('board-members-container');
+    if (!container) return;
+
+    const squadNames = { dados: 'Squad de Dados', operacoes: 'Squad de Operações', rpa: 'Squad de RPA' };
+    document.getElementById('board-squad-title').textContent = `Quadro de Membros - ${squadNames[this.activeSquad]}`;
+
+    const members = this.state.resources[this.activeSquad] || [];
+
+    if (members.length === 0) {
+      container.innerHTML = `
+        <div class="col-span-full text-center py-12 text-slate-400">
+          <p>Nenhum membro cadastrado nesta Squad.</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = members.map(m => `
+      <div class="glass-panel p-5">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h4 class="font-bold text-white text-base">${m.name}</h4>
+            <span class="text-xs text-slate-400">${m.role}</span>
+          </div>
+          <span class="badge ${m.status === 'Ativo' ? 'badge-medium' : 'badge-low'}">${m.status || 'Ativo'}</span>
+        </div>
+
+        <div class="mb-4">
+          <div class="flex justify-between text-xs text-slate-400 mb-1">
+            <span>Ops: ${m.allocationOps || 50}%</span>
+            <span>Fin: ${m.allocationFin || 50}%</span>
+          </div>
+          <div class="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden flex">
+            <div class="bg-emerald-500 h-full" style="width: ${m.allocationOps || 50}%"></div>
+            <div class="bg-blue-500 h-full" style="width: ${m.allocationFin || 50}%"></div>
+          </div>
+        </div>
+
+        <!-- TAREFA ATIVA -->
+        <div class="p-3 rounded-lg bg-white/5 border border-white/10 mb-3">
+          <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block mb-1">Demanda Ativa:</span>
+          ${m.currentTask ? `
+            <div class="font-semibold text-xs text-white mb-2">${m.currentTask.title}</div>
+            <div class="flex items-center justify-between text-[11px] text-slate-400">
+              <span>Prazo: ${m.currentTask.dueDate}</span>
+              <span class="text-emerald-400 font-bold">${m.currentTask.status}</span>
+            </div>
+          ` : '<span class="text-xs text-slate-500 italic">Nenhuma demanda atribuída</span>'}
+        </div>
+      </div>
+    `).join('');
+  },
+
+  // RENDER: Backlog View
+  renderBacklogView() {
+    const tbody = document.getElementById('backlog-table-body');
+    if (!tbody) return;
+
+    const items = this.state.backlogItems[this.activeSquad] || [];
+
+    if (items.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-500">Nenhuma demanda no backlog desta squad.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = items.map((item, idx) => `
+      <tr>
+        <td class="font-bold text-slate-400">${item.treatmentOrder || idx + 1}</td>
+        <td class="font-extrabold text-emerald-400">${item.gau || item.jiraKey || 'GAU-000'}</td>
+        <td class="font-semibold text-white">${item.title}</td>
+        <td class="text-slate-300">${item.requester}</td>
+        <td><span class="badge badge-high">${item.priority}</span></td>
+        <td class="text-slate-400">${item.category}</td>
+        <td><span class="badge badge-medium">${item.status}</span></td>
+        <td>
+          <button class="btn btn-secondary text-xs py-1 px-2" onclick="app.deleteBacklogItem('${item.id}')">
+            <i class="fa-solid fa-trash text-rose-400"></i>
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  deleteBacklogItem(id) {
+    this.state.backlogItems[this.activeSquad] = this.state.backlogItems[this.activeSquad].filter(i => i.id !== id);
+    this.saveState();
+  },
+
+  // RENDER: Entregas Concluídas
+  renderCompletedView() {
+    const tbody = document.getElementById('completed-table-body');
+    if (!tbody) return;
+
+    const items = this.state.completedTasks[this.activeSquad] || [];
+    document.getElementById('completed-count-badge').textContent = `${items.length} entregas`;
+
+    if (items.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-500">Nenhuma entrega concluída registrada nesta squad.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = items.map(item => `
+      <tr>
+        <td class="font-bold text-white">${item.taskTitle}</td>
+        <td class="text-slate-300">${item.completedBy || 'Squad'}</td>
+        <td class="text-slate-400">${item.completionDate || '2026-07-29'}</td>
+        <td class="text-emerald-400 text-xs italic">${item.gains || 'Sem registro de ganhos'}</td>
+        <td>
+          <button class="btn btn-secondary text-xs py-1 px-2" onclick="app.deleteCompletedTask('${item.id}')">
+            <i class="fa-solid fa-trash text-rose-400"></i>
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  deleteCompletedTask(id) {
+    this.state.completedTasks[this.activeSquad] = this.state.completedTasks[this.activeSquad].filter(i => i.id !== id);
+    this.saveState();
+  },
+
+  // Exportar Tabela para Excel (.xlsx)
+  exportExcel() {
+    const items = this.state.backlogItems[this.activeSquad] || [];
+    if (!items.length) {
+      alert('Nenhuma demanda no backlog para exportar.');
+      return;
+    }
+
+    const ws = XLSX.utils.json_to_sheet(items);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Backlog');
+    XLSX.writeFile(wb, `Backlog_${this.activeSquad}_${new Date().toISOString().split('T')[0]}.xlsx`);
+  },
+
+  // Modais Handlers
+  openModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.add('active');
+  },
+
+  closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.remove('active');
+  },
+
+  openMemberModal() { this.openModal('modal-member'); },
+  openTaskModal() { this.openModal('modal-task'); },
+
+  saveMember(e) {
+    e.preventDefault();
+    const name = document.getElementById('member-name').value;
+    const role = document.getElementById('member-role').value;
+    const ops = parseInt(document.getElementById('member-alloc-ops').value) || 50;
+    const fin = parseInt(document.getElementById('member-alloc-fin').value) || 50;
+
+    this.state.resources[this.activeSquad].push({
+      id: `res-${Date.now()}`,
+      name,
+      role,
+      status: 'Ativo',
+      allocationOps: ops,
+      allocationFin: fin,
+      currentTask: null,
+      nextTask: null
+    });
+
+    this.closeModal('modal-member');
+    this.saveState();
+  },
+
+  saveTask(e) {
+    e.preventDefault();
+    const gau = document.getElementById('task-gau').value;
+    const title = document.getElementById('task-title').value;
+    const requester = document.getElementById('task-requester').value;
+    const priority = document.getElementById('task-priority').value;
+    const category = document.getElementById('task-category').value;
+
+    const squadNames = { dados: 'Squad de Dados', operacoes: 'Squad de Operações', rpa: 'Squad de RPA' };
+
+    this.state.backlogItems[this.activeSquad].unshift({
+      id: `backlog-${Date.now()}`,
+      gau,
+      jiraKey: gau,
+      title,
+      requester,
+      team: squadNames[this.activeSquad],
+      priority,
+      category,
+      treatmentOrder: 1,
+      status: 'Pendente',
+      progress: 0
+    });
+
+    this.closeModal('modal-task');
+    this.saveState();
+  }
+};
+
+// Inicializar aplicação ao carregar a página
+document.addEventListener('DOMContentLoaded', () => app.init());
