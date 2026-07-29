@@ -40,14 +40,6 @@ const app = {
   // Alternar Squad Ativa
   setSquad(squadId) {
     this.activeSquad = squadId;
-    
-    // Atualizar visual dos botões da sidebar
-    ['dados', 'operacoes', 'rpa'].forEach(id => {
-      const btn = document.getElementById(`btn-squad-${id}`);
-      if (btn) {
-        btn.className = `squad-tab-btn ${id === squadId ? `active-${id}` : ''}`;
-      }
-    });
 
     // Atualizar badge no header
     const squadBadge = document.getElementById('header-squad-badge');
@@ -71,8 +63,18 @@ const app = {
 
     // Atualizar links da sidebar
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-    const activeNav = document.getElementById(`nav-${viewId}`);
-    if (activeNav) activeNav.classList.add('active');
+    
+    if (viewId === 'triagem') {
+      const activeNav = document.getElementById('nav-triagem');
+      if (activeNav) activeNav.classList.add('active');
+    } else if (viewId === 'dashboard') {
+      const activeNav = document.getElementById('nav-dashboard');
+      if (activeNav) activeNav.classList.add('active');
+    } else {
+      // Para visões de squad (board, backlog, concluidos)
+      const activeSquadNav = document.getElementById(`nav-squad-${this.activeSquad}`);
+      if (activeSquadNav) activeSquadNav.classList.add('active');
+    }
 
     // Alternar visibilidade das views
     document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active-view'));
@@ -80,12 +82,13 @@ const app = {
     if (targetView) targetView.classList.add('active-view');
 
     // Atualizar título da página
+    const squadNames = { dados: 'Squad de Dados', operacoes: 'Squad de Operações', rpa: 'Squad de RPA' };
     const titleMap = {
       triagem: 'Mesa de Triagem & Governança Jira',
       dashboard: 'Dashboard Consolidado 3 Squads',
-      board: 'Quadro da Squad',
-      backlog: 'Backlog de Demandas',
-      concluidos: 'Entregas Concluídas',
+      board: `Quadro de Membros - ${squadNames[this.activeSquad]}`,
+      backlog: `Backlog de Demandas - ${squadNames[this.activeSquad]}`,
+      concluidos: `Entregas Concluídas - ${squadNames[this.activeSquad]}`,
       'dpo-sync': 'Modo Reunião DPO',
       'dpo-logs': 'Histórico de Alinhamentos DPO'
     };
@@ -132,7 +135,7 @@ const app = {
     this.render();
   },
 
-  // Dados Iniciais Fictícios (caso o banco esteja limpo)
+  // Dados Iniciais Fictícios para cada uma das 3 Squads
   seedDefaultDataIfEmpty() {
     if (!this.state.resources.dados.length) {
       this.state.resources.dados = [
@@ -143,8 +146,8 @@ const app = {
           status: 'Ativo',
           allocationOps: 60,
           allocationFin: 40,
-          currentTask: { id: 'task-1', title: 'Pipeline Noturno Data Warehouse (GAU-102)', status: 'Em Andamento', dueDate: '2026-08-05' },
-          nextTask: { id: 'task-2', title: 'Integração API Billing (GAU-108)', status: 'A Fazer', dueDate: '2026-08-15' }
+          currentTask: { id: 'task-1', title: 'Pipeline Noturno Data Warehouse (GAU-133)', status: 'Em Andamento', dueDate: '2026-08-05' },
+          nextTask: { id: 'task-2', title: 'Integração API Billing NPay (GAU-129)', status: 'A Fazer', dueDate: '2026-08-15' }
         },
         {
           id: 'res-2',
@@ -153,7 +156,57 @@ const app = {
           status: 'Ativo',
           allocationOps: 80,
           allocationFin: 20,
-          currentTask: { id: 'task-3', title: 'Dashboard Executivo Q3 (GAU-105)', status: 'Em Andamento', dueDate: '2026-08-02' },
+          currentTask: { id: 'task-3', title: 'Dashboard Executivo Q3 (GAU-124)', status: 'Em Andamento', dueDate: '2026-08-02' },
+          nextTask: null
+        }
+      ];
+    }
+
+    if (!this.state.resources.operacoes.length) {
+      this.state.resources.operacoes = [
+        {
+          id: 'res-op-1',
+          name: 'Lucas da Silva Machiori',
+          role: 'Coordenador de Operações NPay',
+          status: 'Ativo',
+          allocationOps: 75,
+          allocationFin: 25,
+          currentTask: { id: 'task-op-1', title: 'Triagem & Governança de Demandas NPay (GAU-134)', status: 'Em Andamento', dueDate: '2026-08-10' },
+          nextTask: { id: 'task-op-2', title: 'Mensuração de KPIs de Operações (GAU-131)', status: 'A Fazer', dueDate: '2026-08-20' }
+        },
+        {
+          id: 'res-op-2',
+          name: 'Rodrigo Mendonça',
+          role: 'Analista de Processos Sr.',
+          status: 'Ativo',
+          allocationOps: 90,
+          allocationFin: 10,
+          currentTask: { id: 'task-op-3', title: 'Revisão dos Processos de Reembolso (GAU-128)', status: 'Em Andamento', dueDate: '2026-08-04' },
+          nextTask: null
+        }
+      ];
+    }
+
+    if (!this.state.resources.rpa.length) {
+      this.state.resources.rpa = [
+        {
+          id: 'res-rpa-1',
+          name: 'Marcelo Faria',
+          role: 'Desenvolvedor RPA Sr.',
+          status: 'Ativo',
+          allocationOps: 50,
+          allocationFin: 50,
+          currentTask: { id: 'task-rpa-1', title: 'Automação RPA de Conciliação Bancária (GAU-132)', status: 'Em Andamento', dueDate: '2026-08-06' },
+          nextTask: { id: 'task-rpa-2', title: 'Robô de Validação de Chaves Pix (GAU-127)', status: 'A Fazer', dueDate: '2026-08-18' }
+        },
+        {
+          id: 'res-rpa-2',
+          name: 'Camila Rocha',
+          role: 'Especialista em Automações',
+          status: 'Ativo',
+          allocationOps: 40,
+          allocationFin: 60,
+          currentTask: { id: 'task-rpa-3', title: 'Automação de Envio de Relatórios (GAU-125)', status: 'Em Andamento', dueDate: '2026-08-12' },
           nextTask: null
         }
       ];

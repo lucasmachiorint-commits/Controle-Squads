@@ -51,26 +51,23 @@
       </a>
 
       <!-- 2. SQUADS -->
-      <div class="squad-selector mt-4">
-        <span class="selector-label">Squads</span>
-        <div class="squad-btn-group">
-          <button class="squad-tab-btn" id="btn-squad-dados" onclick="app.selectSquadAndView('dados', 'board')">
-            <span><i class="fa-solid fa-database text-emerald-400 me-2"></i> Squad de Dados</span>
-            <i class="fa-solid fa-chevron-right text-xs"></i>
-          </button>
-          <button class="squad-tab-btn" id="btn-squad-operacoes" onclick="app.selectSquadAndView('operacoes', 'board')">
-            <span><i class="fa-solid fa-gears text-orange-400 me-2"></i> Squad de Operações</span>
-            <i class="fa-solid fa-chevron-right text-xs"></i>
-          </button>
-          <button class="squad-tab-btn" id="btn-squad-rpa" onclick="app.selectSquadAndView('rpa', 'board')">
-            <span><i class="fa-solid fa-robot text-pink-400 me-2"></i> Squad de RPA</span>
-            <i class="fa-solid fa-chevron-right text-xs"></i>
-          </button>
-        </div>
-      </div>
+      <div class="sidebar-section-title">SQUADS</div>
+      <a class="nav-item" id="nav-squad-dados" onclick="app.selectSquadAndView('dados', 'board')">
+        <i class="fa-solid fa-database text-emerald-400"></i>
+        <span>Squad de Dados</span>
+      </a>
+      <a class="nav-item" id="nav-squad-operacoes" onclick="app.selectSquadAndView('operacoes', 'board')">
+        <i class="fa-solid fa-gears text-orange-400"></i>
+        <span>Squad de Operações</span>
+      </a>
+      <a class="nav-item" id="nav-squad-rpa" onclick="app.selectSquadAndView('rpa', 'board')">
+        <i class="fa-solid fa-robot text-pink-400"></i>
+        <span>Squad de RPA</span>
+      </a>
 
       <!-- 3. DASHBOARD CONSOLIDADO -->
-      <a class="nav-item mt-4" id="nav-dashboard" onclick="app.navigate('dashboard')">
+      <div class="sidebar-section-title mt-2">DASHBOARD</div>
+      <a class="nav-item" id="nav-dashboard" onclick="app.navigate('dashboard')">
         <i class="fa-solid fa-chart-pie"></i>
         <span>Dashboard Consolidado</span>
       </a>
