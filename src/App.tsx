@@ -1451,29 +1451,6 @@ export default function App() {
 
                 {/* Core Interactive Meeting Switcher */}
                 <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto justify-end">
-                  {/* Botão de Atualização do Jira + Horário da Última Atualização */}
-                  <div className="flex flex-col sm:flex-row items-center gap-2">
-                    <button
-                      id="btnAtualizarJira"
-                      onClick={sincronizarFilaJira}
-                      disabled={isSyncingJira}
-                      className="w-full sm:w-auto px-4 py-2.5 bg-[#004D36] hover:bg-[#003B27] disabled:bg-slate-400 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed shrink-0"
-                      title="Sincronizar e consultar cards do Jira via Supabase Edge Function"
-                    >
-                      {isSyncingJira ? (
-                        <>
-                          <span className="animate-spin text-white">🔄</span>
-                          <span>Carregando...</span>
-                        </>
-                      ) : (
-                        <span>🔄 Atualizar cards do Jira</span>
-                      )}
-                    </button>
-                    <span id="lastJiraSyncTime" className="text-xs text-slate-600 font-semibold whitespace-nowrap">
-                      Última atualização: {lastJiraSyncTime}
-                    </span>
-                  </div>
-
                   <button
                     onClick={() => setIsClearModalOpen(true)}
                     className="w-full sm:w-auto px-3.5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5"

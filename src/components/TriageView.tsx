@@ -130,10 +130,10 @@ export default function TriageView({
                 className={`px-4 py-2.5 bg-[#004D36] hover:bg-[#003B27] disabled:opacity-80 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-2 cursor-pointer ${
                   isSyncingJira ? 'ring-2 ring-[#00B074]/50' : ''
                 }`}
-                title="Sincronizar novos cards do Jira via Edge Function ou Simulador"
+                title="Sincronizar e atualizar todas as filas (Triagem, Squad de Dados, Operações, RPA e Concluídos)"
               >
                 <RotateCcw size={15} className={`text-[#00B074] ${isSyncingJira ? 'animate-spin text-amber-400' : ''}`} />
-                <span>{isSyncingJira ? 'Atualizando cards...' : '🔄 Atualizar cards do Jira'}</span>
+                <span>{isSyncingJira ? 'Atualizando todas as filas...' : '🔄 Atualizar cards do Jira'}</span>
               </button>
               <div className="text-[11px] font-semibold text-slate-500 flex items-center gap-1 mt-0.5">
                 <Clock size={12} className={`text-[#00B074] ${isSyncingJira ? 'animate-spin text-amber-500' : ''}`} />
