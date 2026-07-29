@@ -96,6 +96,17 @@ app.get('/api/jira/consultar-cards-jira', async (req, res) => {
       const summary = fields.summary || 'Demanda do Jira';
       const reporter = fields.reporter?.displayName || 'Solicitante Jira';
 
+      // Data de Criação do Card
+      let createdFormatted = 'Data N/D';
+      if (fields.created) {
+        try {
+          const d = new Date(fields.created);
+          createdFormatted = d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        } catch (e) {
+          createdFormatted = fields.created;
+        }
+      }
+
       // Identificar a Squad de Atendimento a partir do customfield_12475 (16005 = Operações NPay, 16006 = Dados Operações, 16007 = RPA)
       let squadId = 'dados';
       let squadName = 'Squad de Dados';
@@ -135,6 +146,7 @@ app.get('/api/jira/consultar-cards-jira', async (req, res) => {
         requester: reporter,
         priority: fields.priority?.name || '2 - Alta',
         category: 'Geral',
+        createdDate: createdFormatted,
         description: parseADFDescription(fields.description)
       };
     });

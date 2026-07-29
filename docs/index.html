@@ -92,7 +92,6 @@
           <i class="fa-solid fa-rotate-right me-1" id="icon-spin-jira"></i>
           <span>🔄 Sincronizar com Jira</span>
         </button>
-        <span class="text-xs text-slate-400 font-mono" id="header-clock">--:--:--</span>
       </div>
     </header>
 
@@ -437,44 +436,48 @@
 </div>
 
 <!-- MODAL: DETALHES COMPLETOS DA DEMANDA (JIRA CLOUD) -->
-<div class="modal-backdrop" id="modal-demand-details">
-  <div class="glass-panel modal-content max-w-2xl w-full p-6">
+<div class="modal-backdrop" id="modal-demand-details" onclick="if(event.target === this) app.closeModal('modal-demand-details', event)">
+  <div class="glass-panel modal-content max-w-xl w-full p-6">
     <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
       <div class="flex items-center gap-3">
         <span class="badge badge-medium text-xs font-extrabold" id="detail-gau-key">GAU-128</span>
         <span class="badge badge-high" id="detail-priority">2 - Alta</span>
       </div>
-      <button class="btn btn-secondary py-1 px-2.5" onclick="app.closeModal('modal-demand-details')">
+      <button type="button" class="btn btn-secondary py-1 px-2.5 text-xs" onclick="app.closeModal('modal-demand-details', event)">
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
 
-    <h3 class="text-xl font-bold text-white mb-2 leading-snug" id="detail-title">Título da Demanda</h3>
+    <h3 class="text-lg font-bold text-white mb-3 leading-snug" id="detail-title">Título da Demanda</h3>
     
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 rounded-xl bg-white/5 border border-white/10 mb-6 text-xs">
+    <div class="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-white/5 border border-white/10 mb-5 text-xs">
       <div>
-        <span class="text-slate-400 block mb-1">Solicitante:</span>
+        <span class="text-slate-400 block mb-0.5">Solicitante:</span>
         <span class="font-bold text-white" id="detail-requester">--</span>
       </div>
       <div>
-        <span class="text-slate-400 block mb-1">Status no Jira:</span>
+        <span class="text-slate-400 block mb-0.5">Data de Criação:</span>
+        <span class="font-bold text-amber-400" id="detail-created-date">--</span>
+      </div>
+      <div>
+        <span class="text-slate-400 block mb-0.5">Status no Jira:</span>
         <span class="badge badge-medium" id="detail-status">Aguardando Triagem</span>
       </div>
       <div>
-        <span class="text-slate-400 block mb-1">Squad Atribuída:</span>
-        <span class="font-bold text-emerald-400" id="detail-squad">Fila de Triagem</span>
+        <span class="text-slate-400 block mb-0.5">Squad Atribuída:</span>
+        <span class="font-bold text-emerald-400" id="detail-squad">Mesa de Triagem</span>
       </div>
     </div>
 
-    <div class="mb-6">
+    <div class="mb-5">
       <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Descrição Completa do Chamado:</h4>
-      <div class="p-4 rounded-xl bg-slate-900/80 border border-white/10 text-slate-300 text-xs leading-relaxed max-h-60 overflow-y-auto whitespace-pre-wrap" id="detail-description">
+      <div class="p-3.5 rounded-xl bg-slate-900/90 border border-white/10 text-slate-300 text-xs leading-relaxed max-h-52 overflow-y-auto whitespace-pre-wrap" id="detail-description">
         Sem descrição fornecida.
       </div>
     </div>
 
-    <div class="flex justify-end gap-3 pt-4 border-t border-white/10">
-      <button class="btn btn-secondary" onclick="app.closeModal('modal-demand-details')">Fechar</button>
+    <div class="flex justify-end gap-3 pt-3 border-t border-white/10">
+      <button type="button" class="btn btn-secondary text-xs py-1.5 px-4" onclick="app.closeModal('modal-demand-details', event)">Fechar</button>
     </div>
   </div>
 </div>

@@ -27,14 +27,16 @@ const app = {
     this.loadLocalState();
     this.seedDefaultDataIfEmpty();
     this.setupRealtimeSync();
-    this.updateHeaderClock();
-    setInterval(() => this.updateHeaderClock(), 1000);
+    this.restoreLastSyncTime();
     this.render();
   },
 
-  updateHeaderClock() {
-    const clock = document.getElementById('header-clock');
-    if (clock) clock.textContent = new Date().toLocaleTimeString('pt-BR');
+  restoreLastSyncTime() {
+    const savedTime = localStorage.getItem('cs_last_sync_time');
+    const timeEl = document.getElementById('sync-last-time');
+    if (savedTime && timeEl) {
+      timeEl.textContent = `Última sync: ${savedTime}`;
+    }
   },
 
   // Alternar Squad Ativa
@@ -281,7 +283,11 @@ const app = {
     if (icon) icon.classList.remove('fa-spin');
     if (statusTxt) statusTxt.textContent = 'Sincronização concluída';
 
-    // Toast Feedback
+    // Salvar timestamp da última sincronização
+    const currentSyncTime = result.time || new Date().toLocaleTimeString('pt-BR');
+    localStorage.setItem('cs_last_sync_time', currentSyncTime);
+
+    // Toast Feedback & Header Update
     const toast = document.getElementById('sync-toast-banner');
     const toastMsg = document.getElementById('sync-toast-message');
     const timeEl = document.getElementById('sync-last-time');
@@ -292,12 +298,12 @@ const app = {
       setTimeout(() => toast.classList.add('hidden'), 7000);
     }
 
-    if (timeEl && result.time) {
-      timeEl.textContent = `Última sync: ${result.time}`;
+    if (timeEl) {
+      timeEl.textContent = `Última sync: ${currentSyncTime}`;
     }
   },
 
-  // RENDER: Mesa de Triagem (Resumido & Consultivo com Pop-up de Detalhes)
+  // RENDER: Mesa de Triagem (Resumido com Data de Criação & Pop-up de Detalhes)
   renderTriageView() {
     const container = document.getElementById('triage-cards-container');
     if (!container) return;
@@ -332,7 +338,7 @@ const app = {
       return;
     }
 
-    // Renderizar cards resumidos sem blocos enormes de texto e sem linhas vazias abaixo
+    // Renderizar cards resumidos com Data de Criação e sem linhas vazias abaixo
     container.innerHTML = pendingItems.map(item => `
       <div class="glass-panel p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:border-emerald-500/40 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
         <div class="flex items-center gap-3 min-w-0 flex-1">
@@ -343,10 +349,14 @@ const app = {
 
         <div class="flex items-center gap-4 text-xs text-slate-400 shrink-0">
           <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-calendar-day text-amber-400"></i>
+            <span class="text-slate-300 font-medium">${item.createdDate || item.date || 'Data N/D'}</span>
+          </div>
+          <div class="flex items-center gap-1.5">
             <i class="fa-solid fa-user text-slate-500"></i>
             <span class="text-slate-300 font-medium">${item.requesterName || 'Solicitante Jira'}</span>
           </div>
-          <button class="btn btn-secondary text-xs py-1 px-3" onclick="event.stopPropagation(); app.openDemandDetailsModal('${item.id}')">
+          <button type="button" class="btn btn-secondary text-xs py-1 px-3" onclick="event.stopPropagation(); app.openDemandDetailsModal('${item.id}')">
             <i class="fa-solid fa-up-right-and-down-left-from-center text-emerald-400 me-1"></i> Detalhes
           </button>
         </div>
@@ -367,6 +377,8 @@ const app = {
     document.getElementById('detail-priority').textContent = item.priority || '2 - Alta';
     document.getElementById('detail-title').textContent = item.title;
     document.getElementById('detail-requester').textContent = item.requesterName || item.requester || 'Solicitante Jira';
+    const dateEl = document.getElementById('detail-created-date');
+    if (dateEl) dateEl.textContent = item.createdDate || item.date || 'Data N/D';
     document.getElementById('detail-status').textContent = item.status || 'Aguardando Triagem';
     document.getElementById('detail-squad').textContent = item.squad || item.team || 'Mesa de Triagem';
     
@@ -374,14 +386,23 @@ const app = {
     descEl.textContent = item.description || item.notes || 'Sem descrição fornecida no chamado do Jira.';
 
     const modal = document.getElementById('modal-demand-details');
-    if (modal) modal.classList.add('open');
+    if (modal) {
+      modal.style.display = 'flex';
+      modal.classList.add('open');
+      modal.classList.add('active');
+    }
   },
 
-  closeModal(modalId) {
+  closeModal(modalId, event) {
+    if (event) {
+      event.stopPropagation();
+      if (event.preventDefault) event.preventDefault();
+    }
     const modal = document.getElementById(modalId);
     if (modal) {
       modal.classList.remove('open');
       modal.classList.remove('active');
+      modal.style.display = 'none';
     }
   },
 
