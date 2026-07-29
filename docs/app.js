@@ -427,59 +427,194 @@ const app = {
     }
   },
 
-  // RENDER: Quadro da Squad (Resource Cards)
+  // RENDER: Quadro da Squad (Desenvolvedores Estabelecidos em Dados, Controle Por Demanda em Operações e RPA)
   renderBoardView() {
     const container = document.getElementById('board-members-container');
     if (!container) return;
 
     const squadNames = { dados: 'Squad de Dados', operacoes: 'Squad de Operações', rpa: 'Squad de RPA' };
-    document.getElementById('board-squad-title').textContent = `Quadro de Membros - ${squadNames[this.activeSquad]}`;
+    const titleEl = document.getElementById('board-squad-title');
+    const descEl = document.getElementById('board-squad-desc');
+    const actionBtn = document.getElementById('board-action-btn');
 
-    const members = this.state.resources[this.activeSquad] || [];
+    if (this.activeSquad === 'dados') {
+      if (titleEl) titleEl.textContent = 'Quadro de Desenvolvedores Estabelecidos - Squad de Dados';
+      if (descEl) descEl.textContent = 'Recursos estabelecidos, alocação de capacidade (Ops vs Fin) e acompanhamento de tarefas ativas';
+      if (actionBtn) {
+        actionBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i> Novo Desenvolvedor';
+        actionBtn.onclick = () => this.openMemberModal();
+      }
 
-    if (members.length === 0) {
-      container.innerHTML = `
-        <div class="col-span-full text-center py-12 text-slate-400">
-          <p>Nenhum membro cadastrado nesta Squad.</p>
-        </div>
-      `;
-      return;
-    }
+      const members = this.state.resources.dados || [];
+      if (members.length === 0) {
+        container.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400"><p>Nenhum desenvolvedor cadastrado nesta Squad.</p></div>`;
+        return;
+      }
 
-    container.innerHTML = members.map(m => `
-      <div class="glass-panel p-5">
-        <div class="flex items-center justify-between mb-3">
-          <div>
-            <h4 class="font-bold text-white text-base">${m.name}</h4>
-            <span class="text-xs text-slate-400">${m.role}</span>
-          </div>
-          <span class="badge ${m.status === 'Ativo' ? 'badge-medium' : 'badge-low'}">${m.status || 'Ativo'}</span>
-        </div>
-
-        <div class="mb-4">
-          <div class="flex justify-between text-xs text-slate-400 mb-1">
-            <span>Ops: ${m.allocationOps || 50}%</span>
-            <span>Fin: ${m.allocationFin || 50}%</span>
-          </div>
-          <div class="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden flex">
-            <div class="bg-emerald-500 h-full" style="width: ${m.allocationOps || 50}%"></div>
-            <div class="bg-blue-500 h-full" style="width: ${m.allocationFin || 50}%"></div>
-          </div>
-        </div>
-
-        <!-- TAREFA ATIVA -->
-        <div class="p-3 rounded-lg bg-white/5 border border-white/10 mb-3">
-          <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block mb-1">Demanda Ativa:</span>
-          ${m.currentTask ? `
-            <div class="font-semibold text-xs text-white mb-2">${m.currentTask.title}</div>
-            <div class="flex items-center justify-between text-[11px] text-slate-400">
-              <span>Prazo: ${m.currentTask.dueDate}</span>
-              <span class="text-emerald-400 font-bold">${m.currentTask.status}</span>
+      container.innerHTML = members.map(m => `
+        <div class="glass-panel p-5">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h4 class="font-bold text-white text-base">${m.name}</h4>
+              <span class="text-xs text-slate-400">${m.role}</span>
             </div>
-          ` : '<span class="text-xs text-slate-500 italic">Nenhuma demanda atribuída</span>'}
+            <span class="badge ${m.status === 'Ativo' ? 'badge-medium' : 'badge-low'}">${m.status || 'Ativo'}</span>
+          </div>
+
+          <div class="mb-4">
+            <div class="flex justify-between text-xs text-slate-400 mb-1">
+              <span>Ops: ${m.allocationOps || 50}%</span>
+              <span>Fin: ${m.allocationFin || 50}%</span>
+            </div>
+            <div class="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden flex">
+              <div class="bg-emerald-500 h-full" style="width: ${m.allocationOps || 50}%"></div>
+              <div class="bg-blue-500 h-full" style="width: ${m.allocationFin || 50}%"></div>
+            </div>
+          </div>
+
+          <!-- TAREFA ATIVA -->
+          <div class="p-3 rounded-lg bg-white/5 border border-white/10 mb-3">
+            <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block mb-1">Demanda Ativa:</span>
+            ${m.currentTask ? `
+              <div class="font-semibold text-xs text-white mb-2">${m.currentTask.title}</div>
+              <div class="flex items-center justify-between text-[11px] text-slate-400">
+                <span>Prazo: ${m.currentTask.dueDate}</span>
+                <span class="text-emerald-400 font-bold">${m.currentTask.status}</span>
+              </div>
+            ` : '<span class="text-xs text-slate-500 italic">Nenhuma demanda atribuída</span>'}
+          </div>
+
+          <!-- PRÓXIMA TAREFA -->
+          ${m.nextTask ? `
+            <div class="p-3 rounded-lg bg-white/5 border border-white/10">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Próxima Fila:</span>
+                <button class="btn btn-secondary text-[10px] py-0.5 px-2" onclick="app.promoteNextTask('${m.id}')">
+                  <i class="fa-solid fa-arrow-up text-emerald-400"></i> Promover
+                </button>
+              </div>
+              <div class="font-semibold text-xs text-slate-300">${m.nextTask.title}</div>
+            </div>
+          ` : ''}
         </div>
-      </div>
-    `).join('');
+      `).join('');
+    } else {
+      // CONTROLE POR DEMANDA (Squad de Operações & Squad de RPA)
+      const squadLabel = squadNames[this.activeSquad];
+      if (titleEl) titleEl.textContent = `Controle Por Demanda - ${squadLabel}`;
+      if (descEl) descEl.textContent = 'Acompanhamento contínuo de demandas ativas, prazos, prioridades e avanço de entregas (sem dev fixo atrelado)';
+      if (actionBtn) {
+        actionBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i> Nova Demanda da Squad';
+        actionBtn.onclick = () => this.openTaskModal();
+      }
+
+      const demands = this.state.backlogItems[this.activeSquad] || [];
+      if (demands.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-12 text-slate-400">
+            <i class="fa-solid fa-clipboard-list text-4xl mb-3 text-slate-600"></i>
+            <p class="font-semibold text-sm">Nenhuma demanda em acompanhamento nesta Squad.</p>
+            <p class="text-xs text-slate-500 mt-1">Encaminhe um card da Mesa de Triagem ou clique em "+ Nova Demanda" acima.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = demands.map(d => `
+        <div class="glass-panel p-5 flex flex-col justify-between" style="border-left: 4px solid ${this.activeSquad === 'operacoes' ? 'var(--color-operacoes)' : 'var(--color-rpa)'};">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-extrabold text-xs text-emerald-400 tracking-wider">${d.gau || d.jiraKey || 'GAU-000'}</span>
+              <span class="badge ${d.priority?.includes('1') ? 'badge-urgent' : d.priority?.includes('2') ? 'badge-high' : 'badge-medium'}">${d.priority || '2 - Alta'}</span>
+            </div>
+            <h4 class="text-base font-bold text-white mb-2 leading-snug">${d.title}</h4>
+            <p class="text-xs text-slate-400 mb-4 line-clamp-2">${d.notes || 'Sem observações'}</p>
+
+            <div class="space-y-2 mb-4 text-xs text-slate-300">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Solicitante:</span>
+                <span class="font-semibold text-white">${d.requester || 'Solicitante Jira'}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Prazo Estimado:</span>
+                <span class="font-semibold text-amber-400">${d.dueDate || 'A definir'}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400">Status Atual:</span>
+                <span class="badge badge-medium">${d.status || 'Em Andamento'}</span>
+              </div>
+            </div>
+
+            <!-- BARRA DE PROGRESSO DA DEMANDA -->
+            <div class="mb-4">
+              <div class="flex justify-between text-xs text-slate-400 mb-1">
+                <span>Progresso da Demanda</span>
+                <span class="font-bold text-emerald-400">${d.progress || 50}%</span>
+              </div>
+              <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
+                <div class="bg-emerald-500 h-full" style="width: ${d.progress || 50}%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-white/10 flex items-center justify-between gap-2">
+            <button class="btn btn-secondary text-xs py-1.5 px-3 flex-1" onclick="app.updateDemandProgress('${d.id}')">
+              <i class="fa-solid fa-sliders text-emerald-400"></i> Atualizar Progresso
+            </button>
+            <button class="btn btn-primary text-xs py-1.5 px-3" onclick="app.completeDemand('${d.id}')">
+              <i class="fa-solid fa-check"></i> Concluir
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+  },
+
+  updateDemandProgress(demandId) {
+    const demand = (this.state.backlogItems[this.activeSquad] || []).find(d => d.id === demandId);
+    if (!demand) return;
+    const currentProgress = demand.progress || 50;
+    const newProgress = prompt(`Atualizar progresso da demanda "${demand.title}" (0 a 100%):`, currentProgress);
+    if (newProgress !== null) {
+      const val = parseInt(newProgress);
+      if (!isNaN(val) && val >= 0 && val <= 100) {
+        demand.progress = val;
+        if (val === 100) demand.status = 'Concluído';
+        this.saveState();
+      }
+    }
+  },
+
+  completeDemand(demandId) {
+    const demandIdx = (this.state.backlogItems[this.activeSquad] || []).findIndex(d => d.id === demandId);
+    if (demandIdx === -1) return;
+    const demand = this.state.backlogItems[this.activeSquad][demandIdx];
+    
+    // Remover do backlog e mover para concluídos
+    this.state.backlogItems[this.activeSquad].splice(demandIdx, 1);
+    const squadNames = { dados: 'Squad de Dados', operacoes: 'Squad de Operações', rpa: 'Squad de RPA' };
+    this.state.completedTasks[this.activeSquad].unshift({
+      id: `completed-${demand.gau || Date.now()}`,
+      taskTitle: `${demand.title} (${demand.gau || 'GAU'})`,
+      taskDescription: demand.notes || '',
+      area: 'Geral',
+      completedBy: squadNames[this.activeSquad],
+      dueDate: demand.dueDate || new Date().toISOString().split('T')[0],
+      completionDate: new Date().toISOString().split('T')[0],
+      gains: 'Concluído pelo coordenador de demandas',
+      requesterArea: demand.requester
+    });
+
+    this.saveState();
+  },
+
+  promoteNextTask(memberId) {
+    const member = (this.state.resources.dados || []).find(m => m.id === memberId);
+    if (member && member.nextTask) {
+      member.currentTask = { ...member.nextTask, status: 'Em Andamento' };
+      member.nextTask = null;
+      this.saveState();
+    }
   },
 
   // RENDER: Backlog View
