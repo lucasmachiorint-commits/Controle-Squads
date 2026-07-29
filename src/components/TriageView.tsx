@@ -135,9 +135,15 @@ export default function TriageView({
                 <RotateCcw size={15} className={`text-[#00B074] ${isSyncingJira ? 'animate-spin text-amber-400' : ''}`} />
                 <span>{isSyncingJira ? 'Atualizando cards...' : '🔄 Atualizar cards do Jira'}</span>
               </button>
-              <div className="text-[11px] font-semibold text-slate-500 flex items-center gap-1">
-                <Clock size={12} className="text-[#00B074]" />
-                <span>Última consulta: <strong className="text-slate-800">{lastJiraSyncTime}</strong></span>
+              <div className="text-[11px] font-semibold text-slate-500 flex items-center gap-1 mt-0.5">
+                <Clock size={12} className={`text-[#00B074] ${isSyncingJira ? 'animate-spin text-amber-500' : ''}`} />
+                {isSyncingJira ? (
+                  <span className="text-amber-600 font-bold animate-pulse">atualizando ....</span>
+                ) : (
+                  <span>
+                    Atualizado em <strong className="text-slate-800">{lastJiraSyncTime}</strong>
+                  </span>
+                )}
               </div>
             </div>
           )}
