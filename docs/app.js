@@ -1129,22 +1129,18 @@ const app = {
     document.getElementById('completed-count-badge').textContent = `${filteredItems.length} entregas`;
 
     if (filteredItems.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-500">Nenhuma entrega concluída encontrada.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-500 font-semibold">Nenhuma entrega concluída encontrada.</td></tr>`;
       return;
     }
 
     tbody.innerHTML = filteredItems.map(item => `
       <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
-        <td class="font-bold text-white" style="white-space:normal; word-break:break-word; line-height:1.4;">${item.taskTitle}</td>
-        <td class="text-slate-300" style="white-space:nowrap; width:160px;">${item.completedBy || 'Squad'}</td>
-        <td class="text-slate-400" style="white-space:nowrap; width:120px;">${item.completionDate || '29/07/2026'}</td>
-        <td class="text-emerald-400 text-xs italic" style="white-space:normal; word-break:break-word;">${item.gains || 'Sem registro de ganhos'}</td>
+        <td class="font-extrabold text-emerald-400" style="white-space:nowrap; width:110px;">${item.gau || item.jiraKey || 'GAU-000'}</td>
+        <td class="font-semibold text-white" style="white-space:normal; word-break:break-word; line-height:1.4;">${item.title || item.taskTitle}</td>
+        <td class="text-slate-300" style="white-space:nowrap; width:160px;">${item.requester || item.completedBy || item.requesterName || 'Solicitante Jira'}</td>
         <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; width:120px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
-        <td onclick="event.stopPropagation();" style="white-space:nowrap; width:60px;">
-          <button class="btn btn-secondary text-xs py-1 px-2" onclick="app.deleteCompletedTask('${item.id}')">
-            <i class="fa-solid fa-trash text-rose-400"></i>
-          </button>
-        </td>
+        <td class="text-slate-300 font-semibold text-xs" style="white-space:nowrap; width:120px;">${this.formatOnlyDate(item.completionDate || item.completedAt)}</td>
+        <td class="text-emerald-400 text-xs italic" style="white-space:normal; word-break:break-word;">${item.gains || 'Demanda concluída com sucesso'}</td>
       </tr>
     `).join('');
   },

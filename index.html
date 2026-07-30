@@ -23,7 +23,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=1.5.7">
+    <link rel="stylesheet" href="style.css?v=1.6.0">
 </head>
 <body>
 
@@ -383,7 +383,7 @@
     <!-- VIEW 5: CONCLUÍDOS -->
     <div class="view-container" id="view-concluidos">
       <!-- SUB-NAVEGAÇÃO DA SQUAD -->
-      <div class="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
+      <div class="flex items-center gap-2 mb-6 border-white/10 pb-4">
         <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('board')">
           <i class="fa-solid fa-spinner text-emerald-400 me-1"></i> Em Andamento
         </button>
@@ -414,12 +414,12 @@
           <table class="custom-table">
             <thead>
               <tr>
-                <th style="min-width: 200px;">Demanda / Código</th>
+                <th style="width: 110px; white-space: nowrap;">GAU</th>
+                <th style="min-width: 180px;">Demanda</th>
                 <th style="width: 160px; white-space: nowrap;">Responsável</th>
-                <th style="width: 120px; white-space: nowrap;">Data Conclusão</th>
-                <th style="min-width: 180px;">Ganhos / Impacto de Negócio</th>
-                <th style="width: 120px; white-space: nowrap;">Data de Criação</th>
-                <th style="width: 60px; white-space: nowrap;">Ações</th>
+                <th style="width: 120px; white-space: nowrap;">Data de criação</th>
+                <th style="width: 120px; white-space: nowrap;">Data de conclusão</th>
+                <th style="min-width: 180px;">Ganhos</th>
               </tr>
             </thead>
             <tbody id="completed-table-body">
@@ -652,8 +652,8 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=1.5.7"></script>
-<script src="app.js?v=1.5.7"></script>
+<script src="jira-sync.js?v=1.6.0"></script>
+<script src="app.js?v=1.6.0"></script>
 
 </body>
 </html>
