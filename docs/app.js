@@ -391,12 +391,12 @@ const app = {
 
     tbody.innerHTML = filteredDisplayItems.map((item, idx) => `
       <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
-        <td class="font-bold text-slate-400" style="white-space:nowrap; width:50px;">${idx + 1}</td>
-        <td class="font-extrabold text-emerald-400" style="white-space:nowrap; min-width:130px;">${item.jiraKey}</td>
-        <td class="font-semibold text-white max-w-md truncate" title="${item.title}">${item.title}</td>
-        <td class="text-slate-300" style="white-space:nowrap; min-width:180px;">${item.requesterName || 'Solicitante Jira'}</td>
-        <td style="white-space:nowrap; min-width:180px;"><span class="badge badge-medium" style="white-space:nowrap;">${item.status || 'Aguardando Triagem'}</span></td>
-        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; min-width:130px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
+        <td class="font-bold text-slate-400" style="white-space:nowrap; width:45px;">${idx + 1}</td>
+        <td class="font-extrabold text-emerald-400" style="white-space:nowrap; width:110px;">${item.jiraKey}</td>
+        <td class="font-semibold text-white" style="white-space:normal; word-break:break-word; line-height:1.4;">${item.title}</td>
+        <td class="text-slate-300" style="white-space:nowrap; width:160px;">${item.requesterName || 'Solicitante Jira'}</td>
+        <td style="white-space:nowrap; width:160px;"><span class="badge badge-medium" style="white-space:nowrap;">${item.status || 'Aguardando Triagem'}</span></td>
+        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; width:120px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
       </tr>
     `).join('');
   },
@@ -660,18 +660,18 @@ const app = {
 
     tbody.innerHTML = filteredItems.map((item, idx) => `
       <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
-        <td class="font-bold text-slate-400" style="white-space:nowrap; width:50px;">${idx + 1}</td>
-        <td class="font-extrabold text-emerald-400" style="white-space:nowrap; min-width:130px;">${item.gau || item.jiraKey || 'GAU-000'}</td>
-        <td class="font-semibold text-white max-w-md truncate" title="${item.title}">${item.title}</td>
-        <td class="text-slate-300" style="white-space:nowrap; min-width:180px;">${item.requester || 'Solicitante Jira'}</td>
-        <td onclick="event.stopPropagation();" style="white-space:nowrap; min-width:200px;">
+        <td class="font-bold text-slate-400" style="white-space:nowrap; width:45px;">${idx + 1}</td>
+        <td class="font-extrabold text-emerald-400" style="white-space:nowrap; width:110px;">${item.gau || item.jiraKey || 'GAU-000'}</td>
+        <td class="font-semibold text-white" style="white-space:normal; word-break:break-word; line-height:1.4;">${item.title}</td>
+        <td class="text-slate-300" style="white-space:nowrap; width:160px;">${item.requester || 'Solicitante Jira'}</td>
+        <td onclick="event.stopPropagation();" style="white-space:nowrap; width:170px;">
           <select class="status-select-dropdown" onchange="app.changeDemandStatus('${item.id}', this.value)">
             <option value="Em Andamento" selected>Em Andamento</option>
             <option value="Backlog">Backlog</option>
             <option value="Concluído">Concluído</option>
           </select>
         </td>
-        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; min-width:130px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
+        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; width:120px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
       </tr>
     `).join('');
   },
@@ -718,24 +718,24 @@ const app = {
 
     tbody.innerHTML = filteredItems.map((item) => `
       <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
-        <td onclick="event.stopPropagation();" style="white-space:nowrap; width:75px;">
+        <td onclick="event.stopPropagation();" style="white-space:nowrap; width:65px;">
           <input type="number" min="1" max="${backlogItems.length}" value="${item.treatmentOrder}"
-            class="input-field text-center text-xs font-bold py-1 px-1 bg-slate-800 border-slate-700 text-amber-400 rounded w-[50px] cursor-pointer"
+            class="input-field text-center text-xs font-bold py-1 px-1 bg-slate-800 border-slate-700 text-amber-400 rounded w-[45px] cursor-pointer"
             onchange="app.changeBacklogOrder('${item.id}', parseInt(this.value))"
             onclick="event.stopPropagation(); this.select();"
           />
         </td>
-        <td class="font-extrabold text-emerald-400" style="white-space:nowrap; min-width:130px;">${item.gau || item.jiraKey || 'GAU-000'}</td>
-        <td class="font-semibold text-white max-w-md truncate" title="${item.title}">${item.title}</td>
-        <td class="text-slate-300" style="white-space:nowrap; min-width:180px;">${item.requester || 'Solicitante Jira'}</td>
-        <td onclick="event.stopPropagation();" style="white-space:nowrap; min-width:200px;">
+        <td class="font-extrabold text-emerald-400" style="white-space:nowrap; width:110px;">${item.gau || item.jiraKey || 'GAU-000'}</td>
+        <td class="font-semibold text-white" style="white-space:normal; word-break:break-word; line-height:1.4;">${item.title}</td>
+        <td class="text-slate-300" style="white-space:nowrap; width:160px;">${item.requester || 'Solicitante Jira'}</td>
+        <td onclick="event.stopPropagation();" style="white-space:nowrap; width:170px;">
           <select class="status-select-dropdown status-backlog" onchange="app.changeDemandStatus('${item.id}', this.value)">
             <option value="Backlog" selected>Backlog</option>
             <option value="Em Andamento">Em Andamento</option>
             <option value="Concluído">Concluído</option>
           </select>
         </td>
-        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; min-width:130px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
+        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; width:120px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
       </tr>
     `).join('');
   },
@@ -809,12 +809,12 @@ const app = {
 
     tbody.innerHTML = filteredItems.map(item => `
       <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
-        <td class="font-bold text-white">${item.taskTitle}</td>
-        <td class="text-slate-300">${item.completedBy || 'Squad'}</td>
-        <td class="text-slate-400">${item.completionDate || '29/07/2026'}</td>
-        <td class="text-emerald-400 text-xs italic">${item.gains || 'Sem registro de ganhos'}</td>
-        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; min-width:130px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
-        <td onclick="event.stopPropagation();">
+        <td class="font-bold text-white" style="white-space:normal; word-break:break-word; line-height:1.4;">${item.taskTitle}</td>
+        <td class="text-slate-300" style="white-space:nowrap; width:160px;">${item.completedBy || 'Squad'}</td>
+        <td class="text-slate-400" style="white-space:nowrap; width:120px;">${item.completionDate || '29/07/2026'}</td>
+        <td class="text-emerald-400 text-xs italic" style="white-space:normal; word-break:break-word;">${item.gains || 'Sem registro de ganhos'}</td>
+        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; width:120px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
+        <td onclick="event.stopPropagation();" style="white-space:nowrap; width:60px;">
           <button class="btn btn-secondary text-xs py-1 px-2" onclick="app.deleteCompletedTask('${item.id}')">
             <i class="fa-solid fa-trash text-rose-400"></i>
           </button>

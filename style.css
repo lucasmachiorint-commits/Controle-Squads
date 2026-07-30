@@ -434,12 +434,12 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.8px;
   font-size: 11px;
-  padding: 18px 24px;
+  padding: 14px 16px;
   border-bottom: 1px solid var(--border-color);
 }
 
 .custom-table td {
-  padding: 18px 20px;
+  padding: 14px 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   color: var(--text-primary);
   vertical-align: middle;
@@ -447,11 +447,11 @@ body {
 
 /* Estilo para dropdown de Status em tabelas sem corte de texto */
 .status-select-dropdown {
-  min-width: 185px !important;
+  min-width: 160px !important;
   width: auto !important;
   display: inline-block !important;
-  padding: 8px 34px 8px 12px !important;
-  font-size: 12px !important;
+  padding: 6px 28px 6px 10px !important;
+  font-size: 11px !important;
   font-weight: 700 !important;
   border-radius: 8px !important;
   background-color: rgba(15, 23, 42, 0.95) !important;
@@ -466,8 +466,8 @@ body {
   -moz-appearance: none !important;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2300E699'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
-  background-position: right 10px center !important;
-  background-size: 14px 14px !important;
+  background-position: right 8px center !important;
+  background-size: 12px 12px !important;
 }
 
 .status-select-dropdown.status-backlog {
