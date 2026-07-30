@@ -396,9 +396,44 @@ const app = {
         <td class="font-semibold text-white max-w-md truncate" title="${item.title}">${item.title}</td>
         <td class="text-slate-300" style="white-space:nowrap; min-width:180px;">${item.requesterName || 'Solicitante Jira'}</td>
         <td style="white-space:nowrap; min-width:180px;"><span class="badge badge-medium" style="white-space:nowrap;">${item.status || 'Aguardando Triagem'}</span></td>
-        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; min-width:130px;">${item.createdDate || item.date || item.createdAt || '29/07/2026'}</td>
+        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; min-width:130px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
       </tr>
     `).join('');
+  },
+
+  // Helper para formatar apenas a data (DD/MM/AAAA) eliminando qualquer horario
+  formatOnlyDate(dateVal) {
+    if (!dateVal) return '29/07/2026';
+    const str = dateVal.toString().trim();
+    
+    // Se for apenas formato de hora (ex: "14:25" ou "14:25:00"), retornar data padrão
+    if (/^\d{2}:\d{2}(:\d{2})?$/.test(str)) {
+      return '29/07/2026';
+    }
+
+    // Se contiver 'T' ou espaço com horário (ex: 2026-07-29T14:25:00 ou 29/07/2026 14:25:00)
+    if (str.includes('T') || (str.includes(' ') && str.includes(':'))) {
+      const cleanDatePart = str.split('T')[0].split(' ')[0];
+      if (cleanDatePart.includes('-')) {
+        const parts = cleanDatePart.split('-');
+        if (parts.length === 3 && parts[0].length === 4) {
+          return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+      }
+      if (cleanDatePart.includes('/')) {
+        return cleanDatePart;
+      }
+    }
+
+    // Se for formato YYYY-MM-DD
+    if (str.includes('-') && !str.includes('/')) {
+      const parts = str.split('-');
+      if (parts.length === 3 && parts[0].length === 4) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+    }
+
+    return str.split(' ')[0].split('T')[0];
   },
 
   // Pop-up Modal de Detalhes da Demanda
@@ -420,7 +455,7 @@ const app = {
     
     const dateEl = document.getElementById('detail-created-date');
     if (dateEl) {
-      dateEl.textContent = item.createdDate || item.date || item.createdAt || item.completionDate || '29/07/2026';
+      dateEl.textContent = this.formatOnlyDate(item.createdDate || item.date || item.createdAt || item.completionDate);
     }
     
     document.getElementById('detail-status').textContent = item.status || (item.completionDate ? 'Concluído' : 'Aguardando Triagem');
@@ -636,7 +671,7 @@ const app = {
             <option value="Concluído">Concluído</option>
           </select>
         </td>
-        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; min-width:130px;">${item.createdDate || item.date || item.createdAt || '29/07/2026'}</td>
+        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; min-width:130px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
       </tr>
     `).join('');
   },
@@ -700,7 +735,7 @@ const app = {
             <option value="Concluído">Concluído</option>
           </select>
         </td>
-        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; min-width:130px;">${item.createdDate || item.date || item.createdAt || '29/07/2026'}</td>
+        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; min-width:130px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
       </tr>
     `).join('');
   },
@@ -778,7 +813,7 @@ const app = {
         <td class="text-slate-300">${item.completedBy || 'Squad'}</td>
         <td class="text-slate-400">${item.completionDate || '29/07/2026'}</td>
         <td class="text-emerald-400 text-xs italic">${item.gains || 'Sem registro de ganhos'}</td>
-        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; min-width:130px;">${item.createdDate || item.date || item.createdAt || '29/07/2026'}</td>
+        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; min-width:130px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
         <td onclick="event.stopPropagation();">
           <button class="btn btn-secondary text-xs py-1 px-2" onclick="app.deleteCompletedTask('${item.id}')">
             <i class="fa-solid fa-trash text-rose-400"></i>
