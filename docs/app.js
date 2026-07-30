@@ -612,13 +612,11 @@ const app = {
         roleContainer.style.setProperty('display', 'none', 'important');
       }
       if (nameContainer) {
-        nameContainer.classList.remove('hidden');
-        nameContainer.style.setProperty('display', 'block', 'important');
+        nameContainer.classList.add('hidden');
+        nameContainer.style.setProperty('display', 'none', 'important');
       }
-      if (gridContainer) gridContainer.style.gridTemplateColumns = 'repeat(3, 1fr)';
+      if (gridContainer) gridContainer.style.gridTemplateColumns = '1fr 1fr';
 
-      if (labelNameEl) labelNameEl.textContent = 'Desenvolvedor do Robô:';
-      if (nameInput) nameInput.placeholder = 'Ex: Desenvolvedor do Bot';
       if (labelDateEl) labelDateEl.textContent = 'Previsão de Go-Live / Produção:';
       if (labelProgressEl) labelProgressEl.textContent = 'Fase da Automação:';
       if (progressSelect) {
