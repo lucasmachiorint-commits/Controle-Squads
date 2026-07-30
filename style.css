@@ -791,6 +791,22 @@ body {
   font-family: 'Outfit', sans-serif;
 }
 
+/* Layout em 1 única linha horizontal com 4 colunas lado a lado */
+.sync-metrics-grid-row {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  width: 100% !important;
+  align-items: stretch !important;
+}
+
+@media (max-width: 768px) {
+  .sync-metrics-grid-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+}
+
 .metric-box-lbl {
   font-size: 12px !important;
   font-weight: 800 !important;
