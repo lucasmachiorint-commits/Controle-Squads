@@ -391,13 +391,13 @@ const app = {
 
     tbody.innerHTML = filteredDisplayItems.map((item, idx) => `
       <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
-        <td class="font-bold text-slate-400">${idx + 1}</td>
-        <td class="font-extrabold text-emerald-400 whitespace-nowrap min-w-[120px]">${item.jiraKey}</td>
+        <td class="font-bold text-slate-400" style="white-space:nowrap; width:50px;">${idx + 1}</td>
+        <td class="font-extrabold text-emerald-400" style="white-space:nowrap; min-width:130px;">${item.jiraKey}</td>
         <td class="font-semibold text-white max-w-md truncate" title="${item.title}">${item.title}</td>
-        <td class="text-slate-300">${item.requesterName || 'Solicitante Jira'}</td>
-        <td class="text-amber-400 font-medium whitespace-nowrap">${item.createdDate || item.date || 'Data N/D'}</td>
-        <td><span class="badge badge-medium whitespace-nowrap">${item.status || 'Aguardando Triagem'}</span></td>
-        <td>
+        <td class="text-slate-300" style="white-space:nowrap; min-width:180px;">${item.requesterName || 'Solicitante Jira'}</td>
+        <td class="text-amber-400 font-medium" style="white-space:nowrap; min-width:140px;">${item.createdDate || item.date || 'Data N/D'}</td>
+        <td style="white-space:nowrap; min-width:180px;"><span class="badge badge-medium" style="white-space:nowrap;">${item.status || 'Aguardando Triagem'}</span></td>
+        <td style="white-space:nowrap; min-width:110px;">
           <button type="button" class="btn btn-secondary text-xs py-1 px-2.5" onclick="event.stopPropagation(); app.openDemandDetailsModal('${item.id}')">
             <i class="fa-solid fa-up-right-and-down-left-from-center text-emerald-400 me-1"></i> Detalhes
           </button>
@@ -624,18 +624,18 @@ const app = {
 
     tbody.innerHTML = filteredItems.map((item, idx) => `
       <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
-        <td class="font-bold text-slate-400">${idx + 1}</td>
-        <td class="font-extrabold text-emerald-400 whitespace-nowrap min-w-[120px]">${item.gau || item.jiraKey || 'GAU-000'}</td>
+        <td class="font-bold text-slate-400" style="white-space:nowrap; width:50px;">${idx + 1}</td>
+        <td class="font-extrabold text-emerald-400" style="white-space:nowrap; min-width:130px;">${item.gau || item.jiraKey || 'GAU-000'}</td>
         <td class="font-semibold text-white max-w-md truncate" title="${item.title}">${item.title}</td>
-        <td class="text-slate-300">${item.requester || 'Solicitante Jira'}</td>
-        <td onclick="event.stopPropagation();">
-          <select class="input-field py-1 px-2 text-xs bg-slate-800 border-slate-700 text-emerald-400 font-bold rounded cursor-pointer whitespace-nowrap" onchange="app.changeDemandStatus('${item.id}', this.value)">
+        <td class="text-slate-300" style="white-space:nowrap; min-width:180px;">${item.requester || 'Solicitante Jira'}</td>
+        <td onclick="event.stopPropagation();" style="white-space:nowrap; min-width:180px;">
+          <select class="status-select-dropdown" onchange="app.changeDemandStatus('${item.id}', this.value)">
             <option value="Em Andamento" selected>Em Andamento</option>
             <option value="Backlog">Backlog</option>
             <option value="Concluído">Concluído</option>
           </select>
         </td>
-        <td>
+        <td style="white-space:nowrap; min-width:110px;">
           <button type="button" class="btn btn-secondary text-xs py-1 px-2.5" onclick="event.stopPropagation(); app.openDemandDetailsModal('${item.id}')">
             <i class="fa-solid fa-up-right-and-down-left-from-center text-emerald-400 me-1"></i> Detalhes
           </button>
@@ -686,24 +686,24 @@ const app = {
 
     tbody.innerHTML = filteredItems.map((item) => `
       <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
-        <td onclick="event.stopPropagation();" style="width: 70px;">
+        <td onclick="event.stopPropagation();" style="white-space:nowrap; width:75px;">
           <input type="number" min="1" max="${backlogItems.length}" value="${item.treatmentOrder}"
             class="input-field text-center text-xs font-bold py-1 px-1 bg-slate-800 border-slate-700 text-amber-400 rounded w-[50px] cursor-pointer"
             onchange="app.changeBacklogOrder('${item.id}', parseInt(this.value))"
             onclick="event.stopPropagation(); this.select();"
           />
         </td>
-        <td class="font-extrabold text-emerald-400 whitespace-nowrap min-w-[120px]">${item.gau || item.jiraKey || 'GAU-000'}</td>
+        <td class="font-extrabold text-emerald-400" style="white-space:nowrap; min-width:130px;">${item.gau || item.jiraKey || 'GAU-000'}</td>
         <td class="font-semibold text-white max-w-md truncate" title="${item.title}">${item.title}</td>
-        <td class="text-slate-300">${item.requester || 'Solicitante Jira'}</td>
-        <td onclick="event.stopPropagation();">
-          <select class="input-field py-1 px-2 text-xs bg-slate-800 border-slate-700 text-amber-400 font-bold rounded cursor-pointer whitespace-nowrap" onchange="app.changeDemandStatus('${item.id}', this.value)">
+        <td class="text-slate-300" style="white-space:nowrap; min-width:180px;">${item.requester || 'Solicitante Jira'}</td>
+        <td onclick="event.stopPropagation();" style="white-space:nowrap; min-width:180px;">
+          <select class="status-select-dropdown status-backlog" onchange="app.changeDemandStatus('${item.id}', this.value)">
             <option value="Backlog" selected>Backlog</option>
             <option value="Em Andamento">Em Andamento</option>
             <option value="Concluído">Concluído</option>
           </select>
         </td>
-        <td>
+        <td style="white-space:nowrap; min-width:110px;">
           <button type="button" class="btn btn-secondary text-xs py-1 px-2.5" onclick="event.stopPropagation(); app.openDemandDetailsModal('${item.id}')">
             <i class="fa-solid fa-up-right-and-down-left-from-center text-emerald-400 me-1"></i> Detalhes
           </button>

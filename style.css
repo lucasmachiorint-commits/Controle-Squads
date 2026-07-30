@@ -439,9 +439,39 @@ body {
 }
 
 .custom-table td {
-  padding: 20px 24px;
+  padding: 18px 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   color: var(--text-primary);
+  vertical-align: middle;
+}
+
+/* Estilo para dropdown de Status em tabelas sem corte de texto */
+.status-select-dropdown {
+  min-width: 155px !important;
+  width: auto !important;
+  display: inline-block !important;
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  border-radius: 6px !important;
+  background-color: rgba(15, 23, 42, 0.9) !important;
+  border: 1px solid rgba(0, 230, 153, 0.4) !important;
+  color: #00E699 !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+}
+
+.status-select-dropdown.status-backlog {
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  color: #fbbf24 !important;
+}
+
+.status-select-dropdown option {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  padding: 6px !important;
 }
 
 .custom-table tbody tr {
