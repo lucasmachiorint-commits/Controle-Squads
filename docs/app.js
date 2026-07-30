@@ -383,7 +383,7 @@ const app = {
     if (filteredDisplayItems.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" class="text-center py-8 text-slate-500 font-semibold">${emptyMessage}</td>
+          <td colspan="6" class="text-center py-8 text-slate-500 font-semibold">${emptyMessage}</td>
         </tr>
       `;
       return;
@@ -397,11 +397,6 @@ const app = {
         <td class="text-slate-300" style="white-space:nowrap; min-width:180px;">${item.requesterName || 'Solicitante Jira'}</td>
         <td class="text-amber-400 font-medium" style="white-space:nowrap; min-width:140px;">${item.createdDate || item.date || 'Data N/D'}</td>
         <td style="white-space:nowrap; min-width:180px;"><span class="badge badge-medium" style="white-space:nowrap;">${item.status || 'Aguardando Triagem'}</span></td>
-        <td style="white-space:nowrap; min-width:110px;">
-          <button type="button" class="btn btn-secondary text-xs py-1 px-2.5" onclick="event.stopPropagation(); app.openDemandDetailsModal('${item.id}')">
-            <i class="fa-solid fa-up-right-and-down-left-from-center text-emerald-400 me-1"></i> Detalhes
-          </button>
-        </td>
       </tr>
     `).join('');
   },
@@ -616,7 +611,7 @@ const app = {
     if (filteredItems.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="6" class="text-center py-8 text-slate-500 font-semibold">Nenhuma demanda em andamento encontrada.</td>
+          <td colspan="5" class="text-center py-8 text-slate-500 font-semibold">Nenhuma demanda em andamento encontrada.</td>
         </tr>
       `;
       return;
@@ -634,11 +629,6 @@ const app = {
             <option value="Backlog">Backlog</option>
             <option value="Concluído">Concluído</option>
           </select>
-        </td>
-        <td style="white-space:nowrap; min-width:110px;">
-          <button type="button" class="btn btn-secondary text-xs py-1 px-2.5" onclick="event.stopPropagation(); app.openDemandDetailsModal('${item.id}')">
-            <i class="fa-solid fa-up-right-and-down-left-from-center text-emerald-400 me-1"></i> Detalhes
-          </button>
         </td>
       </tr>
     `).join('');
@@ -678,7 +668,7 @@ const app = {
     if (filteredItems.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="6" class="text-center py-8 text-slate-500 font-semibold">Nenhuma demanda no backlog encontrada.</td>
+          <td colspan="5" class="text-center py-8 text-slate-500 font-semibold">Nenhuma demanda no backlog encontrada.</td>
         </tr>
       `;
       return;
@@ -702,11 +692,6 @@ const app = {
             <option value="Em Andamento">Em Andamento</option>
             <option value="Concluído">Concluído</option>
           </select>
-        </td>
-        <td style="white-space:nowrap; min-width:110px;">
-          <button type="button" class="btn btn-secondary text-xs py-1 px-2.5" onclick="event.stopPropagation(); app.openDemandDetailsModal('${item.id}')">
-            <i class="fa-solid fa-up-right-and-down-left-from-center text-emerald-400 me-1"></i> Detalhes
-          </button>
         </td>
       </tr>
     `).join('');
