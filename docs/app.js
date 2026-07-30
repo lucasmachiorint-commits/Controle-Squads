@@ -34,8 +34,12 @@ const app = {
   restoreLastSyncTime() {
     const savedTime = localStorage.getItem('cs_last_sync_time');
     const timeEl = document.getElementById('sync-last-time');
-    if (savedTime && timeEl) {
-      timeEl.textContent = `Última sync: ${savedTime}`;
+    if (timeEl) {
+      if (savedTime) {
+        timeEl.textContent = `Última atualização: ${savedTime}`;
+      } else {
+        timeEl.textContent = `Última atualização: Pendente de sincronização`;
+      }
     }
   },
 
@@ -283,23 +287,16 @@ const app = {
     if (icon) icon.classList.remove('fa-spin');
     if (statusTxt) statusTxt.textContent = 'Sincronização concluída';
 
-    // Salvar timestamp da última sincronização
-    const currentSyncTime = result.time || new Date().toLocaleTimeString('pt-BR');
-    localStorage.setItem('cs_last_sync_time', currentSyncTime);
+    // Salvar data e horário completos da última sincronização realizada
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString('pt-BR');
+    const formattedTime = now.toLocaleTimeString('pt-BR');
+    const fullSyncDateTime = `${formattedDate} às ${formattedTime}`;
+    localStorage.setItem('cs_last_sync_time', fullSyncDateTime);
 
-    // Toast Feedback & Header Update
-    const toast = document.getElementById('sync-toast-banner');
-    const toastMsg = document.getElementById('sync-toast-message');
     const timeEl = document.getElementById('sync-last-time');
-
-    if (toast && toastMsg) {
-      toastMsg.textContent = result.message;
-      toast.classList.remove('hidden');
-      setTimeout(() => toast.classList.add('hidden'), 7000);
-    }
-
     if (timeEl) {
-      timeEl.textContent = `Última sync: ${currentSyncTime}`;
+      timeEl.textContent = `Última atualização: ${fullSyncDateTime}`;
     }
   },
 
