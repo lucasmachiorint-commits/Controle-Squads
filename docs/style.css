@@ -530,6 +530,39 @@ body {
   transform: scale(1);
 }
 
+/* Painel de Tabela da Mesa de Triagem - Padding e Espaçamento Amplo (Sem Colisão com as Bordas) */
+.triage-table-panel {
+  background: var(--bg-card) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 20px !important;
+  padding: 32px 36px 36px 36px !important;
+  margin-top: 32px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+}
+
+.triage-table-panel .table-header-box {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 20px !important;
+  margin-bottom: 24px !important;
+  padding-bottom: 18px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.triage-table-panel .table-title {
+  font-size: 18px !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  letter-spacing: -0.3px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-family: 'Outfit', sans-serif !important;
+}
+
 /* Container de Métricas da Mesa de Triagem - 3 Quadros na Mesma Linha com Espaçamento Amplo */
 .triage-metrics-row {
   display: grid !important;
