@@ -492,6 +492,8 @@ const app = {
 
     if (!item) return;
 
+    this.activeDemandItemId = item.id;
+
     document.getElementById('detail-gau-key').textContent = item.jiraKey || item.gau || 'GAU-000';
     document.getElementById('detail-priority').textContent = item.priority || '2 - Alta';
     document.getElementById('detail-title').textContent = item.title || item.taskTitle || 'Demanda do Jira';
@@ -508,12 +510,106 @@ const app = {
     const descEl = document.getElementById('detail-description');
     descEl.textContent = item.description || item.notes || item.taskDescription || item.gains || 'Sem descrição fornecida no chamado do Jira.';
 
+    // Exibir/Ocultar e Preencher a Seção de Acompanhamento de Desenvolvimento da Squad de Dados
+    const followupSection = document.getElementById('section-dados-followup');
+    if (followupSection) {
+      if (this.activeSquad === 'dados') {
+        followupSection.classList.remove('hidden');
+        
+        document.getElementById('dados-dev-role').value = item.devRole || 'Engenheiro de Dados';
+        document.getElementById('dados-dev-name').value = item.devName || '';
+        document.getElementById('dados-dev-target-date').value = item.targetDeliveryDate || '';
+        document.getElementById('dados-dev-progress').value = item.devProgress || '0%';
+
+        // Data de hoje padrão para novo registro da timeline
+        const todayISO = new Date().toISOString().split('T')[0];
+        document.getElementById('dados-timeline-date').value = todayISO;
+        document.getElementById('dados-timeline-text').value = '';
+
+        this.renderTimelineList(item);
+      } else {
+        followupSection.classList.add('hidden');
+      }
+    }
+
     const modal = document.getElementById('modal-demand-details');
     if (modal) {
       modal.style.display = 'flex';
       modal.classList.add('open');
       modal.classList.add('active');
     }
+  },
+
+  // Salvar campos de desenvolvimento da Squad de Dados com auto-save no localStorage
+  saveDadosDevFields() {
+    if (!this.activeDemandItemId) return;
+
+    const item = (this.state.backlogItems.dados || []).find(i => i.id === this.activeDemandItemId || i.gau === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId) ||
+                 (this.state.completedTasks.dados || []).find(i => i.id === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId);
+
+    if (!item) return;
+
+    item.devRole = document.getElementById('dados-dev-role').value;
+    item.devName = document.getElementById('dados-dev-name').value;
+    item.targetDeliveryDate = document.getElementById('dados-dev-target-date').value;
+    item.devProgress = document.getElementById('dados-dev-progress').value;
+
+    this.saveState();
+  },
+
+  // Adicionar entrada na linha do tempo com auto-save no localStorage
+  addTimelineEntry() {
+    if (!this.activeDemandItemId) return;
+
+    const item = (this.state.backlogItems.dados || []).find(i => i.id === this.activeDemandItemId || i.gau === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId) ||
+                 (this.state.completedTasks.dados || []).find(i => i.id === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId);
+
+    if (!item) return;
+
+    const dateVal = document.getElementById('dados-timeline-date').value;
+    const textVal = document.getElementById('dados-timeline-text').value.trim();
+
+    if (!textVal) return;
+
+    if (!item.timelineEntries) item.timelineEntries = [];
+
+    // Formatar data para exibição (DD/MM/AAAA)
+    let displayDate = dateVal;
+    if (dateVal && dateVal.includes('-')) {
+      const parts = dateVal.split('-');
+      if (parts.length === 3) displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    item.timelineEntries.unshift({
+      date: displayDate || new Date().toLocaleDateString('pt-BR'),
+      text: textVal,
+      timestamp: Date.now()
+    });
+
+    document.getElementById('dados-timeline-text').value = '';
+    this.saveState();
+    this.renderTimelineList(item);
+  },
+
+  // Renderizar a lista em formato de Linha do Tempo com Scrollbar
+  renderTimelineList(item) {
+    const listEl = document.getElementById('dados-timeline-list');
+    if (!listEl) return;
+
+    const entries = item.timelineEntries || [];
+
+    if (entries.length === 0) {
+      listEl.innerHTML = `<div style="color:#64748b; font-size:11px; font-style:italic; padding:8px 0;">Nenhuma atualização de desenvolvimento registrada ainda nesta demanda.</div>`;
+      return;
+    }
+
+    listEl.innerHTML = entries.map(entry => `
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-date">${entry.date}</div>
+        <div class="timeline-text">${entry.text}</div>
+      </div>
+    `).join('');
   },
 
   closeModal(modalId, event) {
@@ -680,6 +776,16 @@ const app = {
 
     if (titleEl) titleEl.textContent = `Em Andamento - ${squadNames[this.activeSquad]}`;
     if (descEl) descEl.textContent = `Acompanhamento de solicitações em andamento na ${squadNames[this.activeSquad]}`;
+
+    // Exibir/Ocultar o Banner da Sprint de 15 Dias (Exclusivo Squad de Dados)
+    const sprintBanner = document.getElementById('squad-dados-sprint-banner');
+    if (sprintBanner) {
+      if (this.activeSquad === 'dados') {
+        sprintBanner.classList.remove('hidden');
+      } else {
+        sprintBanner.classList.add('hidden');
+      }
+    }
 
     const allItems = this.state.backlogItems[this.activeSquad] || [];
     const inProgressItems = allItems.filter(i => i.status === 'Em Andamento');

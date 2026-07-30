@@ -876,9 +876,83 @@ body {
   .sidebar {
     transform: translateX(-100%);
   }
-  .sidebar.mobile-open {
+  .sidebar.open {
     transform: translateX(0);
   }
+}
+
+/* Sprint Banner da Squad de Dados */
+.sprint-banner-dados {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.06) 100%) !important;
+  border: 1.5px solid rgba(16, 185, 129, 0.35) !important;
+  border-left: 5px solid #10b981 !important;
+  border-radius: 16px !important;
+  padding: 16px 20px !important;
+  margin-bottom: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Timeline Container com Scrollbar para Atualizações */
+.timeline-scroll-container {
+  max-height: 220px !important;
+  overflow-y: auto !important;
+  padding-right: 6px !important;
+}
+
+.timeline-scroll-container::-webkit-scrollbar {
+  width: 5px !important;
+}
+
+.timeline-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.4) !important;
+  border-radius: 4px !important;
+}
+
+.timeline-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.8) !important;
+}
+
+.timeline-item {
+  position: relative !important;
+  padding-left: 24px !important;
+  padding-bottom: 14px !important;
+  border-left: 2px solid rgba(16, 185, 129, 0.3) !important;
+}
+
+.timeline-item:last-child {
+  border-left-color: transparent !important;
+  padding-bottom: 4px !important;
+}
+
+.timeline-dot {
+  position: absolute !important;
+  left: -6px !important;
+  top: 2px !important;
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+  background: #10b981 !important;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.8) !important;
+}
+
+.timeline-date {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #34d399 !important;
+}
+
+.timeline-text {
+  font-size: 12px !important;
+  color: #e2e8f0 !important;
+  margin-top: 3px !important;
+  line-height: 1.4 !important;
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+}
+@media (max-width: 1024px) {
   .main-wrapper {
     margin-left: 0;
   }
