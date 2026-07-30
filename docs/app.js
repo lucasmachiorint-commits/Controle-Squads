@@ -795,18 +795,33 @@ const app = {
     this.saveState();
   },
 
-  // Exportar Tabela para Excel (.xlsx)
+  // Exportar Tabela para Excel (.xlsx) com suporte para as 3 abas
   exportExcel() {
-    const items = this.state.backlogItems[this.activeSquad] || [];
+    let items = [];
+    let viewLabel = 'Backlog';
+
+    if (this.activeView === 'board') {
+      const all = this.state.backlogItems[this.activeSquad] || [];
+      items = all.filter(i => i.status === 'Em Andamento');
+      viewLabel = 'EmAndamento';
+    } else if (this.activeView === 'concluidos') {
+      items = this.state.completedTasks[this.activeSquad] || [];
+      viewLabel = 'Concluidos';
+    } else {
+      const all = this.state.backlogItems[this.activeSquad] || [];
+      items = all.filter(i => i.status !== 'Em Andamento' && i.status !== 'Concluído' && i.status !== 'Concluido');
+      viewLabel = 'Backlog';
+    }
+
     if (!items.length) {
-      alert('Nenhuma demanda no backlog para exportar.');
+      alert(`Nenhuma demanda na lista para exportar.`);
       return;
     }
 
     const ws = XLSX.utils.json_to_sheet(items);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Backlog');
-    XLSX.writeFile(wb, `Backlog_${this.activeSquad}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, viewLabel);
+    XLSX.writeFile(wb, `${viewLabel}_${this.activeSquad}_${new Date().toISOString().split('T')[0]}.xlsx`);
   },
 
   // Modais Handlers

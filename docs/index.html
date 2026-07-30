@@ -243,11 +243,14 @@
       </div>
 
       <div class="triage-table-panel">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div class="flex items-start justify-between gap-4 mb-6">
           <div>
             <h2 class="text-xl font-bold text-white" id="board-squad-title">Em Andamento</h2>
-            <p class="text-xs text-slate-400" id="board-squad-desc">Acompanhamento e monitoramento de demandas em andamento</p>
+            <p class="text-xs text-slate-400 mt-1" id="board-squad-desc">Acompanhamento e monitoramento de demandas em andamento</p>
           </div>
+          <button type="button" class="btn btn-secondary text-xs py-2 px-3 shrink-0" onclick="app.exportExcel()">
+            <i class="fa-solid fa-file-excel text-emerald-400 me-1.5"></i> Exportar Excel
+          </button>
         </div>
 
         <div class="search-box w-full mb-6">
@@ -290,7 +293,7 @@
         </button>
       </div>
       <div class="triage-table-panel">
-        <div class="flex items-center justify-between gap-4 mb-6">
+        <div class="flex items-start justify-between gap-4 mb-6">
           <div>
             <h2 class="text-xl font-bold text-white" id="backlog-squad-title">Backlog</h2>
             <p class="text-xs text-slate-400 mt-1">Listagem de solicitações aguardando início de tratamento na squad</p>
@@ -340,9 +343,14 @@
         </button>
       </div>
       <div class="triage-table-panel">
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="text-xl font-bold text-white" id="concluidos-squad-title">Concluídos</h2>
-          <span class="badge badge-medium" id="completed-count-badge">0 entregas</span>
+        <div class="flex items-start justify-between gap-4 mb-6">
+          <div>
+            <h2 class="text-xl font-bold text-white" id="concluidos-squad-title">Concluídos</h2>
+            <p class="text-xs text-slate-400 mt-1"><span class="badge badge-medium" id="completed-count-badge">0 entregas</span></p>
+          </div>
+          <button type="button" class="btn btn-secondary text-xs py-2 px-3 shrink-0" onclick="app.exportExcel()">
+            <i class="fa-solid fa-file-excel text-emerald-400 me-1.5"></i> Exportar Excel
+          </button>
         </div>
 
         <div class="search-box w-full mb-6">
