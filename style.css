@@ -521,6 +521,15 @@ body {
   transform: scale(1);
 }
 
+/* Container de Métricas da Mesa de Triagem - 3 Quadros na Mesma Linha (1 Row) */
+.triage-metrics-row {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  width: 100% !important;
+  margin-bottom: 24px !important;
+}
+
 /* Metric Boxes (Modelo Exato da Imagem Enviada pelo Usuário) */
 .metric-box-card {
   padding: 18px 22px;
