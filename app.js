@@ -510,38 +510,39 @@ const app = {
     descEl.textContent = item.description || item.notes || item.taskDescription || item.gains || 'Sem descrição fornecida no chamado do Jira.';
 
     // Identificar com precisão a Squad Alvo do Item (dados, operacoes, rpa)
-    let targetSquadKey = 'dados';
-    
-    const isOperacoes = (this.state.backlogItems.operacoes || []).some(i => i.id === item.id || i.jiraKey === item.id || i.gau === item.id) ||
-                        (this.state.completedTasks.operacoes || []).some(i => i.id === item.id || i.jiraKey === item.id);
-    const isRpa = (this.state.backlogItems.rpa || []).some(i => i.id === item.id || i.jiraKey === item.id || i.gau === item.id) ||
-                  (this.state.completedTasks.rpa || []).some(i => i.id === item.id || i.jiraKey === item.id);
-    const isDados = (this.state.backlogItems.dados || []).some(i => i.id === item.id || i.jiraKey === item.id || i.gau === item.id) ||
-                    (this.state.completedTasks.dados || []).some(i => i.id === item.id || i.jiraKey === item.id);
+    let targetSquadKey = this.activeSquad || 'operacoes';
 
-    if (isOperacoes) {
-      targetSquadKey = 'operacoes';
-    } else if (isRpa) {
-      targetSquadKey = 'rpa';
-    } else if (isDados) {
-      targetSquadKey = 'dados';
-    } else if (this.activeSquad) {
+    if (['board', 'backlog', 'concluidos'].includes(this.activeView) && this.activeSquad) {
       targetSquadKey = this.activeSquad;
     } else {
-      const rawSquadStr = (item.squad || item.team || item.suggestedSquad || item.triagedSquadId || item.completedBy || '').toString().toLowerCase();
-      if (rawSquadStr.includes('operac') || rawSquadStr.includes('operaç') || rawSquadStr.includes('16005')) {
+      const isOperacoes = (this.state.backlogItems.operacoes || []).some(i => i.id === item.id || i.jiraKey === item.id || i.gau === item.id) ||
+                          (this.state.completedTasks.operacoes || []).some(i => i.id === item.id || i.jiraKey === item.id);
+      const isRpa = (this.state.backlogItems.rpa || []).some(i => i.id === item.id || i.jiraKey === item.id || i.gau === item.id) ||
+                    (this.state.completedTasks.rpa || []).some(i => i.id === item.id || i.jiraKey === item.id);
+      const isDados = (this.state.backlogItems.dados || []).some(i => i.id === item.id || i.jiraKey === item.id || i.gau === item.id) ||
+                      (this.state.completedTasks.dados || []).some(i => i.id === item.id || i.jiraKey === item.id);
+
+      if (isOperacoes) {
         targetSquadKey = 'operacoes';
-      } else if (rawSquadStr.includes('rpa') || rawSquadStr.includes('16007')) {
+      } else if (isRpa) {
         targetSquadKey = 'rpa';
-      } else {
+      } else if (isDados) {
         targetSquadKey = 'dados';
+      } else {
+        const rawSquadStr = (item.squad || item.team || item.suggestedSquad || item.triagedSquadId || item.completedBy || '').toString().toLowerCase();
+        if (rawSquadStr.includes('operac') || rawSquadStr.includes('operaç') || rawSquadStr.includes('16005')) {
+          targetSquadKey = 'operacoes';
+        } else if (rawSquadStr.includes('rpa') || rawSquadStr.includes('16007')) {
+          targetSquadKey = 'rpa';
+        } else {
+          targetSquadKey = 'dados';
+        }
       }
     }
 
     this.activeDemandSquadKey = targetSquadKey;
 
-    const squadNames = { dados: 'Squad de Operações', operacoes: 'Squad de Operações', rpa: 'Squad de RPA' };
-    squadNames.dados = 'Squad de Dados';
+    const squadNames = { dados: 'Squad de Dados', operacoes: 'Squad de Operações', rpa: 'Squad de RPA' };
     
     const detailSquadEl = document.getElementById('detail-squad');
     if (detailSquadEl) {
@@ -581,8 +582,15 @@ const app = {
     // Configurações customizadas por Squad
     if (squadKey === 'operacoes') {
       if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-gears me-1.5" style="color:#f59e0b;"></i> ACOMPANHAMENTO SQUAD DE OPERAÇÕES`;
-      if (roleContainer) roleContainer.classList.add('hidden');
-      if (nameContainer) nameContainer.classList.add('hidden');
+      
+      if (roleContainer) {
+        roleContainer.classList.add('hidden');
+        roleContainer.style.setProperty('display', 'none', 'important');
+      }
+      if (nameContainer) {
+        nameContainer.classList.add('hidden');
+        nameContainer.style.setProperty('display', 'none', 'important');
+      }
       if (gridContainer) gridContainer.style.gridTemplateColumns = '1fr 1fr';
 
       if (labelDateEl) labelDateEl.textContent = 'Previsão de Conclusão / SLA:';
@@ -598,8 +606,15 @@ const app = {
       }
     } else if (squadKey === 'rpa') {
       if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-robot me-1.5" style="color:#f43f5e;"></i> ACOMPANHAMENTO SQUAD DE RPA`;
-      if (roleContainer) roleContainer.classList.add('hidden');
-      if (nameContainer) nameContainer.classList.remove('hidden');
+      
+      if (roleContainer) {
+        roleContainer.classList.add('hidden');
+        roleContainer.style.setProperty('display', 'none', 'important');
+      }
+      if (nameContainer) {
+        nameContainer.classList.remove('hidden');
+        nameContainer.style.setProperty('display', 'block', 'important');
+      }
       if (gridContainer) gridContainer.style.gridTemplateColumns = 'repeat(3, 1fr)';
 
       if (labelNameEl) labelNameEl.textContent = 'Desenvolvedor do Robô:';
@@ -618,8 +633,15 @@ const app = {
     } else {
       // Squad de Dados (Padrão)
       if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-code-commit me-1.5" style="color:#10b981;"></i> ACOMPANHAMENTO SQUAD DE DADOS`;
-      if (roleContainer) roleContainer.classList.remove('hidden');
-      if (nameContainer) nameContainer.classList.remove('hidden');
+      
+      if (roleContainer) {
+        roleContainer.classList.remove('hidden');
+        roleContainer.style.setProperty('display', 'block', 'important');
+      }
+      if (nameContainer) {
+        nameContainer.classList.remove('hidden');
+        nameContainer.style.setProperty('display', 'block', 'important');
+      }
       if (gridContainer) gridContainer.style.gridTemplateColumns = '1fr 1fr';
 
       if (labelRoleEl) labelRoleEl.textContent = 'Atribuição / Especialidade:';
