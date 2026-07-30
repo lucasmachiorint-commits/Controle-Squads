@@ -896,6 +896,19 @@ body {
 }
 
 /* Timeline Container com Scrollbar para Atualizações */
+.status-select-dropdown.status-bloqueado {
+  background: rgba(244, 63, 94, 0.18) !important;
+  border-color: rgba(244, 63, 94, 0.6) !important;
+  color: #fb7185 !important;
+  font-weight: 800 !important;
+}
+
+.status-select-dropdown.status-bloqueado:hover,
+.status-select-dropdown.status-bloqueado:focus {
+  border-color: #f43f5e !important;
+  box-shadow: 0 0 15px rgba(244, 63, 94, 0.4) !important;
+  background: rgba(244, 63, 94, 0.25) !important;
+}
 .timeline-scroll-container {
   max-height: 220px !important;
   overflow-y: auto !important;

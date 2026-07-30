@@ -220,6 +220,7 @@ const JiraSyncEngine = {
 
       // 2. Mapeamento de Fila por Status (Abertos -> Triagem, Aguardando -> Backlog, Coletar dados/Done -> Concluídos)
       let targetQueue = '';
+      let defaultStatus = 'Backlog';
       if (statusLower === 'aberto' || statusLower === 'abertos' || statusLower === 'triagem' || statusLower === 'backlog') {
         targetQueue = 'triage';
       } else if (
@@ -233,6 +234,11 @@ const JiraSyncEngine = {
         targetQueue = `completed_${targetSquadId}`;
       } else {
         targetQueue = `backlog_${targetSquadId}`;
+        if (statusLower.includes('bloquead') || statusLower.includes('impedid') || statusLower.includes('block')) {
+          defaultStatus = 'Bloqueado';
+        } else if (statusLower.includes('andamento') || statusLower.includes('in progress')) {
+          defaultStatus = 'Em Andamento';
+        }
       }
 
       const existing = existingMap.get(jiraKey);
@@ -288,7 +294,7 @@ const JiraSyncEngine = {
             priority: card.priority || '2 - Alta',
             category: card.category || 'Processos',
             treatmentOrder: idx + 1,
-            status: 'Backlog',
+            status: defaultStatus,
             progress: 0
           });
         }

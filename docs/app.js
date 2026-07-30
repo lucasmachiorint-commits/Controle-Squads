@@ -788,7 +788,7 @@ const app = {
     }
 
     const allItems = this.state.backlogItems[this.activeSquad] || [];
-    const inProgressItems = allItems.filter(i => i.status === 'Em Andamento');
+    const inProgressItems = allItems.filter(i => i.status === 'Em Andamento' || i.status === 'Bloqueado');
 
     const searchTerm = (document.getElementById('search-board')?.value || '').toLowerCase();
 
@@ -802,7 +802,7 @@ const app = {
     if (filteredItems.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="5" class="text-center py-8 text-slate-500 font-semibold">Nenhuma demanda em andamento encontrada.</td>
+          <td colspan="6" class="text-center py-8 text-slate-500 font-semibold">Nenhuma demanda em andamento ou bloqueada encontrada.</td>
         </tr>
       `;
       return;
@@ -815,10 +815,11 @@ const app = {
         <td class="font-semibold text-white" style="white-space:normal; word-break:break-word; line-height:1.4;">${item.title}</td>
         <td class="text-slate-300" style="white-space:nowrap; width:160px;">${item.requester || 'Solicitante Jira'}</td>
         <td onclick="event.stopPropagation();" style="white-space:nowrap; width:160px;">
-          <select class="status-select-dropdown" onchange="app.changeDemandStatus('${item.id}', this.value)">
-            <option value="Em Andamento" selected>Em Andamento</option>
-            <option value="Backlog">Backlog</option>
-            <option value="Concluído">Concluído</option>
+          <select class="status-select-dropdown ${item.status === 'Bloqueado' ? 'status-bloqueado' : ''}" onchange="app.changeDemandStatus('${item.id}', this.value)">
+            <option value="Em Andamento" ${item.status === 'Em Andamento' ? 'selected' : ''}>Em Andamento</option>
+            <option value="Bloqueado" ${item.status === 'Bloqueado' ? 'selected' : ''}>Bloqueado</option>
+            <option value="Backlog" ${item.status === 'Backlog' ? 'selected' : ''}>Backlog</option>
+            <option value="Concluído" ${item.status === 'Concluído' ? 'selected' : ''}>Concluído</option>
           </select>
         </td>
         <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; width:120px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
@@ -883,10 +884,11 @@ const app = {
         <td class="font-semibold text-white" style="white-space:normal; word-break:break-word; line-height:1.4;">${item.title}</td>
         <td class="text-slate-300" style="white-space:nowrap; width:160px;">${item.requester || 'Solicitante Jira'}</td>
         <td onclick="event.stopPropagation();" style="white-space:nowrap; width:160px;">
-          <select class="status-select-dropdown status-backlog" onchange="app.changeDemandStatus('${item.id}', this.value)">
-            <option value="Backlog" selected>Backlog</option>
-            <option value="Em Andamento">Em Andamento</option>
-            <option value="Concluído">Concluído</option>
+          <select class="status-select-dropdown status-backlog ${item.status === 'Bloqueado' ? 'status-bloqueado' : ''}" onchange="app.changeDemandStatus('${item.id}', this.value)">
+            <option value="Backlog" ${item.status === 'Backlog' ? 'selected' : ''}>Backlog</option>
+            <option value="Em Andamento" ${item.status === 'Em Andamento' ? 'selected' : ''}>Em Andamento</option>
+            <option value="Bloqueado" ${item.status === 'Bloqueado' ? 'selected' : ''}>Bloqueado</option>
+            <option value="Concluído" ${item.status === 'Concluído' ? 'selected' : ''}>Concluído</option>
           </select>
         </td>
         <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; width:120px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
@@ -897,7 +899,7 @@ const app = {
   // Alterar a ordem de prioridade no backlog com troca direta de posição (swap) e reordenação automática
   changeBacklogOrder(itemId, newOrderInput) {
     const allItems = this.state.backlogItems[this.activeSquad] || [];
-    const backlogItems = allItems.filter(i => i.status !== 'Em Andamento' && i.status !== 'Concluído' && i.status !== 'Concluido');
+    const backlogItems = allItems.filter(i => i.status !== 'Em Andamento' && i.status !== 'Bloqueado' && i.status !== 'Concluído' && i.status !== 'Concluido');
     const item = backlogItems.find(i => i.id === itemId);
     if (!item) return;
 
