@@ -329,12 +329,17 @@ const app = {
     this.renderTriageView();
   },
 
-  // RENDER: Mesa de Triagem (Tabela no Modelo Exato da Imagem Enviada)
+  // RENDER: Mesa de Triagem
   renderTriageView() {
     const tbody = document.getElementById('triage-table-body');
     if (!tbody) return;
 
     const searchTerm = (document.getElementById('search-triage')?.value || '').toLowerCase();
+    const filterStatus = (document.getElementById('filter-triage-status')?.value || '');
+    const filterSolicitante = (document.getElementById('filter-triage-solicitante')?.value || '');
+
+    // Popula dropdown de solicitantes dinamicamente (valores únicos)
+    this._populateRequesterFilter('filter-triage-solicitante', this.state.triageItems, 'requesterName');
 
     // Contagem real baseada no status exato do Jira
     const pendingItems = this.state.triageItems.filter(i => {
@@ -352,7 +357,7 @@ const app = {
       return s.includes('rejeitado') || s.includes('cancelado') || s.includes('arquivado') || s === 'done';
     });
 
-    // Atualizar texto dos quadros com o sufixo "cards" exatamente como na imagem
+    // Atualizar texto dos quadros
     const elPending = document.getElementById('metric-triage-pending');
     const elTriaged = document.getElementById('metric-triage-triaged');
     const elRejected = document.getElementById('metric-triage-rejected');
@@ -372,13 +377,15 @@ const app = {
       emptyMessage = 'Nenhum chamado rejeitado ou arquivado nesta lista.';
     }
 
-    // Filtrar por busca textual
+    // Aplicar filtros combinados (busca textual + status + solicitante)
     const filteredDisplayItems = currentList.filter(i => {
       const matchSearch = !searchTerm || 
         i.title.toLowerCase().includes(searchTerm) || 
         i.jiraKey.toLowerCase().includes(searchTerm) ||
         (i.requesterName || '').toLowerCase().includes(searchTerm);
-      return matchSearch;
+      const matchStatus = !filterStatus || (i.status || '').toLowerCase() === filterStatus.toLowerCase();
+      const matchSolicitante = !filterSolicitante || (i.requesterName || '') === filterSolicitante;
+      return matchSearch && matchStatus && matchSolicitante;
     });
 
     if (filteredDisplayItems.length === 0) {
@@ -390,7 +397,6 @@ const app = {
       return;
     }
 
-    // Renderizar tabela sem coluna Prioridade
     tbody.innerHTML = filteredDisplayItems.map((item, idx) => `
       <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
         <td class="font-bold text-slate-400">${idx + 1}</td>
@@ -591,7 +597,21 @@ const app = {
     }
   },
 
-  // RENDER: Aba "Em Andamento" (Mesmo Layout de Tabela da Aba Backlog para TODAS as Squads)
+  // Função auxiliar para popular dropdown de solicitantes únicos
+  _populateRequesterFilter(selectId, items, propName = 'requester') {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    const currentVal = select.value;
+    const requesters = Array.from(new Set(
+      items.map(i => (i[propName] || '').trim()).filter(Boolean)
+    )).sort();
+
+    select.innerHTML = '<option value="">Todos os Solicitantes</option>' +
+      requesters.map(r => `<option value="${r}" ${r === currentVal ? 'selected' : ''}>${r}</option>`).join('');
+  },
+
+  // RENDER: Aba "Em Andamento" (Com Filtros de Busca e Solicitante)
   renderBoardView() {
     const tbody = document.getElementById('board-table-body');
     if (!tbody) return;
@@ -606,16 +626,30 @@ const app = {
     const allItems = this.state.backlogItems[this.activeSquad] || [];
     const inProgressItems = allItems.filter(i => i.status === 'Em Andamento');
 
-    if (inProgressItems.length === 0) {
+    const searchTerm = (document.getElementById('search-board')?.value || '').toLowerCase();
+    const filterSolicitante = (document.getElementById('filter-board-solicitante')?.value || '');
+
+    this._populateRequesterFilter('filter-board-solicitante', inProgressItems, 'requester');
+
+    const filteredItems = inProgressItems.filter(item => {
+      const matchSearch = !searchTerm ||
+        item.title.toLowerCase().includes(searchTerm) ||
+        (item.gau || item.jiraKey || '').toLowerCase().includes(searchTerm) ||
+        (item.requester || '').toLowerCase().includes(searchTerm);
+      const matchSolicitante = !filterSolicitante || (item.requester || '') === filterSolicitante;
+      return matchSearch && matchSolicitante;
+    });
+
+    if (filteredItems.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="6" class="text-center py-8 text-slate-500 font-semibold">Nenhuma demanda em andamento nesta squad.</td>
+          <td colspan="6" class="text-center py-8 text-slate-500 font-semibold">Nenhuma demanda em andamento encontrada.</td>
         </tr>
       `;
       return;
     }
 
-    tbody.innerHTML = inProgressItems.map((item, idx) => `
+    tbody.innerHTML = filteredItems.map((item, idx) => `
       <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
         <td class="font-bold text-slate-400">${idx + 1}</td>
         <td class="font-extrabold text-emerald-400 whitespace-nowrap min-w-[120px]">${item.gau || item.jiraKey || 'GAU-000'}</td>
@@ -637,7 +671,7 @@ const app = {
     `).join('');
   },
 
-  // RENDER: Aba "Backlog" (Status Editável + Ordem Editável com Reordenação Sequencial)
+  // RENDER: Aba "Backlog" (Com Filtros de Busca e Solicitante)
   renderBacklogView() {
     const tbody = document.getElementById('backlog-table-body');
     if (!tbody) return;
@@ -647,7 +681,6 @@ const app = {
     if (titleEl) titleEl.textContent = `Backlog - ${squadNames[this.activeSquad]}`;
 
     const allItems = this.state.backlogItems[this.activeSquad] || [];
-    // Filtra para exibir apenas demandas que estão no Backlog
     const backlogItems = allItems.filter(i => i.status !== 'Em Andamento' && i.status !== 'Concluído' && i.status !== 'Concluido');
 
     // Garantir que cada item tenha um treatmentOrder válido
@@ -660,16 +693,30 @@ const app = {
     // Ordenar por treatmentOrder
     backlogItems.sort((a, b) => (a.treatmentOrder || 999) - (b.treatmentOrder || 999));
 
-    if (backlogItems.length === 0) {
+    const searchTerm = (document.getElementById('search-backlog')?.value || '').toLowerCase();
+    const filterSolicitante = (document.getElementById('filter-backlog-solicitante')?.value || '');
+
+    this._populateRequesterFilter('filter-backlog-solicitante', backlogItems, 'requester');
+
+    const filteredItems = backlogItems.filter(item => {
+      const matchSearch = !searchTerm ||
+        item.title.toLowerCase().includes(searchTerm) ||
+        (item.gau || item.jiraKey || '').toLowerCase().includes(searchTerm) ||
+        (item.requester || '').toLowerCase().includes(searchTerm);
+      const matchSolicitante = !filterSolicitante || (item.requester || '') === filterSolicitante;
+      return matchSearch && matchSolicitante;
+    });
+
+    if (filteredItems.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="6" class="text-center py-8 text-slate-500 font-semibold">Nenhuma demanda no backlog desta squad.</td>
+          <td colspan="6" class="text-center py-8 text-slate-500 font-semibold">Nenhuma demanda no backlog encontrada.</td>
         </tr>
       `;
       return;
     }
 
-    tbody.innerHTML = backlogItems.map((item) => `
+    tbody.innerHTML = filteredItems.map((item) => `
       <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
         <td onclick="event.stopPropagation();" style="width: 70px;">
           <input type="number" min="1" max="${backlogItems.length}" value="${item.treatmentOrder}"
@@ -738,20 +785,29 @@ const app = {
     this.saveState();
   },
 
-  // RENDER: Entregas Concluídas
+  // RENDER: Entregas Concluídas (Com Filtro de Busca)
   renderCompletedView() {
     const tbody = document.getElementById('completed-table-body');
     if (!tbody) return;
 
     const items = this.state.completedTasks[this.activeSquad] || [];
-    document.getElementById('completed-count-badge').textContent = `${items.length} entregas`;
+    const searchTerm = (document.getElementById('search-concluidos')?.value || '').toLowerCase();
 
-    if (items.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-500">Nenhuma entrega concluída registrada nesta squad.</td></tr>`;
+    const filteredItems = items.filter(item => {
+      return !searchTerm ||
+        (item.taskTitle || '').toLowerCase().includes(searchTerm) ||
+        (item.completedBy || '').toLowerCase().includes(searchTerm) ||
+        (item.jiraKey || '').toLowerCase().includes(searchTerm);
+    });
+
+    document.getElementById('completed-count-badge').textContent = `${filteredItems.length} entregas`;
+
+    if (filteredItems.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-500">Nenhuma entrega concluída encontrada.</td></tr>`;
       return;
     }
 
-    tbody.innerHTML = items.map(item => `
+    tbody.innerHTML = filteredItems.map(item => `
       <tr>
         <td class="font-bold text-white">${item.taskTitle}</td>
         <td class="text-slate-300">${item.completedBy || 'Squad'}</td>
