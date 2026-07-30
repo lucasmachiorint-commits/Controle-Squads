@@ -751,6 +751,46 @@ body {
   background: linear-gradient(135deg, rgba(241, 245, 249, 0.08) 0%, rgba(100, 116, 139, 0.16) 100%);
 }
 
+.metric-box-blue {
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.08) 0%, rgba(59, 130, 246, 0.12) 100%);
+  border: 1.5px solid rgba(59, 130, 246, 0.35);
+}
+
+.metric-box-blue:hover, .metric-box-blue.active {
+  border-color: rgba(59, 130, 246, 0.85);
+  box-shadow: 0 0 25px rgba(59, 130, 246, 0.3);
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.12) 0%, rgba(59, 130, 246, 0.18) 100%);
+}
+
+/* Mini Metric Cards para o Status da Atualização (Uniforme aos quadros de métricas) */
+.mini-metric-card {
+  padding: 14px 18px !important;
+  border-radius: 14px !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mini-metric-lbl {
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.8px !important;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 4px !important;
+  font-family: 'Outfit', sans-serif;
+}
+
+.mini-metric-val {
+  font-size: 22px !important;
+  font-weight: 900 !important;
+  line-height: 1.1;
+  font-family: 'Outfit', sans-serif;
+}
+
 .metric-box-lbl {
   font-size: 12px !important;
   font-weight: 800 !important;
