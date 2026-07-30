@@ -253,9 +253,9 @@ const app = {
     if (badgeEl) badgeEl.textContent = pendingCount;
   },
 
-  // Limpar todos os quadros e remover cards antigos incorretos
-  clearAllBoards() {
-    if (confirm('Tem certeza que deseja limpar TODOS os cards antigos dos quadros? Essa ação não afetará os dados no Jira Cloud.')) {
+  // Limpar todos os cards de demandas (Triagem, Backlog, Em Andamento, Concluídos) mantendo os cadastros de recursos intactos
+  clearAllCards() {
+    if (confirm('Tem certeza que deseja limpar TODOS os cards de demandas (Triagem, Backlog, Em Andamento e Concluídos)? Os desenvolvedores cadastrados serão mantidos.')) {
       this.state.triageItems = [];
       ['dados', 'operacoes', 'rpa'].forEach(id => {
         this.state.backlogItems[id] = [];
@@ -266,8 +266,20 @@ const app = {
         localStorage.removeItem(`cs_backlog_${id}`);
         localStorage.removeItem(`cs_completed_${id}`);
       });
+      localStorage.removeItem('cs_last_sync_time');
+
+      const timeEl = document.getElementById('sync-last-time');
+      if (timeEl) timeEl.textContent = 'Última atualização: N/D';
+
       this.saveState();
-      alert('Quadros limpos com sucesso! Agora clique em "🔄 Atualizar cards do Jira" para importar as solicitações atualizadas do GAU.');
+
+      const toast = document.getElementById('sync-toast-banner');
+      const toastMsg = document.getElementById('sync-toast-message');
+      if (toast && toastMsg) {
+        toastMsg.textContent = '🗑️ Todos os cards de demandas foram limpos! Clique em Sincronizar com Jira para recarregar.';
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 5000);
+      }
     }
   },
 

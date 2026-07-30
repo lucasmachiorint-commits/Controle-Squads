@@ -86,8 +86,12 @@
         <h1 class="header-title" id="page-title">Mesa de Triagem & Governança Jira</h1>
       </div>
 
-      <!-- BOTÃO SINCRONIZAR COM JIRA NO TOPO DIREITO -->
+      <!-- BOTÕES LIMPAR E SINCRONIZAR COM JIRA NO TOPO DIREITO -->
       <div class="flex items-center gap-3">
+        <button class="btn btn-secondary text-xs py-2 px-3 border-rose-500/30 hover:bg-rose-500/20 text-rose-300" id="btn-clear-cards" onclick="app.clearAllCards()">
+          <i class="fa-solid fa-trash-can me-1 text-rose-400"></i>
+          <span>Limpar Cards</span>
+        </button>
         <button class="btn btn-primary text-xs py-2 px-3" id="btn-sync-jira" onclick="app.triggerJiraSync()">
           <i class="fa-solid fa-rotate-right me-1" id="icon-spin-jira"></i>
           <span>🔄 Sincronizar com Jira</span>

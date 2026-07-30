@@ -265,8 +265,8 @@ const JiraSyncEngine = {
             priority: card.priority || '2 - Alta',
             category: card.category || 'Processos',
             treatmentOrder: idx + 1,
-            status: 'Em Andamento',
-            progress: 50
+            status: 'Backlog',
+            progress: 0
           });
         }
       }
@@ -329,8 +329,8 @@ const JiraSyncEngine = {
             priority: card.priority || '2 - Alta',
             category: card.category || 'Processos',
             treatmentOrder: idx + 1,
-            status: 'Em Andamento',
-            progress: 50
+            status: 'Backlog',
+            progress: 0
           });
         }
       }
