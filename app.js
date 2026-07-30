@@ -125,6 +125,26 @@ const app = {
     this.render();
   },
 
+  // Extrair o código GAU / Chave Jira de qualquer objeto de demanda
+  getItemGau(item) {
+    if (!item) return 'GAU-000';
+    if (item.gau && item.gau !== 'GAU-000') return item.gau;
+    if (item.jiraKey && item.jiraKey !== 'GAU-000') return item.jiraKey;
+
+    // Tentar extrair do ID (ex: "completed-NPAY-123", "backlog-GAU-134", "NPAY-123")
+    if (item.id) {
+      const matchId = item.id.match(/(NPAY-\d+|GAU-\d+|[A-Z0-9]+-\d+)/i);
+      if (matchId) return matchId[1].toUpperCase();
+    }
+
+    // Tentar extrair do título (ex: "Minha Tarefa (NPAY-123)")
+    const titleStr = item.title || item.taskTitle || '';
+    const matchTitle = titleStr.match(/\(([A-Z0-9]+-\d+)\)/i) || titleStr.match(/(NPAY-\d+|GAU-\d+|[A-Z0-9]+-\d+)/i);
+    if (matchTitle) return matchTitle[1].toUpperCase();
+
+    return 'GAU-000';
+  },
+
   // Carregar dados salvos no LocalStorage
   loadLocalState() {
     try {
@@ -136,7 +156,15 @@ const app = {
         if (b) this.state.backlogItems[id] = JSON.parse(b);
 
         const c = localStorage.getItem(`cs_completed_${id}`);
-        if (c) this.state.completedTasks[id] = JSON.parse(c);
+        if (c) {
+          const list = JSON.parse(c);
+          list.forEach(item => {
+            const extractedGau = this.getItemGau(item);
+            if (!item.gau || item.gau === 'GAU-000') item.gau = extractedGau;
+            if (!item.jiraKey || item.jiraKey === 'GAU-000') item.jiraKey = extractedGau;
+          });
+          this.state.completedTasks[id] = list;
+        }
 
         const r = localStorage.getItem(`cs_resources_${id}`);
         if (r) this.state.resources[id] = JSON.parse(r);
@@ -845,12 +873,26 @@ const app = {
       }
       const alreadyCompleted = this.state.completedTasks[this.activeSquad].some(c => c.id === item.id);
       if (!alreadyCompleted) {
+        const gauKey = this.getItemGau(item);
         this.state.completedTasks[this.activeSquad].unshift({
           id: item.id,
-          taskTitle: item.title,
-          completedBy: item.requester || 'Analista Squad',
+          gau: gauKey,
+          jiraKey: item.jiraKey || item.gau || gauKey,
+          title: item.title || item.taskTitle,
+          taskTitle: item.title || item.taskTitle,
+          description: item.description || item.notes || item.taskDescription,
+          taskDescription: item.description || item.notes || item.taskDescription,
+          requester: item.requester || item.requesterName || 'Solicitante Jira',
+          requesterName: item.requester || item.requesterName || 'Solicitante Jira',
+          completedBy: item.requester || item.requesterName || 'Analista Squad',
+          createdDate: item.createdDate || item.date || item.createdAt,
           completionDate: new Date().toLocaleDateString('pt-BR'),
-          gains: 'Demanda concluída via alteração de status no painel'
+          gains: item.gains || 'Demanda concluída via alteração de status no painel',
+          devRole: item.devRole,
+          devName: item.devName,
+          targetDeliveryDate: item.targetDeliveryDate,
+          devProgress: item.devProgress || '100%',
+          timelineEntries: item.timelineEntries || []
         });
       }
     }
@@ -1135,7 +1177,7 @@ const app = {
 
     tbody.innerHTML = filteredItems.map(item => `
       <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
-        <td class="font-extrabold text-emerald-400" style="white-space:nowrap; width:110px;">${item.gau || item.jiraKey || 'GAU-000'}</td>
+        <td class="font-extrabold text-emerald-400" style="white-space:nowrap; width:110px;">${this.getItemGau(item)}</td>
         <td class="font-semibold text-white" style="white-space:normal; word-break:break-word; line-height:1.4;">${item.title || item.taskTitle}</td>
         <td class="text-slate-300" style="white-space:nowrap; width:160px;">${item.requester || item.completedBy || item.requesterName || 'Solicitante Jira'}</td>
         <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; width:120px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>

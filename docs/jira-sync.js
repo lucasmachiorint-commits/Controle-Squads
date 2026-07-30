@@ -269,14 +269,18 @@ const JiraSyncEngine = {
         } else if (targetQueue.startsWith('completed_')) {
           state.completedTasks[targetSquadId].unshift({
             id: `completed-${jiraKey}`,
-            jiraKey,
-            taskTitle: `${title} (${jiraKey})`,
+            gau: jiraKey,
+            jiraKey: jiraKey,
+            title: title,
+            taskTitle: title,
             taskDescription: description,
+            description: description,
             area: 'Geral',
-            completedBy: targetSquadName,
+            completedBy: requester || targetSquadName,
+            requester: requester || targetSquadName,
             dueDate: card.dueDate || new Date().toISOString().split('T')[0],
             createdDate,
-            completionDate: new Date().toISOString().split('T')[0],
+            completionDate: new Date().toLocaleDateString('pt-BR'),
             gains: 'Concluído via sincronização com Jira',
             requesterArea: requester
           });
@@ -339,14 +343,18 @@ const JiraSyncEngine = {
         } else if (targetQueue.startsWith('completed_')) {
           state.completedTasks[targetSquadId].unshift({
             id: `completed-${jiraKey}`,
-            jiraKey,
-            taskTitle: `${title} (${jiraKey})`,
+            gau: jiraKey,
+            jiraKey: jiraKey,
+            title: title,
+            taskTitle: title,
             taskDescription: description,
+            description: description,
             area: 'Geral',
-            completedBy: targetSquadName,
+            completedBy: requester || targetSquadName,
+            requester: requester || targetSquadName,
             dueDate: card.dueDate || new Date().toISOString().split('T')[0],
             createdDate,
-            completionDate: new Date().toISOString().split('T')[0],
+            completionDate: new Date().toLocaleDateString('pt-BR'),
             gains: 'Concluído via sincronização com Jira',
             requesterArea: requester
           });
