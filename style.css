@@ -530,7 +530,19 @@ body {
   transform: scale(1);
 }
 
-/* Painel de Tabela da Mesa de Triagem - Padding e Espaçamento Amplo (Sem Colisão com as Bordas) */
+/* Painel de Banner da Mesa de Triagem - Padding e Espaçamento Amplo (Sem Colisão com as Bordas) */
+.triage-banner-panel {
+  background: var(--bg-card) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 20px !important;
+  padding: 32px 36px 32px 36px !important;
+  margin-bottom: 32px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Painel de Tabela da Mesa de Triagem - Padding e Espaçamento Amplo */
 .triage-table-panel {
   background: var(--bg-card) !important;
   backdrop-filter: blur(20px) !important;
@@ -573,12 +585,12 @@ body {
   margin-bottom: 32px !important;
 }
 
-/* Metric Boxes (Modelo Exato da Imagem Enviada pelo Usuário) */
+/* Metric Boxes (Modelo Exato da Imagem Enviada pelo Usuário com Padding Generoso) */
 .metric-box-card {
-  padding: 18px 22px;
-  border-radius: 16px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  padding: 24px 28px !important;
+  border-radius: 18px !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
   position: relative;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
@@ -619,18 +631,18 @@ body {
 }
 
 .metric-box-lbl {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.8px;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.9px !important;
   text-transform: uppercase;
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 8px !important;
   font-family: 'Outfit', sans-serif;
 }
 
 .metric-box-val {
-  font-size: 24px;
-  font-weight: 900;
+  font-size: 26px !important;
+  font-weight: 900 !important;
   line-height: 1.1;
   font-family: 'Outfit', sans-serif;
 }
