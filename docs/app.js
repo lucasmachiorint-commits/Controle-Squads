@@ -395,32 +395,39 @@ const app = {
         <td class="font-extrabold text-emerald-400" style="white-space:nowrap; min-width:130px;">${item.jiraKey}</td>
         <td class="font-semibold text-white max-w-md truncate" title="${item.title}">${item.title}</td>
         <td class="text-slate-300" style="white-space:nowrap; min-width:180px;">${item.requesterName || 'Solicitante Jira'}</td>
-        <td class="text-amber-400 font-medium" style="white-space:nowrap; min-width:140px;">${item.createdDate || item.date || 'Data N/D'}</td>
         <td style="white-space:nowrap; min-width:180px;"><span class="badge badge-medium" style="white-space:nowrap;">${item.status || 'Aguardando Triagem'}</span></td>
+        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; min-width:130px;">${item.createdDate || item.date || item.createdAt || '29/07/2026'}</td>
       </tr>
     `).join('');
   },
 
   // Pop-up Modal de Detalhes da Demanda
   openDemandDetailsModal(itemId) {
-    const item = this.state.triageItems.find(i => i.id === itemId) || 
-                 (this.state.backlogItems.dados || []).find(i => i.id === itemId || i.gau === itemId) ||
-                 (this.state.backlogItems.operacoes || []).find(i => i.id === itemId || i.gau === itemId) ||
-                 (this.state.backlogItems.rpa || []).find(i => i.id === itemId || i.gau === itemId);
+    const item = this.state.triageItems.find(i => i.id === itemId || i.jiraKey === itemId) || 
+                 (this.state.backlogItems.dados || []).find(i => i.id === itemId || i.gau === itemId || i.jiraKey === itemId) ||
+                 (this.state.backlogItems.operacoes || []).find(i => i.id === itemId || i.gau === itemId || i.jiraKey === itemId) ||
+                 (this.state.backlogItems.rpa || []).find(i => i.id === itemId || i.gau === itemId || i.jiraKey === itemId) ||
+                 (this.state.completedTasks.dados || []).find(i => i.id === itemId || i.jiraKey === itemId) ||
+                 (this.state.completedTasks.operacoes || []).find(i => i.id === itemId || i.jiraKey === itemId) ||
+                 (this.state.completedTasks.rpa || []).find(i => i.id === itemId || i.jiraKey === itemId);
 
     if (!item) return;
 
     document.getElementById('detail-gau-key').textContent = item.jiraKey || item.gau || 'GAU-000';
     document.getElementById('detail-priority').textContent = item.priority || '2 - Alta';
-    document.getElementById('detail-title').textContent = item.title;
-    document.getElementById('detail-requester').textContent = item.requesterName || item.requester || 'Solicitante Jira';
+    document.getElementById('detail-title').textContent = item.title || item.taskTitle || 'Demanda do Jira';
+    document.getElementById('detail-requester').textContent = item.requesterName || item.requester || item.completedBy || item.requesterArea || 'Solicitante Jira';
+    
     const dateEl = document.getElementById('detail-created-date');
-    if (dateEl) dateEl.textContent = item.createdDate || item.date || item.createdAt || '29/07/2026';
-    document.getElementById('detail-status').textContent = item.status || 'Aguardando Triagem';
-    document.getElementById('detail-squad').textContent = item.squad || item.team || 'Mesa de Triagem';
+    if (dateEl) {
+      dateEl.textContent = item.createdDate || item.date || item.createdAt || item.completionDate || '29/07/2026';
+    }
+    
+    document.getElementById('detail-status').textContent = item.status || (item.completionDate ? 'Concluído' : 'Aguardando Triagem');
+    document.getElementById('detail-squad').textContent = item.squad || item.team || item.completedBy || 'Squad de Dados';
     
     const descEl = document.getElementById('detail-description');
-    descEl.textContent = item.description || item.notes || 'Sem descrição fornecida no chamado do Jira.';
+    descEl.textContent = item.description || item.notes || item.taskDescription || item.gains || 'Sem descrição fornecida no chamado do Jira.';
 
     const modal = document.getElementById('modal-demand-details');
     if (modal) {
@@ -629,6 +636,7 @@ const app = {
             <option value="Concluído">Concluído</option>
           </select>
         </td>
+        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; min-width:130px;">${item.createdDate || item.date || item.createdAt || '29/07/2026'}</td>
       </tr>
     `).join('');
   },
@@ -692,6 +700,7 @@ const app = {
             <option value="Concluído">Concluído</option>
           </select>
         </td>
+        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; min-width:130px;">${item.createdDate || item.date || item.createdAt || '29/07/2026'}</td>
       </tr>
     `).join('');
   },
@@ -760,12 +769,13 @@ const app = {
     }
 
     tbody.innerHTML = filteredItems.map(item => `
-      <tr>
+      <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
         <td class="font-bold text-white">${item.taskTitle}</td>
         <td class="text-slate-300">${item.completedBy || 'Squad'}</td>
-        <td class="text-slate-400">${item.completionDate || '2026-07-29'}</td>
+        <td class="text-slate-400">${item.completionDate || '29/07/2026'}</td>
         <td class="text-emerald-400 text-xs italic">${item.gains || 'Sem registro de ganhos'}</td>
-        <td>
+        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; min-width:130px;">${item.createdDate || item.date || item.createdAt || '29/07/2026'}</td>
+        <td onclick="event.stopPropagation();">
           <button class="btn btn-secondary text-xs py-1 px-2" onclick="app.deleteCompletedTask('${item.id}')">
             <i class="fa-solid fa-trash text-rose-400"></i>
           </button>
