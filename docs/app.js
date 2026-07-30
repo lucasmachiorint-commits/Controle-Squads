@@ -628,7 +628,7 @@ const app = {
         <td class="font-extrabold text-emerald-400" style="white-space:nowrap; min-width:130px;">${item.gau || item.jiraKey || 'GAU-000'}</td>
         <td class="font-semibold text-white max-w-md truncate" title="${item.title}">${item.title}</td>
         <td class="text-slate-300" style="white-space:nowrap; min-width:180px;">${item.requester || 'Solicitante Jira'}</td>
-        <td onclick="event.stopPropagation();" style="white-space:nowrap; min-width:180px;">
+        <td onclick="event.stopPropagation();" style="white-space:nowrap; min-width:200px;">
           <select class="status-select-dropdown" onchange="app.changeDemandStatus('${item.id}', this.value)">
             <option value="Em Andamento" selected>Em Andamento</option>
             <option value="Backlog">Backlog</option>
@@ -696,7 +696,7 @@ const app = {
         <td class="font-extrabold text-emerald-400" style="white-space:nowrap; min-width:130px;">${item.gau || item.jiraKey || 'GAU-000'}</td>
         <td class="font-semibold text-white max-w-md truncate" title="${item.title}">${item.title}</td>
         <td class="text-slate-300" style="white-space:nowrap; min-width:180px;">${item.requester || 'Solicitante Jira'}</td>
-        <td onclick="event.stopPropagation();" style="white-space:nowrap; min-width:180px;">
+        <td onclick="event.stopPropagation();" style="white-space:nowrap; min-width:200px;">
           <select class="status-select-dropdown status-backlog" onchange="app.changeDemandStatus('${item.id}', this.value)">
             <option value="Backlog" selected>Backlog</option>
             <option value="Em Andamento">Em Andamento</option>

@@ -447,31 +447,39 @@ body {
 
 /* Estilo para dropdown de Status em tabelas sem corte de texto */
 .status-select-dropdown {
-  min-width: 155px !important;
+  min-width: 175px !important;
   width: auto !important;
   display: inline-block !important;
-  padding: 6px 12px !important;
+  padding: 8px 32px 8px 14px !important;
   font-size: 12px !important;
   font-weight: 700 !important;
-  border-radius: 6px !important;
-  background-color: rgba(15, 23, 42, 0.9) !important;
-  border: 1px solid rgba(0, 230, 153, 0.4) !important;
+  border-radius: 8px !important;
+  background-color: rgba(15, 23, 42, 0.95) !important;
+  border: 1.5px solid rgba(0, 230, 153, 0.4) !important;
   color: #00E699 !important;
   cursor: pointer !important;
   white-space: nowrap !important;
   outline: none !important;
   box-sizing: border-box !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2300E699'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 10px center !important;
+  background-size: 14px 14px !important;
 }
 
 .status-select-dropdown.status-backlog {
-  border-color: rgba(245, 158, 11, 0.4) !important;
+  border-color: rgba(245, 158, 11, 0.5) !important;
   color: #fbbf24 !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23fbbf24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E") !important;
 }
 
 .status-select-dropdown option {
   background-color: #0f172a !important;
   color: #ffffff !important;
-  padding: 6px !important;
+  padding: 8px 12px !important;
 }
 
 .custom-table tbody tr {
