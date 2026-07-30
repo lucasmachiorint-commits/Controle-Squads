@@ -149,21 +149,11 @@
 
       <!-- TABELA DE SOLICITAÇÕES DA MESA DE TRIAGEM (COM PADDING E BORDAS AMPLAS) -->
       <div class="triage-table-panel">
-        <div class="flex flex-col md:flex-row md:items-center gap-3 mb-4 flex-wrap">
-          <div class="search-box flex-1 min-w-[200px]">
+        <div class="table-header-box mb-4">
+          <div class="search-box w-full">
             <i class="fa-solid fa-magnifying-glass search-icon"></i>
             <input type="text" class="input-field py-2.5 text-xs" id="search-triage" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderTriageView()">
           </div>
-          <select class="input-field py-2.5 px-3 text-xs bg-slate-800 border-slate-700 text-slate-300 rounded cursor-pointer min-w-[160px]" id="filter-triage-status" onchange="app.renderTriageView()">
-            <option value="">Todos os Status</option>
-            <option value="Backlog">Backlog</option>
-            <option value="Aberto">Aberto</option>
-            <option value="Triagem">Triagem</option>
-            <option value="Pendente">Pendente</option>
-          </select>
-          <select class="input-field py-2.5 px-3 text-xs bg-slate-800 border-slate-700 text-slate-300 rounded cursor-pointer min-w-[180px]" id="filter-triage-solicitante" onchange="app.renderTriageView()">
-            <option value="">Todos os Solicitantes</option>
-          </select>
         </div>
 
         <div class="table-responsive">
@@ -260,14 +250,9 @@
           </div>
         </div>
 
-        <div class="flex flex-col md:flex-row md:items-center gap-3 mb-4 flex-wrap">
-          <div class="search-box flex-1 min-w-[200px]">
-            <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            <input type="text" class="input-field py-2.5 text-xs" id="search-board" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderBoardView()">
-          </div>
-          <select class="input-field py-2.5 px-3 text-xs bg-slate-800 border-slate-700 text-slate-300 rounded cursor-pointer min-w-[180px]" id="filter-board-solicitante" onchange="app.renderBoardView()">
-            <option value="">Todos os Solicitantes</option>
-          </select>
+        <div class="search-box w-full mb-4">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" class="input-field py-2.5 text-xs" id="search-board" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderBoardView()">
         </div>
 
         <div class="table-responsive">
@@ -317,14 +302,9 @@
           </div>
         </div>
 
-        <div class="flex flex-col md:flex-row md:items-center gap-3 mb-4 flex-wrap">
-          <div class="search-box flex-1 min-w-[200px]">
-            <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            <input type="text" class="input-field py-2.5 text-xs" id="search-backlog" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderBacklogView()">
-          </div>
-          <select class="input-field py-2.5 px-3 text-xs bg-slate-800 border-slate-700 text-slate-300 rounded cursor-pointer min-w-[180px]" id="filter-backlog-solicitante" onchange="app.renderBacklogView()">
-            <option value="">Todos os Solicitantes</option>
-          </select>
+        <div class="search-box w-full mb-4">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" class="input-field py-2.5 text-xs" id="search-backlog" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderBacklogView()">
         </div>
 
         <div class="table-responsive">
@@ -367,11 +347,9 @@
           <span class="badge badge-medium" id="completed-count-badge">0 entregas</span>
         </div>
 
-        <div class="flex flex-col md:flex-row md:items-center gap-3 mb-4 flex-wrap">
-          <div class="search-box flex-1 min-w-[200px]">
-            <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            <input type="text" class="input-field py-2.5 text-xs" id="search-concluidos" placeholder="Buscar por título, responsável ou código..." onkeyup="app.renderCompletedView()">
-          </div>
+        <div class="search-box w-full mb-4">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" class="input-field py-2.5 text-xs" id="search-concluidos" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderCompletedView()">
         </div>
 
         <div class="table-responsive">

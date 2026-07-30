@@ -335,11 +335,6 @@ const app = {
     if (!tbody) return;
 
     const searchTerm = (document.getElementById('search-triage')?.value || '').toLowerCase();
-    const filterStatus = (document.getElementById('filter-triage-status')?.value || '');
-    const filterSolicitante = (document.getElementById('filter-triage-solicitante')?.value || '');
-
-    // Popula dropdown de solicitantes dinamicamente (valores únicos)
-    this._populateRequesterFilter('filter-triage-solicitante', this.state.triageItems, 'requesterName');
 
     // Contagem real baseada no status exato do Jira
     const pendingItems = this.state.triageItems.filter(i => {
@@ -377,15 +372,12 @@ const app = {
       emptyMessage = 'Nenhum chamado rejeitado ou arquivado nesta lista.';
     }
 
-    // Aplicar filtros combinados (busca textual + status + solicitante)
+    // Filtrar por busca textual (título, GAU ou solicitante)
     const filteredDisplayItems = currentList.filter(i => {
-      const matchSearch = !searchTerm || 
-        i.title.toLowerCase().includes(searchTerm) || 
-        i.jiraKey.toLowerCase().includes(searchTerm) ||
+      return !searchTerm || 
+        (i.title || '').toLowerCase().includes(searchTerm) || 
+        (i.jiraKey || '').toLowerCase().includes(searchTerm) ||
         (i.requesterName || '').toLowerCase().includes(searchTerm);
-      const matchStatus = !filterStatus || (i.status || '').toLowerCase() === filterStatus.toLowerCase();
-      const matchSolicitante = !filterSolicitante || (i.requesterName || '') === filterSolicitante;
-      return matchSearch && matchStatus && matchSolicitante;
     });
 
     if (filteredDisplayItems.length === 0) {
@@ -597,21 +589,7 @@ const app = {
     }
   },
 
-  // Função auxiliar para popular dropdown de solicitantes únicos
-  _populateRequesterFilter(selectId, items, propName = 'requester') {
-    const select = document.getElementById(selectId);
-    if (!select) return;
-
-    const currentVal = select.value;
-    const requesters = Array.from(new Set(
-      items.map(i => (i[propName] || '').trim()).filter(Boolean)
-    )).sort();
-
-    select.innerHTML = '<option value="">Todos os Solicitantes</option>' +
-      requesters.map(r => `<option value="${r}" ${r === currentVal ? 'selected' : ''}>${r}</option>`).join('');
-  },
-
-  // RENDER: Aba "Em Andamento" (Com Filtros de Busca e Solicitante)
+  // RENDER: Aba "Em Andamento"
   renderBoardView() {
     const tbody = document.getElementById('board-table-body');
     if (!tbody) return;
@@ -627,17 +605,12 @@ const app = {
     const inProgressItems = allItems.filter(i => i.status === 'Em Andamento');
 
     const searchTerm = (document.getElementById('search-board')?.value || '').toLowerCase();
-    const filterSolicitante = (document.getElementById('filter-board-solicitante')?.value || '');
-
-    this._populateRequesterFilter('filter-board-solicitante', inProgressItems, 'requester');
 
     const filteredItems = inProgressItems.filter(item => {
-      const matchSearch = !searchTerm ||
-        item.title.toLowerCase().includes(searchTerm) ||
+      return !searchTerm ||
+        (item.title || '').toLowerCase().includes(searchTerm) ||
         (item.gau || item.jiraKey || '').toLowerCase().includes(searchTerm) ||
         (item.requester || '').toLowerCase().includes(searchTerm);
-      const matchSolicitante = !filterSolicitante || (item.requester || '') === filterSolicitante;
-      return matchSearch && matchSolicitante;
     });
 
     if (filteredItems.length === 0) {
@@ -671,7 +644,7 @@ const app = {
     `).join('');
   },
 
-  // RENDER: Aba "Backlog" (Com Filtros de Busca e Solicitante)
+  // RENDER: Aba "Backlog"
   renderBacklogView() {
     const tbody = document.getElementById('backlog-table-body');
     if (!tbody) return;
@@ -694,17 +667,12 @@ const app = {
     backlogItems.sort((a, b) => (a.treatmentOrder || 999) - (b.treatmentOrder || 999));
 
     const searchTerm = (document.getElementById('search-backlog')?.value || '').toLowerCase();
-    const filterSolicitante = (document.getElementById('filter-backlog-solicitante')?.value || '');
-
-    this._populateRequesterFilter('filter-backlog-solicitante', backlogItems, 'requester');
 
     const filteredItems = backlogItems.filter(item => {
-      const matchSearch = !searchTerm ||
-        item.title.toLowerCase().includes(searchTerm) ||
+      return !searchTerm ||
+        (item.title || '').toLowerCase().includes(searchTerm) ||
         (item.gau || item.jiraKey || '').toLowerCase().includes(searchTerm) ||
         (item.requester || '').toLowerCase().includes(searchTerm);
-      const matchSolicitante = !filterSolicitante || (item.requester || '') === filterSolicitante;
-      return matchSearch && matchSolicitante;
     });
 
     if (filteredItems.length === 0) {
