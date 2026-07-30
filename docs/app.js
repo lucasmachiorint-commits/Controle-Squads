@@ -384,13 +384,13 @@ const app = {
     if (filteredDisplayItems.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="8" class="text-center py-8 text-slate-500 font-semibold">${emptyMessage}</td>
+          <td colspan="7" class="text-center py-8 text-slate-500 font-semibold">${emptyMessage}</td>
         </tr>
       `;
       return;
     }
 
-    // Renderizar tabela sem coluna Categoria e com coluna GAU expansiva em linha única
+    // Renderizar tabela sem coluna Prioridade
     tbody.innerHTML = filteredDisplayItems.map((item, idx) => `
       <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
         <td class="font-bold text-slate-400">${idx + 1}</td>
@@ -398,8 +398,7 @@ const app = {
         <td class="font-semibold text-white max-w-md truncate" title="${item.title}">${item.title}</td>
         <td class="text-slate-300">${item.requesterName || 'Solicitante Jira'}</td>
         <td class="text-amber-400 font-medium whitespace-nowrap">${item.createdDate || item.date || 'Data N/D'}</td>
-        <td><span class="badge ${item.priority?.includes('1') ? 'badge-urgent' : 'badge-high'}">${item.priority || '2 - Alta'}</span></td>
-        <td><span class="badge badge-medium">${item.status || 'Aguardando Triagem'}</span></td>
+        <td><span class="badge badge-medium whitespace-nowrap">${item.status || 'Aguardando Triagem'}</span></td>
         <td>
           <button type="button" class="btn btn-secondary text-xs py-1 px-2.5" onclick="event.stopPropagation(); app.openDemandDetailsModal('${item.id}')">
             <i class="fa-solid fa-up-right-and-down-left-from-center text-emerald-400 me-1"></i> Detalhes
@@ -610,7 +609,7 @@ const app = {
     if (inProgressItems.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" class="text-center py-8 text-slate-500 font-semibold">Nenhuma demanda em andamento nesta squad.</td>
+          <td colspan="6" class="text-center py-8 text-slate-500 font-semibold">Nenhuma demanda em andamento nesta squad.</td>
         </tr>
       `;
       return;
@@ -622,9 +621,8 @@ const app = {
         <td class="font-extrabold text-emerald-400 whitespace-nowrap min-w-[120px]">${item.gau || item.jiraKey || 'GAU-000'}</td>
         <td class="font-semibold text-white max-w-md truncate" title="${item.title}">${item.title}</td>
         <td class="text-slate-300">${item.requester || 'Solicitante Jira'}</td>
-        <td><span class="badge ${item.priority?.includes('1') ? 'badge-urgent' : 'badge-high'}">${item.priority || '2 - Alta'}</span></td>
         <td onclick="event.stopPropagation();">
-          <select class="input-field py-1 px-2 text-xs bg-slate-800 border-slate-700 text-emerald-400 font-bold rounded cursor-pointer" onchange="app.changeDemandStatus('${item.id}', this.value)">
+          <select class="input-field py-1 px-2 text-xs bg-slate-800 border-slate-700 text-emerald-400 font-bold rounded cursor-pointer whitespace-nowrap" onchange="app.changeDemandStatus('${item.id}', this.value)">
             <option value="Em Andamento" selected>Em Andamento</option>
             <option value="Backlog">Backlog</option>
             <option value="Concluído">Concluído</option>
@@ -639,7 +637,7 @@ const app = {
     `).join('');
   },
 
-  // RENDER: Aba "Backlog" (Status Editável: ao alterar para Em Andamento, sai da aba Backlog e vai para Em Andamento)
+  // RENDER: Aba "Backlog" (Status Editável + Ordem Editável com Reordenação Sequencial)
   renderBacklogView() {
     const tbody = document.getElementById('backlog-table-body');
     if (!tbody) return;
@@ -649,27 +647,42 @@ const app = {
     if (titleEl) titleEl.textContent = `Backlog - ${squadNames[this.activeSquad]}`;
 
     const allItems = this.state.backlogItems[this.activeSquad] || [];
-    // Filtra para exibir apenas demandas que estão no Backlog (não estão Em Andamento nem Concluídas)
+    // Filtra para exibir apenas demandas que estão no Backlog
     const backlogItems = allItems.filter(i => i.status !== 'Em Andamento' && i.status !== 'Concluído' && i.status !== 'Concluido');
+
+    // Garantir que cada item tenha um treatmentOrder válido
+    backlogItems.forEach((item, idx) => {
+      if (!item.treatmentOrder || item.treatmentOrder <= 0) {
+        item.treatmentOrder = idx + 1;
+      }
+    });
+
+    // Ordenar por treatmentOrder
+    backlogItems.sort((a, b) => (a.treatmentOrder || 999) - (b.treatmentOrder || 999));
 
     if (backlogItems.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" class="text-center py-8 text-slate-500 font-semibold">Nenhuma demanda no backlog desta squad.</td>
+          <td colspan="6" class="text-center py-8 text-slate-500 font-semibold">Nenhuma demanda no backlog desta squad.</td>
         </tr>
       `;
       return;
     }
 
-    tbody.innerHTML = backlogItems.map((item, idx) => `
+    tbody.innerHTML = backlogItems.map((item) => `
       <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
-        <td class="font-bold text-slate-400">${idx + 1}</td>
+        <td onclick="event.stopPropagation();" style="width: 70px;">
+          <input type="number" min="1" max="${backlogItems.length}" value="${item.treatmentOrder}"
+            class="input-field text-center text-xs font-bold py-1 px-1 bg-slate-800 border-slate-700 text-amber-400 rounded w-[50px] cursor-pointer"
+            onchange="app.changeBacklogOrder('${item.id}', parseInt(this.value))"
+            onclick="event.stopPropagation(); this.select();"
+          />
+        </td>
         <td class="font-extrabold text-emerald-400 whitespace-nowrap min-w-[120px]">${item.gau || item.jiraKey || 'GAU-000'}</td>
         <td class="font-semibold text-white max-w-md truncate" title="${item.title}">${item.title}</td>
         <td class="text-slate-300">${item.requester || 'Solicitante Jira'}</td>
-        <td><span class="badge ${item.priority?.includes('1') ? 'badge-urgent' : 'badge-high'}">${item.priority || '2 - Alta'}</span></td>
         <td onclick="event.stopPropagation();">
-          <select class="input-field py-1 px-2 text-xs bg-slate-800 border-slate-700 text-amber-400 font-bold rounded cursor-pointer" onchange="app.changeDemandStatus('${item.id}', this.value)">
+          <select class="input-field py-1 px-2 text-xs bg-slate-800 border-slate-700 text-amber-400 font-bold rounded cursor-pointer whitespace-nowrap" onchange="app.changeDemandStatus('${item.id}', this.value)">
             <option value="Backlog" selected>Backlog</option>
             <option value="Em Andamento">Em Andamento</option>
             <option value="Concluído">Concluído</option>
@@ -682,6 +695,42 @@ const app = {
         </td>
       </tr>
     `).join('');
+  },
+
+  // Alterar a ordem de prioridade no backlog com validação de duplicatas
+  changeBacklogOrder(itemId, newOrder) {
+    const allItems = this.state.backlogItems[this.activeSquad] || [];
+    const backlogItems = allItems.filter(i => i.status !== 'Em Andamento' && i.status !== 'Concluído' && i.status !== 'Concluido');
+    const item = backlogItems.find(i => i.id === itemId);
+    if (!item) return;
+
+    const totalItems = backlogItems.length;
+
+    // Validar limites
+    if (newOrder < 1) newOrder = 1;
+    if (newOrder > totalItems) newOrder = totalItems;
+
+    const oldOrder = item.treatmentOrder;
+    if (oldOrder === newOrder) return;
+
+    // Reordenar: mover outros itens para abrir espaço
+    backlogItems.forEach(bi => {
+      if (bi.id === itemId) return;
+      if (oldOrder < newOrder) {
+        // Movendo para baixo: itens entre old+1 e new sobem 1
+        if (bi.treatmentOrder > oldOrder && bi.treatmentOrder <= newOrder) {
+          bi.treatmentOrder--;
+        }
+      } else {
+        // Movendo para cima: itens entre new e old-1 descem 1
+        if (bi.treatmentOrder >= newOrder && bi.treatmentOrder < oldOrder) {
+          bi.treatmentOrder++;
+        }
+      }
+    });
+
+    item.treatmentOrder = newOrder;
+    this.saveState();
   },
 
   deleteBacklogItem(id) {
