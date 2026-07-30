@@ -164,9 +164,9 @@
         </div>
       </div>
 
-      <!-- LISTA DE DEMANDAS (RESUMIDO COM POP-UP DE DETALHES) -->
-      <div class="flex flex-col gap-4">
-        <div class="flex items-center justify-between">
+      <!-- TABELA DE SOLICITAÇÕES DA MESA DE TRIAGEM (MODELO EXATO DA IMAGEM ENVIADA) -->
+      <div class="glass-panel p-6">
+        <div class="flex items-center justify-between mb-4">
           <h3 class="text-base font-bold text-white">Solicitações na Fila</h3>
           <div class="search-box max-w-xs">
             <i class="fa-solid fa-magnifying-glass search-icon"></i>
@@ -174,8 +174,25 @@
           </div>
         </div>
 
-        <div class="flex flex-col gap-3" id="triage-cards-container">
-          <!-- Dinamicamente gerado via JS -->
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>GAU / Chave</th>
+                <th>Título da Demanda</th>
+                <th>Solicitante</th>
+                <th>Data de Abertura</th>
+                <th>Prioridade</th>
+                <th>Categoria</th>
+                <th>Status</th>
+                <th>Detalhes</th>
+              </tr>
+            </thead>
+            <tbody id="triage-table-body">
+              <!-- Dinamicamente gerado via JS -->
+            </tbody>
+          </table>
         </div>
       </div>
 

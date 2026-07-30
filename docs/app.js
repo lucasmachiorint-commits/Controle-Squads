@@ -320,10 +320,10 @@ const app = {
     this.renderTriageView();
   },
 
-  // RENDER: Mesa de Triagem (Filtro por Quadros do Modelo Exato da Imagem)
+  // RENDER: Mesa de Triagem (Tabela no Modelo Exato da Imagem Enviada)
   renderTriageView() {
-    const container = document.getElementById('triage-cards-container');
-    if (!container) return;
+    const tbody = document.getElementById('triage-table-body');
+    if (!tbody) return;
 
     const searchTerm = (document.getElementById('search-triage')?.value || '').toLowerCase();
 
@@ -373,39 +373,31 @@ const app = {
     });
 
     if (filteredDisplayItems.length === 0) {
-      container.innerHTML = `
-        <div class="glass-panel p-8 text-center text-slate-400">
-          <i class="fa-solid fa-inbox text-3xl mb-2 text-slate-600"></i>
-          <p class="font-semibold text-sm">${emptyMessage}</p>
-          <p class="text-xs text-slate-500 mt-1">Clique no botão "🔄 Sincronizar com Jira" no topo da página para atualizar os chamados.</p>
-        </div>
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="9" class="text-center py-8 text-slate-500 font-semibold">${emptyMessage}</td>
+        </tr>
       `;
       return;
     }
 
-    // Renderizar cards resumidos com Data de Criação e sem linhas vazias abaixo
-    container.innerHTML = filteredDisplayItems.map(item => `
-      <div class="glass-panel p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:border-emerald-500/40 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
-        <div class="flex items-center gap-3 min-w-0 flex-1">
-          <span class="font-extrabold text-xs text-emerald-400 tracking-wider shrink-0 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">${item.jiraKey}</span>
-          <span class="badge ${item.priority?.includes('1') ? 'badge-urgent' : 'badge-high'} shrink-0">${item.priority || '2 - Alta'}</span>
-          <h4 class="text-sm font-bold text-white truncate flex-1">${item.title}</h4>
-        </div>
-
-        <div class="flex items-center gap-4 text-xs text-slate-400 shrink-0">
-          <div class="flex items-center gap-1.5">
-            <i class="fa-solid fa-calendar-day text-amber-400"></i>
-            <span class="text-slate-300 font-medium">${item.createdDate || item.date || 'Data N/D'}</span>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <i class="fa-solid fa-user text-slate-500"></i>
-            <span class="text-slate-300 font-medium">${item.requesterName || 'Solicitante Jira'}</span>
-          </div>
-          <button type="button" class="btn btn-secondary text-xs py-1 px-3" onclick="event.stopPropagation(); app.openDemandDetailsModal('${item.id}')">
+    // Renderizar tabela no formato exato da imagem enviada pelo usuário
+    tbody.innerHTML = filteredDisplayItems.map((item, idx) => `
+      <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
+        <td class="font-bold text-slate-400">${idx + 1}</td>
+        <td class="font-extrabold text-emerald-400">${item.jiraKey}</td>
+        <td class="font-semibold text-white max-w-md truncate" title="${item.title}">${item.title}</td>
+        <td class="text-slate-300">${item.requesterName || 'Solicitante Jira'}</td>
+        <td class="text-amber-400 font-medium whitespace-nowrap">${item.createdDate || item.date || 'Data N/D'}</td>
+        <td><span class="badge ${item.priority?.includes('1') ? 'badge-urgent' : 'badge-high'}">${item.priority || '2 - Alta'}</span></td>
+        <td class="text-slate-400">${item.category || 'Geral'}</td>
+        <td><span class="badge badge-medium">${item.status || 'Aguardando Triagem'}</span></td>
+        <td>
+          <button type="button" class="btn btn-secondary text-xs py-1 px-2.5" onclick="event.stopPropagation(); app.openDemandDetailsModal('${item.id}')">
             <i class="fa-solid fa-up-right-and-down-left-from-center text-emerald-400 me-1"></i> Detalhes
           </button>
-        </div>
-      </div>
+        </td>
+      </tr>
     `).join('');
   },
 
