@@ -243,19 +243,19 @@
       </div>
 
       <div class="triage-table-panel">
-        <div class="panel-header-row" style="display:flex !important; flex-direction:row !important; justify-content:space-between !important; align-items:flex-start !important;">
+        <div class="panel-header-row">
           <div class="panel-header-left">
-            <h2 class="text-xl font-bold text-white" id="board-squad-title">Em Andamento</h2>
-            <p class="text-xs text-slate-400 mt-1" id="board-squad-desc">Acompanhamento e monitoramento de demandas em andamento</p>
+            <h2 style="font-size:20px; font-weight:800; color:#fff; margin:0;" id="board-squad-title">Em Andamento</h2>
+            <p style="font-size:12px; color:#94a3b8; margin:4px 0 0 0;" id="board-squad-desc">Acompanhamento e monitoramento de demandas em andamento</p>
           </div>
-          <button type="button" class="btn btn-secondary text-xs py-2 px-3 btn-export" onclick="app.exportExcel()" style="flex-shrink:0 !important; white-space:nowrap !important;">
-            <i class="fa-solid fa-file-excel text-emerald-400 me-1.5"></i> Exportar Excel
+          <button type="button" class="btn btn-secondary btn-export" onclick="app.exportExcel()">
+            <i class="fa-solid fa-file-excel" style="color:#34d399; margin-right:6px;"></i> Exportar Excel
           </button>
         </div>
 
-        <div class="search-box w-full mb-6">
+        <div class="search-box" style="width:100%; margin-bottom:24px;">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text" class="input-field py-3 text-xs" id="search-board" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderBoardView()">
+          <input type="text" class="input-field" style="padding:12px 14px 12px 44px; font-size:12px;" id="search-board" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderBoardView()">
         </div>
 
         <div class="table-responsive">
@@ -293,19 +293,19 @@
         </button>
       </div>
       <div class="triage-table-panel">
-        <div class="panel-header-row" style="display:flex !important; flex-direction:row !important; justify-content:space-between !important; align-items:flex-start !important;">
+        <div class="panel-header-row">
           <div class="panel-header-left">
-            <h2 class="text-xl font-bold text-white" id="backlog-squad-title">Backlog</h2>
-            <p class="text-xs text-slate-400 mt-1">Listagem de solicitações aguardando início de tratamento na squad</p>
+            <h2 style="font-size:20px; font-weight:800; color:#fff; margin:0;" id="backlog-squad-title">Backlog</h2>
+            <p style="font-size:12px; color:#94a3b8; margin:4px 0 0 0;">Listagem de solicitações aguardando início de tratamento na squad</p>
           </div>
-          <button type="button" class="btn btn-secondary text-xs py-2 px-3 btn-export" onclick="app.exportExcel()" style="flex-shrink:0 !important; white-space:nowrap !important;">
-            <i class="fa-solid fa-file-excel text-emerald-400 me-1.5"></i> Exportar Excel
+          <button type="button" class="btn btn-secondary btn-export" onclick="app.exportExcel()">
+            <i class="fa-solid fa-file-excel" style="color:#34d399; margin-right:6px;"></i> Exportar Excel
           </button>
         </div>
 
-        <div class="search-box w-full mb-6">
+        <div class="search-box" style="width:100%; margin-bottom:24px;">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text" class="input-field py-3 text-xs" id="search-backlog" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderBacklogView()">
+          <input type="text" class="input-field" style="padding:12px 14px 12px 44px; font-size:12px;" id="search-backlog" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderBacklogView()">
         </div>
 
         <div class="table-responsive">
@@ -343,19 +343,19 @@
         </button>
       </div>
       <div class="triage-table-panel">
-        <div class="panel-header-row" style="display:flex !important; flex-direction:row !important; justify-content:space-between !important; align-items:flex-start !important;">
+        <div class="panel-header-row">
           <div class="panel-header-left">
-            <h2 class="text-xl font-bold text-white" id="concluidos-squad-title">Concluídos</h2>
-            <p class="text-xs text-slate-400 mt-1"><span class="badge badge-medium" id="completed-count-badge">0 entregas</span></p>
+            <h2 style="font-size:20px; font-weight:800; color:#fff; margin:0;" id="concluidos-squad-title">Concluídos</h2>
+            <p style="font-size:12px; color:#94a3b8; margin:4px 0 0 0;"><span class="badge badge-medium" id="completed-count-badge">0 entregas</span></p>
           </div>
-          <button type="button" class="btn btn-secondary text-xs py-2 px-3 btn-export" onclick="app.exportExcel()" style="flex-shrink:0 !important; white-space:nowrap !important;">
-            <i class="fa-solid fa-file-excel text-emerald-400 me-1.5"></i> Exportar Excel
+          <button type="button" class="btn btn-secondary btn-export" onclick="app.exportExcel()">
+            <i class="fa-solid fa-file-excel" style="color:#34d399; margin-right:6px;"></i> Exportar Excel
           </button>
         </div>
 
-        <div class="search-box w-full mb-6">
+        <div class="search-box" style="width:100%; margin-bottom:24px;">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text" class="input-field py-3 text-xs" id="search-concluidos" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderCompletedView()">
+          <input type="text" class="input-field" style="padding:12px 14px 12px 44px; font-size:12px;" id="search-concluidos" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderCompletedView()">
         </div>
 
         <div class="table-responsive">

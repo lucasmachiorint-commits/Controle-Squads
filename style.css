@@ -574,6 +574,9 @@ body {
 .panel-header-row .btn-export {
   flex-shrink: 0 !important;
   white-space: nowrap !important;
+  padding: 8px 14px !important;
+  font-size: 12px !important;
+  border-radius: var(--radius-md) !important;
 }
 
 .triage-table-panel .table-header-box {
