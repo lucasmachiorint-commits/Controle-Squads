@@ -751,6 +751,10 @@ const app = {
     const tbody = document.getElementById('completed-table-body');
     if (!tbody) return;
 
+    const squadNames = { dados: 'Squad de Dados', operacoes: 'Squad de Operações', rpa: 'Squad de RPA' };
+    const titleEl = document.getElementById('concluidos-squad-title');
+    if (titleEl) titleEl.textContent = `Concluídos - ${squadNames[this.activeSquad]}`;
+
     const items = this.state.completedTasks[this.activeSquad] || [];
     const searchTerm = (document.getElementById('search-concluidos')?.value || '').toLowerCase();
 
