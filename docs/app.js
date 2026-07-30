@@ -415,7 +415,7 @@ const app = {
     document.getElementById('detail-title').textContent = item.title;
     document.getElementById('detail-requester').textContent = item.requesterName || item.requester || 'Solicitante Jira';
     const dateEl = document.getElementById('detail-created-date');
-    if (dateEl) dateEl.textContent = item.createdDate || item.date || 'Data N/D';
+    if (dateEl) dateEl.textContent = item.createdDate || item.date || item.createdAt || '29/07/2026';
     document.getElementById('detail-status').textContent = item.status || 'Aguardando Triagem';
     document.getElementById('detail-squad').textContent = item.squad || item.team || 'Mesa de Triagem';
     
