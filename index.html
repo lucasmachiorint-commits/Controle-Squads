@@ -23,7 +23,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=1.4.2">
+    <link rel="stylesheet" href="style.css?v=1.5.0">
 </head>
 <body>
 
@@ -586,40 +586,34 @@
       </div>
     </div>
 
-    <!-- CARD 2: Acompanhamento de Desenvolvimento & Linha do Tempo (Exclusivo Squad de Dados) -->
-    <div class="detail-card hidden" id="section-dados-followup" style="border-left: 4px solid #10b981;">
-      <h4 style="font-size: 11px; font-weight: 800; color: #34d399; text-transform: uppercase; letter-spacing: 0.8px; margin: 0 0 12px 0;">
-        <i class="fa-solid fa-code-commit me-1.5"></i> Acompanhamento de Desenvolvimento (Squad de Dados)
+    <!-- CARD 2: Acompanhamento de Desenvolvimento & Linha do Tempo (Diferenciado por Squad) -->
+    <div class="detail-card hidden" id="section-squad-followup" style="border-left: 4px solid #10b981;">
+      <h4 style="font-size: 11px; font-weight: 800; color: #34d399; text-transform: uppercase; letter-spacing: 0.8px; margin: 0 0 12px 0;" id="followup-title">
+        <i class="fa-solid fa-code-commit me-1.5"></i> Acompanhamento de Desenvolvimento
       </h4>
       
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
         <div>
-          <label style="color: #94a3b8; display: block; font-size: 11px; margin-bottom: 4px; font-weight: 700;">Atribuição / Especialidade:</label>
-          <select id="dados-dev-role" style="width: 100%; padding: 6px 10px; font-size: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; border-radius: 8px; outline: none;" onchange="app.saveDadosDevFields()">
-            <option value="Engenheiro de Dados">Engenheiro de Dados</option>
-            <option value="Analista Engenheiro">Analista Engenheiro</option>
-            <option value="Data Analytics">Data Analytics</option>
+          <label style="color: #94a3b8; display: block; font-size: 11px; margin-bottom: 4px; font-weight: 700;" id="followup-label-role">Atribuição / Especialidade:</label>
+          <select id="followup-dev-role" style="width: 100%; padding: 6px 10px; font-size: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; border-radius: 8px; outline: none;" onchange="app.saveSquadDevFields()">
+            <!-- Dinâmico por Squad -->
           </select>
         </div>
 
         <div>
-          <label style="color: #94a3b8; display: block; font-size: 11px; margin-bottom: 4px; font-weight: 700;">Desenvolvedor Responsável:</label>
-          <input type="text" id="dados-dev-name" placeholder="Ex: Lucas Machiori" style="width: 100%; padding: 6px 10px; font-size: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; border-radius: 8px; outline: none;" oninput="app.saveDadosDevFields()" />
+          <label style="color: #94a3b8; display: block; font-size: 11px; margin-bottom: 4px; font-weight: 700;" id="followup-label-name">Desenvolvedor Responsável:</label>
+          <input type="text" id="followup-dev-name" placeholder="Ex: Nome do Responsável" style="width: 100%; padding: 6px 10px; font-size: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; border-radius: 8px; outline: none;" oninput="app.saveSquadDevFields()" />
         </div>
 
         <div>
-          <label style="color: #94a3b8; display: block; font-size: 11px; margin-bottom: 4px; font-weight: 700;">Previsão de Entrega:</label>
-          <input type="date" id="dados-dev-target-date" style="width: 100%; padding: 6px 10px; font-size: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #fbbf24; border-radius: 8px; outline: none;" onchange="app.saveDadosDevFields()" />
+          <label style="color: #94a3b8; display: block; font-size: 11px; margin-bottom: 4px; font-weight: 700;" id="followup-label-target-date">Previsão de Entrega:</label>
+          <input type="date" id="followup-dev-target-date" style="width: 100%; padding: 6px 10px; font-size: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #fbbf24; border-radius: 8px; outline: none;" onchange="app.saveSquadDevFields()" />
         </div>
 
         <div>
-          <label style="color: #94a3b8; display: block; font-size: 11px; margin-bottom: 4px; font-weight: 700;">Evolução / Progresso:</label>
-          <select id="dados-dev-progress" style="width: 100%; padding: 6px 10px; font-size: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #34d399; font-weight: 800; border-radius: 8px; outline: none;" onchange="app.saveDadosDevFields()">
-            <option value="0%">0% - Não Iniciado</option>
-            <option value="25%">25% - Análise / Modelagem</option>
-            <option value="50%">50% - Em Desenvolvimento</option>
-            <option value="75%">75% - Homologação / Testes</option>
-            <option value="100%">100% - Concluído / Deploy</option>
+          <label style="color: #94a3b8; display: block; font-size: 11px; margin-bottom: 4px; font-weight: 700;" id="followup-label-progress">Evolução / Progresso:</label>
+          <select id="followup-dev-progress" style="width: 100%; padding: 6px 10px; font-size: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #34d399; font-weight: 800; border-radius: 8px; outline: none;" onchange="app.saveSquadDevFields()">
+            <!-- Dinâmico por Squad -->
           </select>
         </div>
       </div>
@@ -631,15 +625,15 @@
         </label>
         
         <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
-          <input type="date" id="dados-timeline-date" style="width: 130px; padding: 6px 8px; font-size: 11px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; border-radius: 6px;" />
-          <input type="text" id="dados-timeline-text" placeholder="Digite a nova atualização do card..." style="flex: 1; min-width: 180px; padding: 6px 10px; font-size: 11px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; border-radius: 6px;" onkeydown="if(event.key==='Enter') app.addTimelineEntry();" />
+          <input type="date" id="followup-timeline-date" style="width: 130px; padding: 6px 8px; font-size: 11px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; border-radius: 6px;" />
+          <input type="text" id="followup-timeline-text" placeholder="Digite a nova atualização do card..." style="flex: 1; min-width: 180px; padding: 6px 10px; font-size: 11px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; border-radius: 6px;" onkeydown="if(event.key==='Enter') app.addTimelineEntry();" />
           <button type="button" class="btn btn-primary" style="padding: 6px 12px; font-size: 11px;" onclick="app.addTimelineEntry()">
             <i class="fa-solid fa-plus me-1"></i> Adicionar
           </button>
         </div>
 
         <!-- Lista da Linha do Tempo com Scrollbar Lateral -->
-        <div class="timeline-scroll-container" id="dados-timeline-list">
+        <div class="timeline-scroll-container" id="followup-timeline-list">
           <!-- Dinamicamente gerado via JS -->
         </div>
       </div>
@@ -658,8 +652,8 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=1.4.2"></script>
-<script src="app.js?v=1.4.2"></script>
+<script src="jira-sync.js?v=1.5.0"></script>
+<script src="app.js?v=1.5.0"></script>
 
 </body>
 </html>

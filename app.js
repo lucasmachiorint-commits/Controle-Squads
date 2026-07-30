@@ -510,26 +510,25 @@ const app = {
     const descEl = document.getElementById('detail-description');
     descEl.textContent = item.description || item.notes || item.taskDescription || item.gains || 'Sem descrição fornecida no chamado do Jira.';
 
-    // Exibir/Ocultar e Preencher a Seção de Acompanhamento de Desenvolvimento da Squad de Dados
-    const followupSection = document.getElementById('section-dados-followup');
+    // Identificar a Squad Alvo do Item (dados, operacoes, rpa)
+    let targetSquadKey = this.activeSquad || 'dados';
+    const rawSquadStr = (item.squad || item.team || item.suggestedSquad || item.triagedSquadId || item.completedBy || '').toString().toLowerCase();
+
+    if (rawSquadStr.includes('operac') || rawSquadStr.includes('operaç') || rawSquadStr.includes('16005')) {
+      targetSquadKey = 'operacoes';
+    } else if (rawSquadStr.includes('rpa') || rawSquadStr.includes('16007')) {
+      targetSquadKey = 'rpa';
+    } else if (rawSquadStr.includes('dados') || rawSquadStr.includes('16006')) {
+      targetSquadKey = 'dados';
+    }
+
+    this.activeDemandSquadKey = targetSquadKey;
+
+    // Configurar e Exibir o Card de Acompanhamento Específico para a Squad do Item
+    const followupSection = document.getElementById('section-squad-followup');
     if (followupSection) {
-      if (this.activeSquad === 'dados') {
-        followupSection.classList.remove('hidden');
-        
-        document.getElementById('dados-dev-role').value = item.devRole || 'Engenheiro de Dados';
-        document.getElementById('dados-dev-name').value = item.devName || '';
-        document.getElementById('dados-dev-target-date').value = item.targetDeliveryDate || '';
-        document.getElementById('dados-dev-progress').value = item.devProgress || '0%';
-
-        // Data de hoje padrão para novo registro da timeline
-        const todayISO = new Date().toISOString().split('T')[0];
-        document.getElementById('dados-timeline-date').value = todayISO;
-        document.getElementById('dados-timeline-text').value = '';
-
-        this.renderTimelineList(item);
-      } else {
-        followupSection.classList.add('hidden');
-      }
+      followupSection.classList.remove('hidden');
+      this.configureSquadFollowupUI(targetSquadKey, item);
     }
 
     const modal = document.getElementById('modal-demand-details');
@@ -540,19 +539,127 @@ const app = {
     }
   },
 
-  // Salvar campos de desenvolvimento da Squad de Dados com auto-save no localStorage
-  saveDadosDevFields() {
+  // Configurar a interface do card de acompanhamento para cada Squad específica
+  configureSquadFollowupUI(squadKey, item) {
+    const titleEl = document.getElementById('followup-title');
+    const labelRoleEl = document.getElementById('followup-label-role');
+    const roleSelect = document.getElementById('followup-dev-role');
+    const labelNameEl = document.getElementById('followup-label-name');
+    const nameInput = document.getElementById('followup-dev-name');
+    const labelDateEl = document.getElementById('followup-label-target-date');
+    const dateInput = document.getElementById('followup-dev-target-date');
+    const labelProgressEl = document.getElementById('followup-label-progress');
+    const progressSelect = document.getElementById('followup-dev-progress');
+
+    // Configurações customizadas por Squad
+    if (squadKey === 'operacoes') {
+      if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-gears me-1.5" style="color:#f59e0b;"></i> ACOMPANHAMENTO DE PROCESSOS & OPERAÇÕES (SQUAD DE OPERAÇÕES)`;
+      if (labelRoleEl) labelRoleEl.textContent = 'Papel Operacional / Função:';
+      if (roleSelect) {
+        roleSelect.innerHTML = `
+          <option value="Analista de Operações">Analista de Operações</option>
+          <option value="Analista de Processos">Analista de Processos</option>
+          <option value="Gestor de Operações">Gestor de Operações</option>
+        `;
+      }
+      if (labelNameEl) labelNameEl.textContent = 'Responsável Operacional:';
+      if (nameInput) nameInput.placeholder = 'Ex: Nome do Analista';
+      if (labelDateEl) labelDateEl.textContent = 'Previsão de Conclusão / SLA:';
+      if (labelProgressEl) labelProgressEl.textContent = 'Status do Processo / Evolução:';
+      if (progressSelect) {
+        progressSelect.innerHTML = `
+          <option value="0%">0% - Mapeamento Inicial</option>
+          <option value="25%">25% - Em Análise de Fluxo</option>
+          <option value="50%">50% - Em Execução Operacional</option>
+          <option value="75%">75% - Validação de SLA</option>
+          <option value="100%">100% - Processo Finalizado</option>
+        `;
+      }
+    } else if (squadKey === 'rpa') {
+      if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-robot me-1.5" style="color:#f43f5e;"></i> ACOMPANHAMENTO DE AUTOMAÇÃO & ROBÔS (SQUAD DE RPA)`;
+      if (labelRoleEl) labelRoleEl.textContent = 'Especialidade RPA / Atribuição:';
+      if (roleSelect) {
+        roleSelect.innerHTML = `
+          <option value="Desenvolvedor RPA">Desenvolvedor RPA</option>
+          <option value="Especialista em Automações">Especialista em Automações</option>
+          <option value="Arquiteto RPA">Arquiteto RPA</option>
+        `;
+      }
+      if (labelNameEl) labelNameEl.textContent = 'Desenvolvedor do Robô:';
+      if (nameInput) nameInput.placeholder = 'Ex: Desenvolvedor do Bot';
+      if (labelDateEl) labelDateEl.textContent = 'Previsão de Go-Live / Produção:';
+      if (labelProgressEl) labelProgressEl.textContent = 'Fase da Automação:';
+      if (progressSelect) {
+        progressSelect.innerHTML = `
+          <option value="0%">0% - Mapeamento PDD</option>
+          <option value="25%">25% - Desenvolvimento Bot</option>
+          <option value="50%">50% - Testes de Cenários</option>
+          <option value="75%">75% - Homologação UAT</option>
+          <option value="100%">100% - Go-Live em Produção</option>
+        `;
+      }
+    } else {
+      // Squad de Dados (Padrão)
+      if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-code-commit me-1.5" style="color:#10b981;"></i> ACOMPANHAMENTO DE DESENVOLVIMENTO (SQUAD DE DADOS)`;
+      if (labelRoleEl) labelRoleEl.textContent = 'Atribuição / Especialidade:';
+      if (roleSelect) {
+        roleSelect.innerHTML = `
+          <option value="Engenheiro de Dados">Engenheiro de Dados</option>
+          <option value="Analista Engenheiro">Analista Engenheiro</option>
+          <option value="Data Analytics">Data Analytics</option>
+        `;
+      }
+      if (labelNameEl) labelNameEl.textContent = 'Desenvolvedor Responsável:';
+      if (nameInput) nameInput.placeholder = 'Ex: Lucas Machiori';
+      if (labelDateEl) labelDateEl.textContent = 'Previsão de Entrega:';
+      if (labelProgressEl) labelProgressEl.textContent = 'Evolução / Progresso:';
+      if (progressSelect) {
+        progressSelect.innerHTML = `
+          <option value="0%">0% - Não Iniciado</option>
+          <option value="25%">25% - Análise / Modelagem</option>
+          <option value="50%">50% - Em Desenvolvimento</option>
+          <option value="75%">75% - Homologação / Testes</option>
+          <option value="100%">100% - Concluído / Deploy</option>
+        `;
+      }
+    }
+
+    // Carregar valores salvos do item
+    if (roleSelect) roleSelect.value = item.devRole || roleSelect.options[0]?.value || '';
+    if (nameInput) nameInput.value = item.devName || '';
+    if (dateInput) dateInput.value = item.targetDeliveryDate || '';
+    if (progressSelect) progressSelect.value = item.devProgress || '0%';
+
+    // Data de hoje para nova atualização na timeline
+    const todayISO = new Date().toISOString().split('T')[0];
+    const timelineDateInput = document.getElementById('followup-timeline-date');
+    const timelineTextInput = document.getElementById('followup-timeline-text');
+    if (timelineDateInput) timelineDateInput.value = todayISO;
+    if (timelineTextInput) timelineTextInput.value = '';
+
+    this.renderTimelineList(item);
+  },
+
+  // Salvar campos de acompanhamento da Squad ativa com auto-save no localStorage
+  saveSquadDevFields() {
     if (!this.activeDemandItemId) return;
 
-    const item = (this.state.backlogItems.dados || []).find(i => i.id === this.activeDemandItemId || i.gau === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId) ||
-                 (this.state.completedTasks.dados || []).find(i => i.id === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId);
+    const squadKey = this.activeDemandSquadKey || this.activeSquad;
+    const item = (this.state.backlogItems[squadKey] || []).find(i => i.id === this.activeDemandItemId || i.gau === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId) ||
+                 (this.state.completedTasks[squadKey] || []).find(i => i.id === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId) ||
+                 this.state.triageItems.find(i => i.id === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId);
 
     if (!item) return;
 
-    item.devRole = document.getElementById('dados-dev-role').value;
-    item.devName = document.getElementById('dados-dev-name').value;
-    item.targetDeliveryDate = document.getElementById('dados-dev-target-date').value;
-    item.devProgress = document.getElementById('dados-dev-progress').value;
+    const roleSelect = document.getElementById('followup-dev-role');
+    const nameInput = document.getElementById('followup-dev-name');
+    const dateInput = document.getElementById('followup-dev-target-date');
+    const progressSelect = document.getElementById('followup-dev-progress');
+
+    if (roleSelect) item.devRole = roleSelect.value;
+    if (nameInput) item.devName = nameInput.value;
+    if (dateInput) item.targetDeliveryDate = dateInput.value;
+    if (progressSelect) item.devProgress = progressSelect.value;
 
     this.saveState();
   },
@@ -561,13 +668,15 @@ const app = {
   addTimelineEntry() {
     if (!this.activeDemandItemId) return;
 
-    const item = (this.state.backlogItems.dados || []).find(i => i.id === this.activeDemandItemId || i.gau === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId) ||
-                 (this.state.completedTasks.dados || []).find(i => i.id === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId);
+    const squadKey = this.activeDemandSquadKey || this.activeSquad;
+    const item = (this.state.backlogItems[squadKey] || []).find(i => i.id === this.activeDemandItemId || i.gau === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId) ||
+                 (this.state.completedTasks[squadKey] || []).find(i => i.id === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId) ||
+                 this.state.triageItems.find(i => i.id === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId);
 
     if (!item) return;
 
-    const dateVal = document.getElementById('dados-timeline-date').value;
-    const textVal = document.getElementById('dados-timeline-text').value.trim();
+    const dateVal = document.getElementById('followup-timeline-date')?.value;
+    const textVal = document.getElementById('followup-timeline-text')?.value.trim();
 
     if (!textVal) return;
 
@@ -586,20 +695,21 @@ const app = {
       timestamp: Date.now()
     });
 
-    document.getElementById('dados-timeline-text').value = '';
+    const textInput = document.getElementById('followup-timeline-text');
+    if (textInput) textInput.value = '';
     this.saveState();
     this.renderTimelineList(item);
   },
 
   // Renderizar a lista em formato de Linha do Tempo com Scrollbar
   renderTimelineList(item) {
-    const listEl = document.getElementById('dados-timeline-list');
+    const listEl = document.getElementById('followup-timeline-list');
     if (!listEl) return;
 
     const entries = item.timelineEntries || [];
 
     if (entries.length === 0) {
-      listEl.innerHTML = `<div style="color:#64748b; font-size:11px; font-style:italic; padding:8px 0;">Nenhuma atualização de desenvolvimento registrada ainda nesta demanda.</div>`;
+      listEl.innerHTML = `<div style="color:#64748b; font-size:11px; font-style:italic; padding:8px 0;">Nenhuma atualização registrada ainda nesta demanda.</div>`;
       return;
     }
 
