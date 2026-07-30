@@ -23,7 +23,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=1.1.0">
+    <link rel="stylesheet" href="style.css?v=1.2.0">
 </head>
 <body>
 
@@ -102,7 +102,7 @@
     <!-- VIEW 1: MESA DE TRIAGEM -->
     <div class="view-container active-view" id="view-triagem">
       
-      <!-- BANNER DE STATUS DE SINCRONIZAÇÃO (COM NOVOS TEXTOS CONFORME SOLICITADO) -->
+      <!-- BANNER DE STATUS DE SINCRONIZAÇÃO DA INTEGRAÇÃO JIRA -->
       <div class="triage-banner-panel">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -114,9 +114,26 @@
               Solicitações sincronizadas com o Jira
             </p>
           </div>
-          <div class="text-right shrink-0 mt-2 md:mt-0">
-            <span class="text-xs text-slate-300 font-semibold block bg-white/5 px-3 py-1.5 rounded-lg border border-white/10" id="sync-last-time">Última atualização: Pendente de sincronização</span>
+          <div class="text-left md:text-right shrink-0 mt-2 md:mt-0">
+            <span class="text-xs text-slate-300 font-semibold inline-block bg-white/5 px-3 py-1.5 rounded-lg border border-white/10" id="sync-last-time">Última atualização: Pendente de sincronização</span>
           </div>
+        </div>
+
+        <!-- STATUS DA ÚLTIMA ATUALIZAÇÃO (CARDS CRIADOS, ATUALIZADOS, CONCLUÍDOS E INALTERADOS) -->
+        <div class="mt-4 pt-3 border-t border-white/10 flex flex-wrap items-center gap-2 text-xs" id="sync-status-details-box">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider me-1">Status da Atualização:</span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-bold" title="Cards criados e importados pela primeira vez">
+            <i class="fa-solid fa-circle-plus"></i> <span id="sync-count-new">0</span> Novos Criados
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-400 font-bold" title="Cards que alteraram de status (ex: de aberto para em andamento)">
+            <i class="fa-solid fa-arrows-rotate"></i> <span id="sync-count-updated">0</span> Atualizados
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/15 border border-blue-500/30 text-blue-400 font-bold" title="Cards concluídos (ex: movidos para concluído/done)">
+            <i class="fa-solid fa-circle-check"></i> <span id="sync-count-completed">0</span> Concluídos
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-500/15 border border-slate-500/30 text-slate-400 font-semibold" title="Cards mantidos na mesma fila sem alteração de status">
+            <i class="fa-solid fa-equals"></i> <span id="sync-count-unchanged">0</span> Inalterados
+          </span>
         </div>
       </div>
 
@@ -546,8 +563,8 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=1.1.0"></script>
-<script src="app.js?v=1.1.0"></script>
+<script src="jira-sync.js?v=1.2.0"></script>
+<script src="app.js?v=1.2.0"></script>
 
 </body>
 </html>

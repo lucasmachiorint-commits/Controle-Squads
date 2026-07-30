@@ -41,6 +41,27 @@ const app = {
         timeEl.textContent = `Última atualização: Pendente de sincronização`;
       }
     }
+
+    const savedMetrics = localStorage.getItem('cs_last_sync_metrics');
+    if (savedMetrics) {
+      try {
+        const metrics = JSON.parse(savedMetrics);
+        this.updateSyncMetricsUI(metrics);
+      } catch (e) {}
+    }
+  },
+
+  updateSyncMetricsUI(metrics) {
+    if (!metrics) return;
+    const elNew = document.getElementById('sync-count-new');
+    const elUpdated = document.getElementById('sync-count-updated');
+    const elCompleted = document.getElementById('sync-count-completed');
+    const elUnchanged = document.getElementById('sync-count-unchanged');
+
+    if (elNew) elNew.textContent = metrics.countNew || 0;
+    if (elUpdated) elUpdated.textContent = metrics.countUpdated || 0;
+    if (elCompleted) elCompleted.textContent = metrics.countToCompleted || 0;
+    if (elUnchanged) elUnchanged.textContent = metrics.countUnchanged || 0;
   },
 
   // Alternar Squad Ativa
@@ -267,9 +288,12 @@ const app = {
         localStorage.removeItem(`cs_completed_${id}`);
       });
       localStorage.removeItem('cs_last_sync_time');
+      localStorage.removeItem('cs_last_sync_metrics');
 
       const timeEl = document.getElementById('sync-last-time');
       if (timeEl) timeEl.textContent = 'Última atualização: N/D';
+
+      this.updateSyncMetricsUI({ countNew: 0, countUpdated: 0, countToCompleted: 0, countUnchanged: 0 });
 
       this.saveState();
 
@@ -309,6 +333,26 @@ const app = {
     const timeEl = document.getElementById('sync-last-time');
     if (timeEl) {
       timeEl.textContent = `Última atualização: ${fullSyncDateTime}`;
+    }
+
+    // Salvar e atualizar o Status da Atualização (Métricas detalhadas)
+    const metrics = {
+      countNew: result.countNew || 0,
+      countUpdated: result.countUpdated || 0,
+      countToCompleted: result.countToCompleted || 0,
+      countUnchanged: result.countUnchanged || 0,
+      syncTime: fullSyncDateTime
+    };
+    localStorage.setItem('cs_last_sync_metrics', JSON.stringify(metrics));
+    this.updateSyncMetricsUI(metrics);
+
+    // Toast de notificação com o resumo da atualização
+    const toast = document.getElementById('sync-toast-banner');
+    const toastMsg = document.getElementById('sync-toast-message');
+    if (toast && toastMsg) {
+      toastMsg.textContent = `🔄 Sincronização Jira realizada! ${metrics.countNew} novos criados, ${metrics.countUpdated} atualizados, ${metrics.countToCompleted} concluídos.`;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 6000);
     }
   },
 

@@ -159,6 +159,7 @@ const JiraSyncEngine = {
 
     let countNew = 0;
     let countUpdated = 0;
+    let countToCompleted = 0;
     let countUnchanged = 0;
 
     cards.forEach((card, idx) => {
@@ -239,6 +240,9 @@ const JiraSyncEngine = {
       // CASO A: TICKET NOVO
       if (!existing) {
         countNew++;
+        if (targetQueue.startsWith('completed_')) {
+          countToCompleted++;
+        }
         existingMap.set(jiraKey, { queue: targetQueue });
 
         if (targetQueue === 'triage') {
@@ -292,6 +296,9 @@ const JiraSyncEngine = {
       // CASO B: TICKET EXISTE MAS MUDOU DE FILA
       else if (existing.queue !== targetQueue) {
         countUpdated++;
+        if (targetQueue.startsWith('completed_')) {
+          countToCompleted++;
+        }
 
         // Remover da fila anterior
         const oldLoc = existing.queue;
@@ -369,7 +376,11 @@ const JiraSyncEngine = {
     return {
       success: true,
       time: nowTime,
-      message: `✅ Sincronização Jira concluída às ${nowTime}: ${countNew} novos | ${countUpdated} atualizados | ${countUnchanged} mantidos.`
+      countNew,
+      countUpdated,
+      countToCompleted,
+      countUnchanged,
+      message: `✅ Sincronização Jira concluída às ${nowTime}: ${countNew} novos criados | ${countUpdated} atualizados | ${countToCompleted} concluídos | ${countUnchanged} inalterados.`
     };
   }
 };
