@@ -23,7 +23,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=1.5.0">
+    <link rel="stylesheet" href="style.css?v=1.5.1">
 </head>
 <body>
 
@@ -592,11 +592,11 @@
         <i class="fa-solid fa-code-commit me-1.5"></i> Acompanhamento de Desenvolvimento
       </h4>
       
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
-        <div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;" id="followup-grid-container">
+        <div id="followup-role-container">
           <label style="color: #94a3b8; display: block; font-size: 11px; margin-bottom: 4px; font-weight: 700;" id="followup-label-role">Atribuição / Especialidade:</label>
           <select id="followup-dev-role" style="width: 100%; padding: 6px 10px; font-size: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; border-radius: 8px; outline: none;" onchange="app.saveSquadDevFields()">
-            <!-- Dinâmico por Squad -->
+            <!-- Dinâmico para Squad de Dados -->
           </select>
         </div>
 
@@ -652,8 +652,8 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=1.5.0"></script>
-<script src="app.js?v=1.5.0"></script>
+<script src="jira-sync.js?v=1.5.1"></script>
+<script src="app.js?v=1.5.1"></script>
 
 </body>
 </html>

@@ -542,6 +542,8 @@ const app = {
   // Configurar a interface do card de acompanhamento para cada Squad específica
   configureSquadFollowupUI(squadKey, item) {
     const titleEl = document.getElementById('followup-title');
+    const roleContainer = document.getElementById('followup-role-container');
+    const gridContainer = document.getElementById('followup-grid-container');
     const labelRoleEl = document.getElementById('followup-label-role');
     const roleSelect = document.getElementById('followup-dev-role');
     const labelNameEl = document.getElementById('followup-label-name');
@@ -554,14 +556,9 @@ const app = {
     // Configurações customizadas por Squad
     if (squadKey === 'operacoes') {
       if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-gears me-1.5" style="color:#f59e0b;"></i> ACOMPANHAMENTO DE PROCESSOS & OPERAÇÕES (SQUAD DE OPERAÇÕES)`;
-      if (labelRoleEl) labelRoleEl.textContent = 'Papel Operacional / Função:';
-      if (roleSelect) {
-        roleSelect.innerHTML = `
-          <option value="Analista de Operações">Analista de Operações</option>
-          <option value="Analista de Processos">Analista de Processos</option>
-          <option value="Gestor de Operações">Gestor de Operações</option>
-        `;
-      }
+      if (roleContainer) roleContainer.classList.add('hidden');
+      if (gridContainer) gridContainer.style.gridTemplateColumns = 'repeat(3, 1fr)';
+
       if (labelNameEl) labelNameEl.textContent = 'Responsável Operacional:';
       if (nameInput) nameInput.placeholder = 'Ex: Nome do Analista';
       if (labelDateEl) labelDateEl.textContent = 'Previsão de Conclusão / SLA:';
@@ -577,14 +574,9 @@ const app = {
       }
     } else if (squadKey === 'rpa') {
       if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-robot me-1.5" style="color:#f43f5e;"></i> ACOMPANHAMENTO DE AUTOMAÇÃO & ROBÔS (SQUAD DE RPA)`;
-      if (labelRoleEl) labelRoleEl.textContent = 'Especialidade RPA / Atribuição:';
-      if (roleSelect) {
-        roleSelect.innerHTML = `
-          <option value="Desenvolvedor RPA">Desenvolvedor RPA</option>
-          <option value="Especialista em Automações">Especialista em Automações</option>
-          <option value="Arquiteto RPA">Arquiteto RPA</option>
-        `;
-      }
+      if (roleContainer) roleContainer.classList.add('hidden');
+      if (gridContainer) gridContainer.style.gridTemplateColumns = 'repeat(3, 1fr)';
+
       if (labelNameEl) labelNameEl.textContent = 'Desenvolvedor do Robô:';
       if (nameInput) nameInput.placeholder = 'Ex: Desenvolvedor do Bot';
       if (labelDateEl) labelDateEl.textContent = 'Previsão de Go-Live / Produção:';
@@ -599,8 +591,11 @@ const app = {
         `;
       }
     } else {
-      // Squad de Dados (Padrão)
+      // Squad de Dados (Única com Atribuição / Especialidade)
       if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-code-commit me-1.5" style="color:#10b981;"></i> ACOMPANHAMENTO DE DESENVOLVIMENTO (SQUAD DE DADOS)`;
+      if (roleContainer) roleContainer.classList.remove('hidden');
+      if (gridContainer) gridContainer.style.gridTemplateColumns = '1fr 1fr';
+
       if (labelRoleEl) labelRoleEl.textContent = 'Atribuição / Especialidade:';
       if (roleSelect) {
         roleSelect.innerHTML = `
