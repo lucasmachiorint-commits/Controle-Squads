@@ -224,30 +224,47 @@
       </div>
     </div>
 
-    <!-- VIEW 3: QUADRO DA SQUAD -->
+    <!-- VIEW 3: DEMANDAS EM ANDAMENTO (ANTIGO QUADRO DA SQUAD) -->
     <div class="view-container" id="view-board">
       <!-- SUB-NAVEGAÇÃO DA SQUAD -->
       <div class="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
         <button class="btn btn-primary text-xs py-1.5 px-3" onclick="app.navigate('board')">
-          <i class="fa-solid fa-users-gear"></i> Quadro da Squad
+          <i class="fa-solid fa-spinner text-emerald-400 me-1"></i> Em Andamento
         </button>
         <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('backlog')">
-          <i class="fa-solid fa-list-check"></i> Backlog de Demandas
+          <i class="fa-solid fa-list-check me-1"></i> Backlog
         </button>
         <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('concluidos')">
-          <i class="fa-solid fa-circle-check"></i> Entregas Concluídas
+          <i class="fa-solid fa-circle-check me-1"></i> Concluídos
         </button>
       </div>
 
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <h2 class="text-xl font-bold text-white" id="board-squad-title">Quadro da Squad</h2>
-          <p class="text-xs text-slate-400" id="board-squad-desc">Acompanhamento e monitoramento consultivo de demandas</p>
+      <div class="triage-table-panel">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 class="text-xl font-bold text-white" id="board-squad-title">Em Andamento</h2>
+            <p class="text-xs text-slate-400" id="board-squad-desc">Acompanhamento e monitoramento de demandas em andamento</p>
+          </div>
         </div>
-      </div>
 
-      <div class="grid-cards" id="board-members-container">
-        <!-- Dinamicamente gerado via JS -->
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th class="whitespace-nowrap min-w-[120px]">GAU / Chave</th>
+                <th>Título da Demanda</th>
+                <th>Solicitante</th>
+                <th>Prioridade</th>
+                <th>Status</th>
+                <th>Detalhes</th>
+              </tr>
+            </thead>
+            <tbody id="board-table-body">
+              <!-- Dinamicamente gerado via JS -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -256,20 +273,20 @@
       <!-- SUB-NAVEGAÇÃO DA SQUAD -->
       <div class="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
         <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('board')">
-          <i class="fa-solid fa-users-gear"></i> Quadro da Squad
+          <i class="fa-solid fa-spinner text-emerald-400 me-1"></i> Em Andamento
         </button>
         <button class="btn btn-primary text-xs py-1.5 px-3" onclick="app.navigate('backlog')">
-          <i class="fa-solid fa-list-check"></i> Backlog de Demandas
+          <i class="fa-solid fa-list-check me-1"></i> Backlog
         </button>
         <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('concluidos')">
-          <i class="fa-solid fa-circle-check"></i> Entregas Concluídas
+          <i class="fa-solid fa-circle-check me-1"></i> Concluídos
         </button>
       </div>
-      <div class="glass-panel p-6 mb-6">
+      <div class="triage-table-panel">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
           <div>
-            <h2 class="text-xl font-bold text-white">Backlog da Squad</h2>
-            <p class="text-xs text-slate-400">Listagem consultiva de demandas e ordem de tratamento no Jira</p>
+            <h2 class="text-xl font-bold text-white" id="backlog-squad-title">Backlog</h2>
+            <p class="text-xs text-slate-400">Listagem de solicitações aguardando início de tratamento na squad</p>
           </div>
           <div class="flex items-center gap-2">
             <button class="btn btn-secondary" onclick="app.exportExcel()">
@@ -282,13 +299,13 @@
           <table class="custom-table">
             <thead>
               <tr>
-                <th>Ordem</th>
-                <th>GAU / Chave</th>
+                <th>#</th>
+                <th class="whitespace-nowrap min-w-[120px]">GAU / Chave</th>
                 <th>Título da Demanda</th>
                 <th>Solicitante</th>
                 <th>Prioridade</th>
-                <th>Categoria</th>
                 <th>Status</th>
+                <th>Detalhes</th>
               </tr>
             </thead>
             <tbody id="backlog-table-body">
@@ -299,23 +316,23 @@
       </div>
     </div>
 
-    <!-- VIEW 5: ENTREGAS CONCLUÍDAS -->
+    <!-- VIEW 5: CONCLUÍDOS -->
     <div class="view-container" id="view-concluidos">
       <!-- SUB-NAVEGAÇÃO DA SQUAD -->
       <div class="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
         <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('board')">
-          <i class="fa-solid fa-users-gear"></i> Quadro da Squad
+          <i class="fa-solid fa-spinner text-emerald-400 me-1"></i> Em Andamento
         </button>
         <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('backlog')">
-          <i class="fa-solid fa-list-check"></i> Backlog de Demandas
+          <i class="fa-solid fa-list-check me-1"></i> Backlog
         </button>
         <button class="btn btn-primary text-xs py-1.5 px-3" onclick="app.navigate('concluidos')">
-          <i class="fa-solid fa-circle-check"></i> Entregas Concluídas
+          <i class="fa-solid fa-circle-check me-1"></i> Concluídos
         </button>
       </div>
-      <div class="glass-panel p-6">
+      <div class="triage-table-panel">
         <div class="flex items-center justify-between mb-6">
-          <h2 class="text-xl font-bold text-white">Histórico de Entregas Concluídas</h2>
+          <h2 class="text-xl font-bold text-white" id="concluidos-squad-title">Concluídos</h2>
           <span class="badge badge-medium" id="completed-count-badge">0 entregas</span>
         </div>
 

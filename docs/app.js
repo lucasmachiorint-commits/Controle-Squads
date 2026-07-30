@@ -90,11 +90,11 @@ const app = {
     // Atualizar título da página
     const squadNames = { dados: 'Squad de Dados', operacoes: 'Squad de Operações', rpa: 'Squad de RPA' };
     const titleMap = {
-      triagem: 'Mesa de Triagem & Governança Jira',
+      triagem: 'Mesa de Triagem',
       dashboard: 'Dashboard Consolidado 3 Squads',
-      board: `Quadro de Membros - ${squadNames[this.activeSquad]}`,
-      backlog: `Backlog de Demandas - ${squadNames[this.activeSquad]}`,
-      concluidos: `Entregas Concluídas - ${squadNames[this.activeSquad]}`,
+      board: `Em Andamento - ${squadNames[this.activeSquad]}`,
+      backlog: `Backlog - ${squadNames[this.activeSquad]}`,
+      concluidos: `Concluídos - ${squadNames[this.activeSquad]}`,
       'dpo-sync': 'Modo Reunião DPO',
       'dpo-logs': 'Histórico de Alinhamentos DPO'
     };
@@ -439,7 +439,7 @@ const app = {
     }
   },
 
-  // Ação: Encaminhar card da Triagem para Squad (com Sincronização Bidirecional no Jira Cloud)
+  // Ação: Encaminhar card da Triagem para Squad (Demanda entra naturalmente como Backlog)
   async triageToSquad(triageId, targetSquadId) {
     const itemIdx = this.state.triageItems.findIndex(i => i.id === triageId);
     if (itemIdx === -1) return;
@@ -448,19 +448,24 @@ const app = {
     item.status = 'Triado';
     item.triagedSquadId = targetSquadId;
 
-    // Inserir no backlog da Squad
+    // Inserir no backlog da Squad com status 'Backlog' por padrão
     const squadNames = { dados: 'Squad de Dados', operacoes: 'Squad de Operações', rpa: 'Squad de RPA' };
+    if (!this.state.backlogItems[targetSquadId]) {
+      this.state.backlogItems[targetSquadId] = [];
+    }
+
     this.state.backlogItems[targetSquadId].unshift({
       id: `backlog-${item.jiraKey}`,
       gau: item.jiraKey,
+      jiraKey: item.jiraKey,
       title: item.title,
       notes: item.description,
-      requester: item.requesterName,
+      requester: item.requesterName || 'Solicitante Jira',
+      createdDate: item.createdDate || item.date,
       team: squadNames[targetSquadId],
       priority: item.priority || '2 - Alta',
-      category: item.category || 'Geral',
       treatmentOrder: 1,
-      status: 'Em Andamento',
+      status: 'Backlog',
       progress: 0
     });
 
@@ -487,6 +492,37 @@ const app = {
         console.warn('Backend local não acessível para sincronizar com Jira Cloud em tempo real.', e);
       }
     }
+  },
+
+  // Ação: Alterar status da demanda (Backlog <-> Em Andamento <-> Concluído)
+  changeDemandStatus(itemId, newStatus) {
+    const squadItems = this.state.backlogItems[this.activeSquad] || [];
+    const item = squadItems.find(i => i.id === itemId || i.gau === itemId || i.jiraKey === itemId);
+    if (!item) return;
+
+    item.status = newStatus;
+
+    // Se alterado para Concluído, registra no histórico de entregas se não existir
+    if (newStatus === 'Concluído' || newStatus === 'Concluido') {
+      if (!this.state.completedTasks[this.activeSquad]) {
+        this.state.completedTasks[this.activeSquad] = [];
+      }
+      const alreadyCompleted = this.state.completedTasks[this.activeSquad].some(c => c.id === item.id);
+      if (!alreadyCompleted) {
+        this.state.completedTasks[this.activeSquad].unshift({
+          id: item.id,
+          taskTitle: item.title,
+          completedBy: item.requester || 'Analista Squad',
+          completionDate: new Date().toLocaleDateString('pt-BR'),
+          gains: 'Demanda concluída via alteração de status no painel'
+        });
+      }
+    }
+
+    this.saveState();
+    this.renderBoardView();
+    this.renderBacklogView();
+    this.renderCompletedView();
   },
 
   // Ação: Rejeitar solicitação na Triagem
@@ -544,159 +580,94 @@ const app = {
     }
   },
 
-  // RENDER: Quadro da Squad (Desenvolvedores Estabelecidos em Dados, Controle Por Demanda em Operações e RPA)
+  // RENDER: Aba "Em Andamento" (Mesmo Layout de Tabela da Aba Backlog para TODAS as Squads)
   renderBoardView() {
-    const container = document.getElementById('board-members-container');
-    if (!container) return;
+    const tbody = document.getElementById('board-table-body');
+    if (!tbody) return;
 
     const squadNames = { dados: 'Squad de Dados', operacoes: 'Squad de Operações', rpa: 'Squad de RPA' };
     const titleEl = document.getElementById('board-squad-title');
     const descEl = document.getElementById('board-squad-desc');
-    const actionBtn = document.getElementById('board-action-btn');
 
-    if (this.activeSquad === 'dados') {
-      if (titleEl) titleEl.textContent = 'Quadro de Desenvolvedores Estabelecidos - Squad de Dados';
-      if (descEl) descEl.textContent = 'Recursos estabelecidos, alocação de capacidade (Ops vs Fin) e acompanhamento de tarefas ativas';
-      if (actionBtn) {
-        actionBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i> Novo Desenvolvedor';
-        actionBtn.onclick = () => this.openMemberModal();
-      }
+    if (titleEl) titleEl.textContent = `Em Andamento - ${squadNames[this.activeSquad]}`;
+    if (descEl) descEl.textContent = `Acompanhamento de solicitações em andamento na ${squadNames[this.activeSquad]}`;
 
-      const members = this.state.resources.dados || [];
-      if (members.length === 0) {
-        container.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400"><p>Nenhum desenvolvedor cadastrado nesta Squad.</p></div>`;
-        return;
-      }
+    const allItems = this.state.backlogItems[this.activeSquad] || [];
+    const inProgressItems = allItems.filter(i => i.status === 'Em Andamento');
 
-      container.innerHTML = members.map(m => `
-        <div class="glass-panel p-5">
-          <div class="flex items-center justify-between mb-3">
-            <div>
-              <h4 class="font-bold text-white text-base">${m.name}</h4>
-              <span class="text-xs text-slate-400">${m.role}</span>
-            </div>
-            <span class="badge ${m.status === 'Ativo' ? 'badge-medium' : 'badge-low'}">${m.status || 'Ativo'}</span>
-          </div>
-
-          <div class="mb-4">
-            <div class="flex justify-between text-xs text-slate-400 mb-1">
-              <span>Ops: ${m.allocationOps || 50}%</span>
-              <span>Fin: ${m.allocationFin || 50}%</span>
-            </div>
-            <div class="w-full bg-slate-700 h-1.5 rounded-full overflow-hidden flex">
-              <div class="bg-emerald-500 h-full" style="width: ${m.allocationOps || 50}%"></div>
-              <div class="bg-blue-500 h-full" style="width: ${m.allocationFin || 50}%"></div>
-            </div>
-          </div>
-
-          <!-- TAREFA ATIVA -->
-          <div class="p-3 rounded-lg bg-white/5 border border-white/10 mb-3">
-            <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block mb-1">Demanda Ativa:</span>
-            ${m.currentTask ? `
-              <div class="font-semibold text-xs text-white mb-2">${m.currentTask.title}</div>
-              <div class="flex items-center justify-between text-[11px] text-slate-400">
-                <span>Prazo: ${m.currentTask.dueDate}</span>
-                <span class="text-emerald-400 font-bold">${m.currentTask.status}</span>
-              </div>
-            ` : '<span class="text-xs text-slate-500 italic">Nenhuma demanda atribuída</span>'}
-          </div>
-
-          <!-- PRÓXIMA TAREFA -->
-          ${m.nextTask ? `
-            <div class="p-3 rounded-lg bg-white/5 border border-white/10">
-              <div class="flex items-center justify-between mb-1">
-                <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Próxima Fila:</span>
-                <span class="badge badge-low text-[10px]">Aguardando</span>
-              </div>
-              <div class="font-semibold text-xs text-slate-300">${m.nextTask.title}</div>
-            </div>
-          ` : ''}
-        </div>
-      `).join('');
-    } else {
-      // CONTROLE POR DEMANDA (Squad de Operações & Squad de RPA)
-      const squadLabel = squadNames[this.activeSquad];
-      if (titleEl) titleEl.textContent = `Monitor de Demandas - ${squadLabel}`;
-      if (descEl) descEl.textContent = 'Acompanhamento consultivo de demandas ativas, prazos, prioridades e avanço no Jira';
-
-      const demands = this.state.backlogItems[this.activeSquad] || [];
-      if (demands.length === 0) {
-        container.innerHTML = `
-          <div class="col-span-full text-center py-12 text-slate-400">
-            <i class="fa-solid fa-clipboard-list text-4xl mb-3 text-slate-600"></i>
-            <p class="font-semibold text-sm">Nenhuma demanda em acompanhamento nesta Squad.</p>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = demands.map(d => `
-        <div class="glass-panel p-5 flex flex-col justify-between" style="border-left: 4px solid ${this.activeSquad === 'operacoes' ? 'var(--color-operacoes)' : 'var(--color-rpa)'};">
-          <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="font-extrabold text-xs text-emerald-400 tracking-wider">${d.gau || d.jiraKey || 'GAU-000'}</span>
-              <span class="badge ${d.priority?.includes('1') ? 'badge-urgent' : d.priority?.includes('2') ? 'badge-high' : 'badge-medium'}">${d.priority || '2 - Alta'}</span>
-            </div>
-            <h4 class="text-base font-bold text-white mb-2 leading-snug">${d.title}</h4>
-            <p class="text-xs text-slate-400 mb-4 line-clamp-2">${d.notes || 'Sem observações'}</p>
-
-            <div class="space-y-2 mb-4 text-xs text-slate-300">
-              <div class="flex items-center justify-between">
-                <span class="text-slate-400">Solicitante:</span>
-                <span class="font-semibold text-white">${d.requester || 'Solicitante Jira'}</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-slate-400">Prazo Estimado:</span>
-                <span class="font-semibold text-amber-400">${d.dueDate || 'A definir'}</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-slate-400">Status Atual:</span>
-                <span class="badge badge-medium">${d.status || 'Em Andamento'}</span>
-              </div>
-            </div>
-
-            <!-- BARRA DE PROGRESSO DA DEMANDA -->
-            <div class="mb-4">
-              <div class="flex justify-between text-xs text-slate-400 mb-1">
-                <span>Progresso no Jira</span>
-                <span class="font-bold text-emerald-400">${d.progress || 50}%</span>
-              </div>
-              <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden">
-                <div class="bg-emerald-500 h-full" style="width: ${d.progress || 50}%"></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="pt-3 border-t border-white/10 flex items-center justify-between text-xs">
-            <span class="text-slate-400"><i class="fa-solid fa-chart-line text-emerald-400 me-1"></i> Acompanhamento Jira</span>
-            <span class="badge badge-medium">${d.status || 'Em Andamento'}</span>
-          </div>
-        </div>
-      `).join('');
+    if (inProgressItems.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="text-center py-8 text-slate-500 font-semibold">Nenhuma demanda em andamento nesta squad.</td>
+        </tr>
+      `;
+      return;
     }
+
+    tbody.innerHTML = inProgressItems.map((item, idx) => `
+      <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
+        <td class="font-bold text-slate-400">${idx + 1}</td>
+        <td class="font-extrabold text-emerald-400 whitespace-nowrap min-w-[120px]">${item.gau || item.jiraKey || 'GAU-000'}</td>
+        <td class="font-semibold text-white max-w-md truncate" title="${item.title}">${item.title}</td>
+        <td class="text-slate-300">${item.requester || 'Solicitante Jira'}</td>
+        <td><span class="badge ${item.priority?.includes('1') ? 'badge-urgent' : 'badge-high'}">${item.priority || '2 - Alta'}</span></td>
+        <td onclick="event.stopPropagation();">
+          <select class="input-field py-1 px-2 text-xs bg-slate-800 border-slate-700 text-emerald-400 font-bold rounded cursor-pointer" onchange="app.changeDemandStatus('${item.id}', this.value)">
+            <option value="Em Andamento" selected>Em Andamento</option>
+            <option value="Backlog">Backlog</option>
+            <option value="Concluído">Concluído</option>
+          </select>
+        </td>
+        <td>
+          <button type="button" class="btn btn-secondary text-xs py-1 px-2.5" onclick="event.stopPropagation(); app.openDemandDetailsModal('${item.id}')">
+            <i class="fa-solid fa-up-right-and-down-left-from-center text-emerald-400 me-1"></i> Detalhes
+          </button>
+        </td>
+      </tr>
+    `).join('');
   },
 
-  // RENDER: Backlog View (Consultivo)
+  // RENDER: Aba "Backlog" (Status Editável: ao alterar para Em Andamento, sai da aba Backlog e vai para Em Andamento)
   renderBacklogView() {
     const tbody = document.getElementById('backlog-table-body');
     if (!tbody) return;
 
-    const items = this.state.backlogItems[this.activeSquad] || [];
+    const squadNames = { dados: 'Squad de Dados', operacoes: 'Squad de Operações', rpa: 'Squad de RPA' };
+    const titleEl = document.getElementById('backlog-squad-title');
+    if (titleEl) titleEl.textContent = `Backlog - ${squadNames[this.activeSquad]}`;
 
-    if (items.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-500">Nenhuma demanda no backlog desta squad.</td></tr>`;
+    const allItems = this.state.backlogItems[this.activeSquad] || [];
+    // Filtra para exibir apenas demandas que estão no Backlog (não estão Em Andamento nem Concluídas)
+    const backlogItems = allItems.filter(i => i.status !== 'Em Andamento' && i.status !== 'Concluído' && i.status !== 'Concluido');
+
+    if (backlogItems.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="text-center py-8 text-slate-500 font-semibold">Nenhuma demanda no backlog desta squad.</td>
+        </tr>
+      `;
       return;
     }
 
-    tbody.innerHTML = items.map((item, idx) => `
-      <tr>
-        <td class="font-bold text-slate-400">${item.treatmentOrder || idx + 1}</td>
-        <td class="font-extrabold text-emerald-400">${item.gau || item.jiraKey || 'GAU-000'}</td>
-        <td class="font-semibold text-white">${item.title}</td>
-        <td class="text-slate-300">${item.requester}</td>
-        <td><span class="badge badge-high">${item.priority}</span></td>
-        <td class="text-slate-400">${item.category}</td>
-        <td><span class="badge badge-medium">${item.status}</span></td>
+    tbody.innerHTML = backlogItems.map((item, idx) => `
+      <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
+        <td class="font-bold text-slate-400">${idx + 1}</td>
+        <td class="font-extrabold text-emerald-400 whitespace-nowrap min-w-[120px]">${item.gau || item.jiraKey || 'GAU-000'}</td>
+        <td class="font-semibold text-white max-w-md truncate" title="${item.title}">${item.title}</td>
+        <td class="text-slate-300">${item.requester || 'Solicitante Jira'}</td>
+        <td><span class="badge ${item.priority?.includes('1') ? 'badge-urgent' : 'badge-high'}">${item.priority || '2 - Alta'}</span></td>
+        <td onclick="event.stopPropagation();">
+          <select class="input-field py-1 px-2 text-xs bg-slate-800 border-slate-700 text-amber-400 font-bold rounded cursor-pointer" onchange="app.changeDemandStatus('${item.id}', this.value)">
+            <option value="Backlog" selected>Backlog</option>
+            <option value="Em Andamento">Em Andamento</option>
+            <option value="Concluído">Concluído</option>
+          </select>
+        </td>
+        <td>
+          <button type="button" class="btn btn-secondary text-xs py-1 px-2.5" onclick="event.stopPropagation(); app.openDemandDetailsModal('${item.id}')">
+            <i class="fa-solid fa-up-right-and-down-left-from-center text-emerald-400 me-1"></i> Detalhes
+          </button>
+        </td>
       </tr>
     `).join('');
   },
