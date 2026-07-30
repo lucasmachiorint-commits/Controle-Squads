@@ -505,24 +505,48 @@ const app = {
     }
     
     document.getElementById('detail-status').textContent = item.status || (item.completionDate ? 'Concluído' : 'Aguardando Triagem');
-    document.getElementById('detail-squad').textContent = item.squad || item.team || item.completedBy || 'Squad de Dados';
     
     const descEl = document.getElementById('detail-description');
     descEl.textContent = item.description || item.notes || item.taskDescription || item.gains || 'Sem descrição fornecida no chamado do Jira.';
 
-    // Identificar a Squad Alvo do Item (dados, operacoes, rpa)
-    let targetSquadKey = this.activeSquad || 'dados';
-    const rawSquadStr = (item.squad || item.team || item.suggestedSquad || item.triagedSquadId || item.completedBy || '').toString().toLowerCase();
+    // Identificar com precisão a Squad Alvo do Item (dados, operacoes, rpa)
+    let targetSquadKey = 'dados';
+    
+    const isOperacoes = (this.state.backlogItems.operacoes || []).some(i => i.id === item.id || i.jiraKey === item.id || i.gau === item.id) ||
+                        (this.state.completedTasks.operacoes || []).some(i => i.id === item.id || i.jiraKey === item.id);
+    const isRpa = (this.state.backlogItems.rpa || []).some(i => i.id === item.id || i.jiraKey === item.id || i.gau === item.id) ||
+                  (this.state.completedTasks.rpa || []).some(i => i.id === item.id || i.jiraKey === item.id);
+    const isDados = (this.state.backlogItems.dados || []).some(i => i.id === item.id || i.jiraKey === item.id || i.gau === item.id) ||
+                    (this.state.completedTasks.dados || []).some(i => i.id === item.id || i.jiraKey === item.id);
 
-    if (rawSquadStr.includes('operac') || rawSquadStr.includes('operaç') || rawSquadStr.includes('16005')) {
+    if (isOperacoes) {
       targetSquadKey = 'operacoes';
-    } else if (rawSquadStr.includes('rpa') || rawSquadStr.includes('16007')) {
+    } else if (isRpa) {
       targetSquadKey = 'rpa';
-    } else if (rawSquadStr.includes('dados') || rawSquadStr.includes('16006')) {
+    } else if (isDados) {
       targetSquadKey = 'dados';
+    } else if (this.activeSquad) {
+      targetSquadKey = this.activeSquad;
+    } else {
+      const rawSquadStr = (item.squad || item.team || item.suggestedSquad || item.triagedSquadId || item.completedBy || '').toString().toLowerCase();
+      if (rawSquadStr.includes('operac') || rawSquadStr.includes('operaç') || rawSquadStr.includes('16005')) {
+        targetSquadKey = 'operacoes';
+      } else if (rawSquadStr.includes('rpa') || rawSquadStr.includes('16007')) {
+        targetSquadKey = 'rpa';
+      } else {
+        targetSquadKey = 'dados';
+      }
     }
 
     this.activeDemandSquadKey = targetSquadKey;
+
+    const squadNames = { dados: 'Squad de Operações', operacoes: 'Squad de Operações', rpa: 'Squad de RPA' };
+    squadNames.dados = 'Squad de Dados';
+    
+    const detailSquadEl = document.getElementById('detail-squad');
+    if (detailSquadEl) {
+      detailSquadEl.textContent = squadNames[targetSquadKey] || 'Mesa de Triagem';
+    }
 
     // Configurar e Exibir o Card de Acompanhamento Específico para a Squad do Item
     const followupSection = document.getElementById('section-squad-followup');
