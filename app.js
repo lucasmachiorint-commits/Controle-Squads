@@ -372,22 +372,21 @@ const app = {
     if (filteredDisplayItems.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="9" class="text-center py-8 text-slate-500 font-semibold">${emptyMessage}</td>
+          <td colspan="8" class="text-center py-8 text-slate-500 font-semibold">${emptyMessage}</td>
         </tr>
       `;
       return;
     }
 
-    // Renderizar tabela no formato exato da imagem enviada pelo usuário
+    // Renderizar tabela sem coluna Categoria e com coluna GAU expansiva em linha única
     tbody.innerHTML = filteredDisplayItems.map((item, idx) => `
       <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
         <td class="font-bold text-slate-400">${idx + 1}</td>
-        <td class="font-extrabold text-emerald-400">${item.jiraKey}</td>
+        <td class="font-extrabold text-emerald-400 whitespace-nowrap min-w-[120px]">${item.jiraKey}</td>
         <td class="font-semibold text-white max-w-md truncate" title="${item.title}">${item.title}</td>
         <td class="text-slate-300">${item.requesterName || 'Solicitante Jira'}</td>
         <td class="text-amber-400 font-medium whitespace-nowrap">${item.createdDate || item.date || 'Data N/D'}</td>
         <td><span class="badge ${item.priority?.includes('1') ? 'badge-urgent' : 'badge-high'}">${item.priority || '2 - Alta'}</span></td>
-        <td class="text-slate-400">${item.category || 'Geral'}</td>
         <td><span class="badge badge-medium">${item.status || 'Aguardando Triagem'}</span></td>
         <td>
           <button type="button" class="btn btn-secondary text-xs py-1 px-2.5" onclick="event.stopPropagation(); app.openDemandDetailsModal('${item.id}')">
