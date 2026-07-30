@@ -149,10 +149,10 @@
 
       <!-- TABELA DE SOLICITAÇÕES DA MESA DE TRIAGEM (COM PADDING E BORDAS AMPLAS) -->
       <div class="triage-table-panel">
-        <div class="table-header-box mb-4">
+        <div class="table-header-box mb-6">
           <div class="search-box w-full">
             <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            <input type="text" class="input-field py-2.5 text-xs" id="search-triage" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderTriageView()">
+            <input type="text" class="input-field py-3 text-xs" id="search-triage" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderTriageView()">
           </div>
         </div>
 
@@ -243,16 +243,16 @@
       </div>
 
       <div class="triage-table-panel">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
             <h2 class="text-xl font-bold text-white" id="board-squad-title">Em Andamento</h2>
             <p class="text-xs text-slate-400" id="board-squad-desc">Acompanhamento e monitoramento de demandas em andamento</p>
           </div>
         </div>
 
-        <div class="search-box w-full mb-4">
+        <div class="search-box w-full mb-6">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text" class="input-field py-2.5 text-xs" id="search-board" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderBoardView()">
+          <input type="text" class="input-field py-3 text-xs" id="search-board" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderBoardView()">
         </div>
 
         <div class="table-responsive">
@@ -290,7 +290,7 @@
         </button>
       </div>
       <div class="triage-table-panel">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
             <h2 class="text-xl font-bold text-white" id="backlog-squad-title">Backlog</h2>
             <p class="text-xs text-slate-400">Listagem de solicitações aguardando início de tratamento na squad</p>
@@ -302,9 +302,9 @@
           </div>
         </div>
 
-        <div class="search-box w-full mb-4">
+        <div class="search-box w-full mb-6">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text" class="input-field py-2.5 text-xs" id="search-backlog" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderBacklogView()">
+          <input type="text" class="input-field py-3 text-xs" id="search-backlog" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderBacklogView()">
         </div>
 
         <div class="table-responsive">
@@ -347,9 +347,9 @@
           <span class="badge badge-medium" id="completed-count-badge">0 entregas</span>
         </div>
 
-        <div class="search-box w-full mb-4">
+        <div class="search-box w-full mb-6">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text" class="input-field py-2.5 text-xs" id="search-concluidos" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderCompletedView()">
+          <input type="text" class="input-field py-3 text-xs" id="search-concluidos" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderCompletedView()">
         </div>
 
         <div class="table-responsive">

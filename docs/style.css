@@ -415,8 +415,9 @@ body {
 .table-responsive {
   width: 100%;
   overflow-x: auto;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  margin-top: 8px;
 }
 
 .custom-table {
@@ -433,12 +434,12 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.8px;
   font-size: 11px;
-  padding: 14px 18px;
+  padding: 18px 24px;
   border-bottom: 1px solid var(--border-color);
 }
 
 .custom-table td {
-  padding: 16px 18px;
+  padding: 20px 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   color: var(--text-primary);
 }
@@ -549,7 +550,7 @@ body {
   -webkit-backdrop-filter: blur(20px) !important;
   border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
   border-radius: 20px !important;
-  padding: 32px 36px 36px 36px !important;
+  padding: 36px 40px 40px 40px !important;
   margin-top: 32px !important;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
 }
