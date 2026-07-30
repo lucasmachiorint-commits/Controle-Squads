@@ -617,7 +617,7 @@ const app = {
       }
       if (gridContainer) gridContainer.style.gridTemplateColumns = '1fr 1fr';
 
-      if (labelDateEl) labelDateEl.textContent = 'Previsão de Go-Live / Produção:';
+      if (labelDateEl) labelDateEl.textContent = 'Previsão de Conclusão / SLA:';
       if (labelProgressEl) labelProgressEl.textContent = 'Fase da Automação:';
       if (progressSelect) {
         progressSelect.innerHTML = `
