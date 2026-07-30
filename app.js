@@ -732,11 +732,13 @@ const app = {
     const allItems = this.state.backlogItems[this.activeSquad] || [];
     const backlogItems = allItems.filter(i => i.status !== 'Em Andamento' && i.status !== 'Concluído' && i.status !== 'Concluido');
 
-    // Garantir que cada item tenha um treatmentOrder válido
+    // Garantir que cada item tenha uma ordem de tratativa única de 1 a N
+    const usedOrders = new Set();
     backlogItems.forEach((item, idx) => {
-      if (!item.treatmentOrder || item.treatmentOrder <= 0) {
+      if (!item.treatmentOrder || item.treatmentOrder <= 0 || usedOrders.has(item.treatmentOrder)) {
         item.treatmentOrder = idx + 1;
       }
+      usedOrders.add(item.treatmentOrder);
     });
 
     // Ordenar por treatmentOrder
@@ -754,7 +756,7 @@ const app = {
     if (filteredItems.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="5" class="text-center py-8 text-slate-500 font-semibold">Nenhuma demanda no backlog encontrada.</td>
+          <td colspan="6" class="text-center py-8 text-slate-500 font-semibold">Nenhuma demanda no backlog encontrada.</td>
         </tr>
       `;
       return;
@@ -764,9 +766,11 @@ const app = {
       <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
         <td onclick="event.stopPropagation();" style="white-space:nowrap; width:65px;">
           <input type="number" min="1" max="${backlogItems.length}" value="${item.treatmentOrder}"
-            class="input-field text-center text-xs font-bold py-1 px-1 bg-slate-800 border-slate-700 text-amber-400 rounded w-[45px] cursor-pointer"
-            onchange="app.changeBacklogOrder('${item.id}', parseInt(this.value))"
+            class="order-input-field"
+            onchange="app.changeBacklogOrder('${item.id}', this.value)"
+            onkeydown="if(event.key === 'Enter'){ this.blur(); }"
             onclick="event.stopPropagation(); this.select();"
+            title="Digite a posição desejada para reordenar"
           />
         </td>
         <td class="font-extrabold text-emerald-400" style="white-space:nowrap; width:110px;">${item.gau || item.jiraKey || 'GAU-000'}</td>
@@ -784,40 +788,60 @@ const app = {
     `).join('');
   },
 
-  // Alterar a ordem de prioridade no backlog com validação de duplicatas
-  changeBacklogOrder(itemId, newOrder) {
+  // Alterar a ordem de prioridade no backlog com troca direta de posição (swap) e reordenação automática
+  changeBacklogOrder(itemId, newOrderInput) {
     const allItems = this.state.backlogItems[this.activeSquad] || [];
     const backlogItems = allItems.filter(i => i.status !== 'Em Andamento' && i.status !== 'Concluído' && i.status !== 'Concluido');
     const item = backlogItems.find(i => i.id === itemId);
     if (!item) return;
 
+    let newOrder = parseInt(newOrderInput, 10);
     const totalItems = backlogItems.length;
 
-    // Validar limites
+    // Se não for um número válido, recarregar sem alterar
+    if (isNaN(newOrder)) {
+      this.renderBacklogView();
+      return;
+    }
+
+    // Clampar valor entre 1 e total de itens
     if (newOrder < 1) newOrder = 1;
     if (newOrder > totalItems) newOrder = totalItems;
 
-    const oldOrder = item.treatmentOrder;
-    if (oldOrder === newOrder) return;
+    const oldOrder = item.treatmentOrder || 1;
+    if (oldOrder === newOrder) {
+      this.renderBacklogView();
+      return;
+    }
 
-    // Reordenar: mover outros itens para abrir espaço
-    backlogItems.forEach(bi => {
-      if (bi.id === itemId) return;
-      if (oldOrder < newOrder) {
-        // Movendo para baixo: itens entre old+1 e new sobem 1
-        if (bi.treatmentOrder > oldOrder && bi.treatmentOrder <= newOrder) {
-          bi.treatmentOrder--;
-        }
-      } else {
-        // Movendo para cima: itens entre new e old-1 descem 1
-        if (bi.treatmentOrder >= newOrder && bi.treatmentOrder < oldOrder) {
-          bi.treatmentOrder++;
-        }
-      }
-    });
+    // Encontrar a demanda que atualmente possui a ordem desejada (a demanda subscrita)
+    const targetItem = backlogItems.find(bi => bi.id !== itemId && bi.treatmentOrder === newOrder);
 
+    if (targetItem) {
+      // TROCA DIRETA (SWAP): a demanda subscrita recebe a antiga ordem do card editado
+      targetItem.treatmentOrder = oldOrder;
+    } else {
+      // Ajustar itens entre old e new
+      backlogItems.forEach(bi => {
+        if (bi.id === itemId) return;
+        if (oldOrder < newOrder) {
+          if (bi.treatmentOrder > oldOrder && bi.treatmentOrder <= newOrder) {
+            bi.treatmentOrder--;
+          }
+        } else {
+          if (bi.treatmentOrder >= newOrder && bi.treatmentOrder < oldOrder) {
+            bi.treatmentOrder++;
+          }
+        }
+      });
+    }
+
+    // Atribuir a nova ordem ao item editado
     item.treatmentOrder = newOrder;
+
+    // Salvar estado e re-renderizar a visualização ordenada
     this.saveState();
+    this.renderBacklogView();
   },
 
   deleteBacklogItem(id) {
