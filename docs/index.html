@@ -164,13 +164,16 @@
         </div>
       </div>
 
-      <!-- TABELA DE SOLICITAÇÕES DA MESA DE TRIAGEM (MODELO EXATO DA IMAGEM ENVIADA) -->
-      <div class="glass-panel p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-base font-bold text-white">Solicitações na Fila</h3>
-          <div class="search-box max-w-xs">
+      <!-- TABELA DE SOLICITAÇÕES DA MESA DE TRIAGEM (COM BORDAS E ESPAÇAMENTO AMPLO) -->
+      <div class="glass-panel p-6 md:p-8">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-3 border-b border-white/10">
+          <div>
+            <h3 class="text-lg font-bold text-white tracking-wide">Solicitações na Fila</h3>
+            <p class="text-xs text-slate-400 mt-0.5">Listagem consultiva em tempo real</p>
+          </div>
+          <div class="search-box max-w-sm">
             <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            <input type="text" class="input-field pl-9 py-1.5 text-xs" id="search-triage" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderTriageView()">
+            <input type="text" class="input-field py-2 text-xs" id="search-triage" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderTriageView()">
           </div>
         </div>
 
