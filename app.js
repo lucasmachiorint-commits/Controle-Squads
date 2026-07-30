@@ -431,9 +431,8 @@ const app = {
   },
 
   closeModal(modalId, event) {
-    if (event) {
+    if (event && typeof event.stopPropagation === 'function') {
       event.stopPropagation();
-      if (event.preventDefault) event.preventDefault();
     }
     const modal = document.getElementById(modalId);
     if (modal) {
@@ -812,12 +811,11 @@ const app = {
   // Modais Handlers
   openModal(id) {
     const modal = document.getElementById(id);
-    if (modal) modal.classList.add('active');
-  },
-
-  closeModal(id) {
-    const modal = document.getElementById(id);
-    if (modal) modal.classList.remove('active');
+    if (modal) {
+      modal.style.display = 'flex';
+      modal.classList.add('active');
+      modal.classList.add('open');
+    }
   },
 
   openMemberModal() { this.openModal('modal-member'); },

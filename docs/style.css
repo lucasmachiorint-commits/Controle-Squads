@@ -569,6 +569,64 @@ body {
   transform: scale(1);
 }
 
+/* Styling de Cards Visuais Internos do Pop-up de Detalhes */
+.modal-demand-content {
+  max-width: 540px !important;
+  width: 95% !important;
+  max-height: 82vh !important;
+  overflow-y: auto !important;
+  border-radius: 20px !important;
+  padding: 24px 28px !important;
+}
+
+.detail-card {
+  background: rgba(15, 23, 42, 0.65) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 14px !important;
+  padding: 16px 18px !important;
+  margin-bottom: 16px !important;
+}
+
+.detail-close-btn {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #94a3b8 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.detail-close-btn:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  color: #f87171 !important;
+}
+
+/* Scrollbar customizada para os modais */
+.modal-content::-webkit-scrollbar,
+.modal-demand-content::-webkit-scrollbar {
+  width: 6px;
+}
+.modal-content::-webkit-scrollbar-track,
+.modal-demand-content::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: 8px;
+}
+.modal-content::-webkit-scrollbar-thumb,
+.modal-demand-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 230, 153, 0.3);
+  border-radius: 8px;
+}
+.modal-content::-webkit-scrollbar-thumb:hover,
+.modal-demand-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 230, 153, 0.6);
+}
+
 /* Painel de Banner da Mesa de Triagem - Padding e Espaçamento Amplo (Sem Colisão com as Bordas) */
 .triage-banner-panel {
   background: var(--bg-card) !important;

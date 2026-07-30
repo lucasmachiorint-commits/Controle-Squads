@@ -23,7 +23,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=1.0.3">
+    <link rel="stylesheet" href="style.css?v=1.0.4">
 </head>
 <body>
 
@@ -490,54 +490,61 @@
 
 <!-- MODAL: DETALHES COMPLETOS DA DEMANDA (JIRA CLOUD) -->
 <div class="modal-backdrop" id="modal-demand-details" onclick="if(event.target === this) app.closeModal('modal-demand-details', event)">
-  <div class="glass-panel modal-content max-w-xl w-full p-6">
-    <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
-      <div class="flex items-center gap-3">
-        <span class="badge badge-medium text-xs font-extrabold" id="detail-gau-key">GAU-128</span>
-        <span class="badge badge-high" id="detail-priority">2 - Alta</span>
+  <div class="glass-panel modal-content modal-demand-content">
+    <!-- Cabeçalho do Modal: Badges e Botão Único de Fechar (X) -->
+    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px; margin-bottom: 16px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span class="badge badge-medium" style="font-size: 12px; font-weight: 800;" id="detail-gau-key">GAU-128</span>
+        <span class="badge badge-high" style="font-size: 11px;" id="detail-priority">2 - Alta</span>
       </div>
-      <button type="button" class="btn btn-secondary py-1 px-2.5 text-xs" onclick="app.closeModal('modal-demand-details', event)">
+      <button type="button" class="detail-close-btn" title="Fechar Modal" onclick="app.closeModal('modal-demand-details', event)">
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
 
-    <h3 class="text-lg font-bold text-white mb-3 leading-snug" id="detail-title">Título da Demanda</h3>
-    
-    <div class="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-white/5 border border-white/10 mb-5 text-xs">
-      <div>
-        <span class="text-slate-400 block mb-0.5">Solicitante:</span>
-        <span class="font-bold text-white" id="detail-requester">--</span>
-      </div>
-      <div>
-        <span class="text-slate-400 block mb-0.5">Data de Criação:</span>
-        <span class="font-bold text-amber-400" id="detail-created-date">--</span>
-      </div>
-      <div>
-        <span class="text-slate-400 block mb-0.5">Status no Jira:</span>
-        <span class="badge badge-medium" id="detail-status">Aguardando Triagem</span>
-      </div>
-      <div>
-        <span class="text-slate-400 block mb-0.5">Squad Atribuída:</span>
-        <span class="font-bold text-emerald-400" id="detail-squad">Mesa de Triagem</span>
+    <!-- Título da Demanda -->
+    <h3 style="font-size: 16px; font-weight: 800; color: #fff; line-height: 1.4; margin: 0 0 16px 0;" id="detail-title">Título da Demanda</h3>
+
+    <!-- CARD 1: Informações Gerais da Demanda -->
+    <div class="detail-card">
+      <h4 style="font-size: 11px; font-weight: 800; color: #34d399; text-transform: uppercase; letter-spacing: 0.8px; margin: 0 0 12px 0;">
+        <i class="fa-solid fa-circle-info me-1.5"></i> Informações Gerais
+      </h4>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12px;">
+        <div>
+          <span style="color: #94a3b8; display: block; font-size: 11px; margin-bottom: 2px;">Solicitante:</span>
+          <span style="font-weight: 700; color: #fff;" id="detail-requester">--</span>
+        </div>
+        <div>
+          <span style="color: #94a3b8; display: block; font-size: 11px; margin-bottom: 2px;">Data de Criação:</span>
+          <span style="font-weight: 700; color: #fbbf24;" id="detail-created-date">--</span>
+        </div>
+        <div>
+          <span style="color: #94a3b8; display: block; font-size: 11px; margin-bottom: 2px;">Status no Jira:</span>
+          <span class="badge badge-medium" style="display: inline-block; margin-top: 2px;" id="detail-status">Aguardando Triagem</span>
+        </div>
+        <div>
+          <span style="color: #94a3b8; display: block; font-size: 11px; margin-bottom: 2px;">Squad Atribuída:</span>
+          <span style="font-weight: 700; color: #34d399;" id="detail-squad">Mesa de Triagem</span>
+        </div>
       </div>
     </div>
 
-    <div class="mb-5">
-      <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Descrição Completa do Chamado:</h4>
-      <div class="p-3.5 rounded-xl bg-slate-900/90 border border-white/10 text-slate-300 text-xs leading-relaxed max-h-52 overflow-y-auto whitespace-pre-wrap" id="detail-description">
+    <!-- CARD 2: Descrição Completa do Chamado (Fica por último) -->
+    <div class="detail-card" style="margin-bottom: 0;">
+      <h4 style="font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.8px; margin: 0 0 10px 0;">
+        <i class="fa-solid fa-align-left me-1.5"></i> Descrição Completa do Chamado
+      </h4>
+      <div style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 10px; padding: 12px; color: #cbd5e1; font-size: 12px; line-height: 1.6; max-height: 200px; overflow-y: auto; white-space: pre-wrap;" id="detail-description">
         Sem descrição fornecida.
       </div>
-    </div>
-
-    <div class="flex justify-end gap-3 pt-3 border-t border-white/10">
-      <button type="button" class="btn btn-secondary text-xs py-1.5 px-4" onclick="app.closeModal('modal-demand-details', event)">Fechar</button>
     </div>
   </div>
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=1.0.3"></script>
-<script src="app.js?v=1.0.3"></script>
+<script src="jira-sync.js?v=1.0.4"></script>
+<script src="app.js?v=1.0.4"></script>
 
 </body>
 </html>

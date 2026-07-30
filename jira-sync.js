@@ -176,6 +176,22 @@ const JiraSyncEngine = {
       const description = card.description || card.descricao || card.notes || 'Sincronizado via Jira API';
       const requester = card.requester || card.reporter || card.solicitante || 'Solicitante Jira';
 
+      // Extração da Data de Criação do card Jira
+      const rawCreated = card.created || card.fields?.created || card.createdDate || card.date;
+      let createdDate = new Date().toLocaleDateString('pt-BR');
+      if (rawCreated) {
+        try {
+          const parsedDate = new Date(rawCreated);
+          if (!isNaN(parsedDate.getTime())) {
+            createdDate = parsedDate.toLocaleDateString('pt-BR');
+          } else {
+            createdDate = rawCreated.toString();
+          }
+        } catch (e) {
+          createdDate = rawCreated.toString();
+        }
+      }
+
       // 1. Mapeamento de Squad (16005 -> Operações, 16006 -> Dados, 16007 -> RPA)
       let targetSquadId = card.squadTarget || 'dados';
       let targetSquadName = 'Squad de Dados';
@@ -237,6 +253,7 @@ const JiraSyncEngine = {
             category: card.category || 'Geral',
             suggestedSquad: targetSquadId,
             createdAt: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            createdDate,
             status: 'Pendente'
           });
         } else if (targetQueue.startsWith('completed_')) {
@@ -248,6 +265,7 @@ const JiraSyncEngine = {
             area: 'Geral',
             completedBy: targetSquadName,
             dueDate: card.dueDate || new Date().toISOString().split('T')[0],
+            createdDate,
             completionDate: new Date().toISOString().split('T')[0],
             gains: 'Concluído via sincronização com Jira',
             requesterArea: requester
@@ -262,6 +280,7 @@ const JiraSyncEngine = {
             requester,
             team: targetSquadName,
             dueDate: card.dueDate || new Date().toISOString().split('T')[0],
+            createdDate,
             priority: card.priority || '2 - Alta',
             category: card.category || 'Processos',
             treatmentOrder: idx + 1,
@@ -301,6 +320,7 @@ const JiraSyncEngine = {
             category: card.category || 'Geral',
             suggestedSquad: targetSquadId,
             createdAt: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            createdDate,
             status: 'Pendente'
           });
         } else if (targetQueue.startsWith('completed_')) {
@@ -312,6 +332,7 @@ const JiraSyncEngine = {
             area: 'Geral',
             completedBy: targetSquadName,
             dueDate: card.dueDate || new Date().toISOString().split('T')[0],
+            createdDate,
             completionDate: new Date().toISOString().split('T')[0],
             gains: 'Concluído via sincronização com Jira',
             requesterArea: requester
@@ -326,6 +347,7 @@ const JiraSyncEngine = {
             requester,
             team: targetSquadName,
             dueDate: card.dueDate || new Date().toISOString().split('T')[0],
+            createdDate,
             priority: card.priority || '2 - Alta',
             category: card.category || 'Processos',
             treatmentOrder: idx + 1,
