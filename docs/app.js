@@ -1039,7 +1039,6 @@ const app = {
             <option value="Backlog" ${item.status === 'Backlog' ? 'selected' : ''}>Backlog</option>
             <option value="Em Andamento" ${item.status === 'Em Andamento' ? 'selected' : ''}>Em Andamento</option>
             <option value="Bloqueado" ${item.status === 'Bloqueado' ? 'selected' : ''}>Bloqueado</option>
-            <option value="Concluído" ${item.status === 'Concluído' ? 'selected' : ''}>Concluído</option>
           </select>
         </td>
         <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; width:120px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
