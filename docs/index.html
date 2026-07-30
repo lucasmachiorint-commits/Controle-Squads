@@ -112,7 +112,6 @@
           </div>
           <div class="text-right">
             <span class="text-xs text-slate-300 font-semibold block" id="sync-last-time">Última sync: --:--:--</span>
-            <span class="text-[11px] text-emerald-400 font-medium" id="sync-status-txt">Sincronização ativa</span>
           </div>
         </div>
 
@@ -122,54 +121,38 @@
         </div>
       </div>
 
-      <!-- TRÊS QUADROS DE MÉTRICAS DA MESA DE TRIAGEM (FORÇADO NA MESMA LINHA: 3 COLUNAS EM 1 ROW) -->
+      <!-- TRÊS QUADROS DE MÉTRICAS DA MESA DE TRIAGEM (SEM ÍCONES CONFORME SOLICITADO) -->
       <div class="triage-metrics-row">
         <!-- 1. AGUARDANDO TRIAGEM -->
         <div class="metric-box-card metric-box-amber cursor-pointer active" id="card-filter-pending" onclick="app.setTriageFilter('pending')">
-          <div class="flex items-center justify-between">
-            <div>
-              <span class="metric-box-lbl text-amber-500">AGUARDANDO TRIAGEM</span>
-              <div class="metric-box-val text-amber-400" id="metric-triage-pending">0 cards</div>
-            </div>
-            <div class="metric-box-icon-bg bg-amber-500/20 text-amber-400">
-              <i class="fa-solid fa-clock"></i>
-            </div>
+          <div>
+            <span class="metric-box-lbl text-amber-500">AGUARDANDO TRIAGEM</span>
+            <div class="metric-box-val text-amber-400" id="metric-triage-pending">0 cards</div>
           </div>
         </div>
 
         <!-- 2. TRIADOS & ATRIBUÍDOS -->
         <div class="metric-box-card metric-box-emerald cursor-pointer" id="card-filter-triaged" onclick="app.setTriageFilter('triaged')">
-          <div class="flex items-center justify-between">
-            <div>
-              <span class="metric-box-lbl text-emerald-400">TRIADOS & ATRIBUÍDOS</span>
-              <div class="metric-box-val text-emerald-400" id="metric-triage-triaged">0 cards</div>
-            </div>
-            <div class="metric-box-icon-bg bg-emerald-500/20 text-emerald-400">
-              <i class="fa-solid fa-circle-check"></i>
-            </div>
+          <div>
+            <span class="metric-box-lbl text-emerald-400">TRIADOS & ATRIBUÍDOS</span>
+            <div class="metric-box-val text-emerald-400" id="metric-triage-triaged">0 cards</div>
           </div>
         </div>
 
         <!-- 3. REJEITADOS / ARQUIVADOS -->
         <div class="metric-box-card metric-box-slate cursor-pointer" id="card-filter-rejected" onclick="app.setTriageFilter('rejected')">
-          <div class="flex items-center justify-between">
-            <div>
-              <span class="metric-box-lbl text-slate-400">REJEITADOS / ARQUIVADOS</span>
-              <div class="metric-box-val text-slate-300" id="metric-triage-rejected">0 cards</div>
-            </div>
-            <div class="metric-box-icon-bg bg-slate-500/20 text-slate-400">
-              <i class="fa-solid fa-circle-xmark"></i>
-            </div>
+          <div>
+            <span class="metric-box-lbl text-slate-400">REJEITADOS / ARQUIVADOS</span>
+            <div class="metric-box-val text-slate-300" id="metric-triage-rejected">0 cards</div>
           </div>
         </div>
       </div>
 
-      <!-- TABELA DE SOLICITAÇÕES DA MESA DE TRIAGEM (COM BORDAS E ESPAÇAMENTO AMPLO) -->
+      <!-- TABELA DE SOLICITAÇÕES DA MESA DE TRIAGEM -->
       <div class="glass-panel p-6 md:p-8">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-3 border-b border-white/10">
           <div>
             <h3 class="text-lg font-bold text-white tracking-wide">Solicitações na Fila</h3>
-            <p class="text-xs text-slate-400 mt-0.5">Listagem consultiva em tempo real</p>
           </div>
           <div class="search-box max-w-sm">
             <i class="fa-solid fa-magnifying-glass search-icon"></i>
