@@ -23,7 +23,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=1.6.1">
+    <link rel="stylesheet" href="style.css?v=1.6.2">
 </head>
 <body>
 
@@ -618,6 +618,14 @@
         </div>
       </div>
 
+      <!-- CAMPO DE GANHOS / IMPACTO DE NEGÓCIO (EDITÁVEL COM AUTO-SAVE) -->
+      <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 12px; margin-top: 12px; margin-bottom: 12px;">
+        <label style="color: #34d399; display: block; font-size: 11px; margin-bottom: 6px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+          <i class="fa-solid fa-chart-line me-1"></i> Ganhos / Impacto de Negócio
+        </label>
+        <textarea id="followup-ganhos" rows="2" placeholder="Descreva os ganhos de produtividade, financeiros ou operacionais desta entrega..." style="width: 100%; padding: 8px 10px; font-size: 11px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #34d399; font-weight: 600; border-radius: 8px; outline: none; resize: vertical;" oninput="app.saveSquadDevFields()"></textarea>
+      </div>
+
       <!-- SEÇÃO DA LINHA DO TEMPO DE ATUALIZAÇÕES COM BARRA DE ROLAGEM -->
       <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 12px; margin-top: 8px;">
         <label style="color: #34d399; display: block; font-size: 11px; margin-bottom: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
@@ -652,8 +660,8 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=1.6.1"></script>
-<script src="app.js?v=1.6.1"></script>
+<script src="jira-sync.js?v=1.6.2"></script>
+<script src="app.js?v=1.6.2"></script>
 
 </body>
 </html>

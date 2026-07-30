@@ -698,6 +698,9 @@ const app = {
     if (nameInput) nameInput.value = item.devName || '';
     if (dateInput) dateInput.value = item.targetDeliveryDate || '';
     if (progressSelect) progressSelect.value = item.devProgress || '0%';
+    
+    const gainsTextarea = document.getElementById('followup-ganhos');
+    if (gainsTextarea) gainsTextarea.value = item.gains || '';
 
     // Data de hoje para nova atualização na timeline
     const todayISO = new Date().toISOString().split('T')[0];
@@ -724,13 +727,18 @@ const app = {
     const nameInput = document.getElementById('followup-dev-name');
     const dateInput = document.getElementById('followup-dev-target-date');
     const progressSelect = document.getElementById('followup-dev-progress');
+    const gainsTextarea = document.getElementById('followup-ganhos');
 
     if (roleSelect) item.devRole = roleSelect.value;
     if (nameInput) item.devName = nameInput.value;
     if (dateInput) item.targetDeliveryDate = dateInput.value;
     if (progressSelect) item.devProgress = progressSelect.value;
+    if (gainsTextarea) item.gains = gainsTextarea.value;
 
     this.saveState();
+    if (this.activeView === 'concluidos') {
+      this.renderCompletedView();
+    }
   },
 
   // Adicionar entrada na linha do tempo com auto-save no localStorage
