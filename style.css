@@ -237,12 +237,11 @@ body {
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-bottom: 1px solid var(--border-color);
-  padding: 0 24px;
-  display: flex;
+  padding: 0 28px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 16px;
-  flex-wrap: nowrap;
   position: sticky;
   top: 0;
   z-index: 90;
@@ -253,6 +252,15 @@ body {
   align-items: center;
   gap: 12px;
   min-width: 0;
+  justify-self: start;
+}
+
+.header-center-actions {
+  justify-self: center;
+}
+
+.header-right-user {
+  justify-self: end;
 }
 
 .header-title {

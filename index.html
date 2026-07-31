@@ -86,6 +86,7 @@
     
     <!-- TOP HEADER BAR -->
     <header class="top-header">
+      <!-- 1. ESQUERDA: TÍTULO DA PÁGINA -->
       <div class="header-title-area">
         <button class="btn btn-secondary lg:hidden" onclick="app.toggleMobileSidebar()">
           <i class="fa-solid fa-bars"></i>
@@ -93,25 +94,21 @@
         <h1 class="header-title" id="page-title">Mesa de Triagem & Governança Jira</h1>
       </div>
 
-      <!-- CONTROLES DO HEADER: BOTÕES DE AÇÃO À ESQUERDA & USER CHIP À EXTREMA DIREITA -->
-      <div class="flex items-center gap-3 sm:gap-4 flex-nowrap shrink-0">
-        <!-- BOTÕES DE AÇÃO DA APLICAÇÃO -->
-        <div class="flex items-center gap-2 flex-nowrap">
-          <button class="btn btn-secondary text-xs py-2 px-3 border-rose-500/30 hover:bg-rose-500/20 text-rose-300 admin-only whitespace-nowrap" id="btn-clear-cards" onclick="app.clearAllCards()">
-            <i class="fa-solid fa-trash-can me-1 text-rose-400"></i>
-            <span>Limpar Cards</span>
-          </button>
-          <button class="btn btn-primary text-xs py-2 px-3 admin-only whitespace-nowrap" id="btn-sync-jira" onclick="app.triggerJiraSync()">
-            <i class="fa-solid fa-rotate-right me-1" id="icon-spin-jira"></i>
-            <span>🔄 Sincronizar com Jira</span>
-          </button>
-        </div>
+      <!-- 2. CENTRO: BOTÕES DE AÇÃO CENTRALIZADOS NO MENU SUPERIOR -->
+      <div class="header-center-actions flex items-center justify-center gap-2.5 flex-nowrap">
+        <button class="btn btn-secondary text-xs py-2 px-3.5 border-rose-500/30 hover:bg-rose-500/20 text-rose-300 admin-only whitespace-nowrap" id="btn-clear-cards" onclick="app.clearAllCards()">
+          <i class="fa-solid fa-trash-can me-1.5 text-rose-400"></i>
+          <span>Limpar Cards</span>
+        </button>
+        <button class="btn btn-primary text-xs py-2 px-3.5 admin-only whitespace-nowrap" id="btn-sync-jira" onclick="app.triggerJiraSync()">
+          <i class="fa-solid fa-rotate-right me-1.5" id="icon-spin-jira"></i>
+          <span>🔄 Sincronizar com Jira</span>
+        </button>
+      </div>
 
-        <!-- SEPARADOR VERTICAL SUTIL -->
-        <div class="h-6 w-px bg-white/10 hidden md:block"></div>
-
-        <!-- BADGE DO USUÁRIO & SAIR (EXTREMA DIREITA) -->
-        <div class="user-profile-badge inline-flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-white/10 text-xs text-slate-200 shrink-0 whitespace-nowrap shadow-sm" id="user-profile-badge" title="Usuário autenticado via Supabase">
+      <!-- 3. EXTREMA DIREITA: USUÁRIO ADMIN & BOTÃO SAIR -->
+      <div class="header-right-user flex items-center justify-end">
+        <div class="user-profile-badge inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-white/10 text-xs text-slate-200 shrink-0 whitespace-nowrap shadow-sm" id="user-profile-badge" title="Usuário autenticado via Supabase">
           <i class="fa-solid fa-user-shield text-emerald-400 text-sm" id="user-role-icon"></i>
           <span id="user-display-info" class="font-semibold text-slate-200">Carregando...</span>
           <button onclick="app.handleLogout()" title="Sair do sistema" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-white/10 hover:border-rose-500/30 text-[11px] font-semibold transition-all cursor-pointer ms-1">
