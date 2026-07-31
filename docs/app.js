@@ -41,6 +41,7 @@ const app = {
   // INICIALIZAÇÃO
   // ============================================================
   async init() {
+    this.loadTheme();
     const hasSession = await this.checkSession();
     if (!hasSession) {
       this.showAuthOverlay();
@@ -54,6 +55,40 @@ const app = {
     this.restoreLastSyncTime();
     this.setupKeyboardShortcuts();
     this.render();
+  },
+
+  loadTheme() {
+    try {
+      const savedTheme = localStorage.getItem('cs_theme');
+      if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        this.updateThemeUI('light');
+      } else {
+        document.body.classList.remove('light-theme');
+        this.updateThemeUI('dark');
+      }
+    } catch (e) {}
+  },
+
+  toggleTheme() {
+    const isLight = document.body.classList.toggle('light-theme');
+    const newTheme = isLight ? 'light' : 'dark';
+    try {
+      localStorage.setItem('cs_theme', newTheme);
+    } catch (e) {}
+    this.updateThemeUI(newTheme);
+  },
+
+  updateThemeUI(theme) {
+    const icon = document.getElementById('theme-toggle-icon');
+    const text = document.getElementById('theme-toggle-text');
+    if (theme === 'light') {
+      if (icon) icon.className = 'fa-solid fa-moon text-indigo-400';
+      if (text) text.textContent = 'Modo Escuro';
+    } else {
+      if (icon) icon.className = 'fa-solid fa-sun text-amber-400';
+      if (text) text.textContent = 'Modo Claro';
+    }
   },
 
   // ============================================================
