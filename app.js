@@ -82,12 +82,16 @@ const app = {
     this.authUserId = user.id;
     this.userEmail = user.email || '';
     this.userName = user.email ? user.email.split('@')[0] : 'Usuário';
-    this.userRole = 'consulta'; // Default
-    this.userStatus = 'ATIVO';
+    
+    // Verificar se é a conta do administrador principal (lucas.machiori / machiori / etc.)
+    const emailLower = (user.email || '').toLowerCase();
+    const isLucas = emailLower.includes('machiori') || emailLower.includes('lucas.machiori') || emailLower.includes('lucasmachiori') || emailLower.includes('lucas.da.silva');
 
-    const isLucas = (user.email || '').toLowerCase().includes('lucasmachiori');
     if (isLucas) {
       this.userRole = 'admin';
+      this.userStatus = 'ATIVO';
+    } else {
+      this.userRole = 'consulta';
       this.userStatus = 'ATIVO';
     }
 
@@ -101,16 +105,25 @@ const app = {
           .maybeSingle();
 
         if (profile) {
-          if (profile.perfil) this.userRole = isLucas ? 'admin' : (profile.perfil.toLowerCase() === 'admin' ? 'admin' : 'consulta');
+          if (isLucas) {
+            this.userRole = 'admin';
+            this.userStatus = 'ATIVO';
+            // Forçar atualização no Supabase para garantir que o perfil seja ADMIN
+            if (profile.perfil !== 'ADMIN' || profile.status !== 'ATIVO') {
+              await supabaseClient.from('profiles').update({ perfil: 'ADMIN', status: 'ATIVO' }).eq('id', user.id);
+            }
+          } else {
+            if (profile.perfil) this.userRole = profile.perfil.toLowerCase() === 'admin' ? 'admin' : 'consulta';
+            if (profile.status) this.userStatus = profile.status.toUpperCase();
+          }
           if (profile.nome) this.userName = profile.nome;
-          if (profile.status) this.userStatus = isLucas ? 'ATIVO' : profile.status.toUpperCase();
         } else {
           // Se o perfil ainda não existe no Supabase, auto-criar o registro!
           const initialRole = isLucas ? 'ADMIN' : 'CONSULTA';
           const initialStatus = isLucas ? 'ATIVO' : 'PENDENTE';
           const newProfile = {
             id: user.id,
-            nome: user.user_metadata?.nome || (user.email ? user.email.split('@')[0] : 'Usuário'),
+            nome: user.user_metadata?.nome || (user.email ? user.email.split('@')[0] : 'Lucas Machiori'),
             email: user.email,
             perfil: initialRole,
             status: initialStatus
