@@ -23,11 +23,13 @@ const app = {
     backlogItems: { dados: [], operacoes: [], rpa: [] },
     completedTasks: { dados: [], operacoes: [], rpa: [] },
     resources: { dados: [], operacoes: [], rpa: [] },
-    dpoLogs: []
+    dpoLogs: [],
+    usersList: []
   },
 
   init() {
     this.loadUserSession();
+    this.loadUsersState();
     this.loadLocalState();
     this.seedDefaultDataIfEmpty();
     this.setupRealtimeSync();
@@ -274,6 +276,9 @@ const app = {
     } else if (viewId === 'dashboard') {
       const activeNav = document.getElementById('nav-dashboard');
       if (activeNav) activeNav.classList.add('active');
+    } else if (viewId === 'gestao-acessos') {
+      const activeNav = document.getElementById('nav-gestao-acessos');
+      if (activeNav) activeNav.classList.add('active');
     } else {
       // Para visões de squad (board, backlog, concluidos)
       const activeSquadNav = document.getElementById(`nav-squad-${this.activeSquad}`);
@@ -294,7 +299,8 @@ const app = {
       backlog: `Backlog - ${squadNames[this.activeSquad]}`,
       concluidos: `Concluídos - ${squadNames[this.activeSquad]}`,
       'dpo-sync': 'Modo Reunião DPO',
-      'dpo-logs': 'Histórico de Alinhamentos DPO'
+      'dpo-logs': 'Histórico de Alinhamentos DPO',
+      'gestao-acessos': 'Gestão de Perfis & Acessos Supabase'
     };
     const titleEl = document.getElementById('page-title');
     if (titleEl) titleEl.textContent = titleMap[viewId] || 'Controle de Squads';
@@ -493,6 +499,246 @@ const app = {
     }
   },
 
+  // --- GESTÃO DE ACESSOS E PERFIS SUPABASE ---
+  loadUsersState() {
+    try {
+      const savedUsers = localStorage.getItem('cs_users_list');
+      if (savedUsers) {
+        this.state.usersList = JSON.parse(savedUsers);
+      } else {
+        this.state.usersList = [
+          {
+            id: 'usr-1',
+            name: 'Lucas da Silva Machiori',
+            email: 'lucas.machiori@naturapay.net',
+            role: 'admin',
+            status: 'Ativo',
+            lastAccess: 'Hoje'
+          },
+          {
+            id: 'usr-2',
+            name: 'Gabriel Oliveira',
+            email: 'gabriel.oliveira@naturapay.net',
+            role: 'consulta',
+            status: 'Ativo',
+            lastAccess: 'Hoje'
+          },
+          {
+            id: 'usr-3',
+            name: 'Usuário Consulta Default',
+            email: 'consulta@naturapay.net',
+            role: 'consulta',
+            status: 'Ativo',
+            lastAccess: 'Hoje'
+          }
+        ];
+        this.saveUsersState();
+      }
+    } catch (e) {
+      console.warn('Erro ao carregar lista de usuários:', e);
+    }
+  },
+
+  saveUsersState() {
+    try {
+      localStorage.setItem('cs_users_list', JSON.stringify(this.state.usersList));
+    } catch (e) {}
+
+    // Sincronizar com Supabase Database se ativo
+    if (supabaseClient) {
+      try {
+        supabaseClient.from('users_profile').upsert(
+          this.state.usersList.map(u => ({
+            id: u.id,
+            display_name: u.name,
+            email: u.email,
+            role: u.role,
+            status: u.status,
+            updated_at: new Date().toISOString()
+          }))
+        ).then(() => {}).catch(() => {});
+      } catch (e) {}
+    }
+
+    this.broadcastStateChange();
+  },
+
+  renderUsersTable() {
+    const tbody = document.getElementById('tbody-users');
+    if (!tbody) return;
+
+    const users = this.state.usersList || [];
+
+    // Atualizar estatísticas de usuários
+    const totalEl = document.getElementById('stat-user-total');
+    const adminsEl = document.getElementById('stat-user-admins');
+    const consultasEl = document.getElementById('stat-user-consultas');
+
+    const adminCount = users.filter(u => u.role === 'admin').length;
+    const consultaCount = users.filter(u => u.role === 'consulta').length;
+
+    if (totalEl) totalEl.textContent = users.length;
+    if (adminsEl) adminsEl.textContent = adminCount;
+    if (consultasEl) consultasEl.textContent = consultaCount;
+
+    // Filtro de pesquisa
+    const searchInput = document.getElementById('search-users');
+    const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+    const filteredUsers = users.filter(u => 
+      !term || u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term)
+    );
+
+    if (filteredUsers.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="text-center py-8 text-slate-400 font-semibold">Nenhum usuário encontrado.</td>
+        </tr>
+      `;
+      return;
+    }
+
+    const isAdminCurrentUser = this.userRole === 'admin';
+
+    tbody.innerHTML = filteredUsers.map((user, idx) => `
+      <tr class="hover:bg-white/5 transition-all">
+        <td class="font-bold text-slate-400" style="width: 50px;">${idx + 1}</td>
+        <td>
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-full ${user.role === 'admin' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-sky-500/20 text-sky-400 border border-sky-500/30'} flex items-center justify-center font-bold text-xs">
+              <i class="fa-solid ${user.role === 'admin' ? 'fa-user-shield' : 'fa-user'}"></i>
+            </div>
+            <div>
+              <div class="font-bold text-white text-xs">${user.name}</div>
+              <div class="text-[11px] text-slate-400">${user.email === this.userEmail ? '(Você)' : ''}</div>
+            </div>
+          </div>
+        </td>
+        <td class="text-slate-300 text-xs font-mono">${user.email}</td>
+        <td style="width: 200px;">
+          <select class="form-control text-xs py-1 px-2 ${isAdminCurrentUser ? '' : 'pointer-events-none opacity-60'}" 
+                  onchange="app.changeUserRoleDirectly('${user.id}', this.value)"
+                  ${isAdminCurrentUser ? '' : 'disabled="true"'}
+                  style="background: rgba(15,23,42,0.9); color:#fff; border: 1px solid ${user.role === 'admin' ? 'rgba(52,211,153,0.4)' : 'rgba(56,189,248,0.4)'}; border-radius: 6px;">
+            <option value="consulta" ${user.role === 'consulta' ? 'selected' : ''}>👁️ Consulta (Leitura)</option>
+            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>👨‍💻 Admin (Acesso Total)</option>
+          </select>
+        </td>
+        <td style="width: 140px;">
+          <span class="badge ${user.status === 'Ativo' ? 'badge-success' : 'badge-neutral'} text-[11px]">${user.status || 'Ativo'}</span>
+        </td>
+        <td style="width: 140px; text-align: right;">
+          <div class="flex items-center justify-end gap-1.5">
+            <button class="btn btn-secondary text-xs p-1.5 hover:text-purple-300 ${isAdminCurrentUser ? '' : 'hidden'}" onclick="app.openEditUserModal('${user.id}')" title="Editar Usuário">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button class="btn btn-secondary text-xs p-1.5 hover:text-rose-400 ${isAdminCurrentUser ? '' : 'hidden'}" onclick="app.deleteUser('${user.id}')" title="Excluir Usuário">
+              <i class="fa-solid fa-trash-can text-rose-400"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  },
+
+  changeUserRoleDirectly(userId, newRole) {
+    const user = (this.state.usersList || []).find(u => u.id === userId);
+    if (!user) return;
+
+    user.role = newRole;
+    this.saveUsersState();
+
+    // Se o usuário alterado for o próprio usuário ativo nesta sessão
+    if (user.email === this.userEmail) {
+      this.userRole = newRole;
+      localStorage.setItem('cs_user_role', newRole);
+      this.updateUserBadgeUI();
+      this.applyRolePermissions();
+    }
+
+    this.renderUsersTable();
+  },
+
+  openNewUserModal() {
+    const modal = document.getElementById('modal-user-edit');
+    if (!modal) return;
+
+    document.getElementById('user-modal-title').textContent = 'Cadastrar Novo Usuário';
+    document.getElementById('user-modal-id').value = '';
+    document.getElementById('user-modal-name').value = '';
+    document.getElementById('user-modal-email').value = '';
+    document.getElementById('user-modal-role').value = 'consulta';
+
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+  },
+
+  openEditUserModal(userId) {
+    const user = (this.state.usersList || []).find(u => u.id === userId);
+    if (!user) return;
+
+    const modal = document.getElementById('modal-user-edit');
+    if (!modal) return;
+
+    document.getElementById('user-modal-title').textContent = 'Editar Usuário';
+    document.getElementById('user-modal-id').value = user.id;
+    document.getElementById('user-modal-name').value = user.name;
+    document.getElementById('user-modal-email').value = user.email;
+    document.getElementById('user-modal-role').value = user.role;
+
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+  },
+
+  closeUserModal() {
+    const modal = document.getElementById('modal-user-edit');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.style.display = 'none';
+    }
+  },
+
+  saveUserFromModal(e) {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+
+    const idVal = document.getElementById('user-modal-id').value;
+    const nameVal = document.getElementById('user-modal-name').value.trim();
+    const emailVal = document.getElementById('user-modal-email').value.trim();
+    const roleVal = document.getElementById('user-modal-role').value;
+
+    if (!nameVal || !emailVal) return;
+
+    if (idVal) {
+      const existing = this.state.usersList.find(u => u.id === idVal);
+      if (existing) {
+        existing.name = nameVal;
+        existing.email = emailVal;
+        existing.role = roleVal;
+      }
+    } else {
+      const newUser = {
+        id: `usr-${Date.now()}`,
+        name: nameVal,
+        email: emailVal,
+        role: roleVal,
+        status: 'Ativo',
+        lastAccess: 'Agora'
+      };
+      this.state.usersList.push(newUser);
+    }
+
+    this.saveUsersState();
+    this.closeUserModal();
+    this.renderUsersTable();
+  },
+
+  deleteUser(userId) {
+    if (!confirm('Tem certeza que deseja excluir este usuário da lista de acessos?')) return;
+    this.state.usersList = (this.state.usersList || []).filter(u => u.id !== userId);
+    this.saveUsersState();
+    this.renderUsersTable();
+  },
+
   // Renderizador principal da interface
   render() {
     this.renderBadgeCounts();
@@ -502,6 +748,7 @@ const app = {
     else if (this.activeView === 'board') this.renderBoardView();
     else if (this.activeView === 'backlog') this.renderBacklogView();
     else if (this.activeView === 'concluidos') this.renderCompletedView();
+    else if (this.activeView === 'gestao-acessos') this.renderUsersTable();
 
     this.applyRolePermissions();
   },

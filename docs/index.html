@@ -23,7 +23,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=1.8.0">
+    <link rel="stylesheet" href="style.css?v=1.9.0">
 </head>
 <body>
 
@@ -70,6 +70,13 @@
       <a class="nav-item" id="nav-dashboard" onclick="app.navigate('dashboard')">
         <i class="fa-solid fa-chart-pie"></i>
         <span>Dashboard Consolidado</span>
+      </a>
+
+      <!-- 4. GESTÃO DE ACESSOS E SEGURANÇA -->
+      <div class="sidebar-section-title mt-2">CONFIGURAÇÕES</div>
+      <a class="nav-item" id="nav-gestao-acessos" onclick="app.navigate('gestao-acessos')">
+        <i class="fa-solid fa-user-gear text-purple-400"></i>
+        <span>Gestão de Acessos</span>
       </a>
     </nav>
   </aside>
@@ -537,6 +544,90 @@
           <!-- Dinamicamente gerado via JS -->
         </div>
       </div>
+    <!-- VIEW 6: GESTÃO DE ACESSOS & PERFIS -->
+    <div class="view-container" id="view-gestao-acessos">
+      
+      <!-- BANNER SUPERIOR -->
+      <div class="triage-banner-panel mb-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="badge badge-medium mb-3">
+              <i class="fa-solid fa-shield-halved text-purple-400"></i> Segurança & Supabase
+            </div>
+            <h2 class="text-xl md:text-2xl font-extrabold text-white tracking-tight">Gestão de Perfis & Acessos</h2>
+            <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">
+              Gerenciamento centralizado de usuários, perfis (Admin / Consulta) e permissões via Supabase Database.
+            </p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button class="btn btn-primary text-xs py-2 px-4 admin-only" onclick="app.openNewUserModal()">
+              <i class="fa-solid fa-user-plus me-1.5"></i> Novo Usuário
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARDS DE RESUMO DE USUÁRIOS -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="glass-card p-4 flex items-center justify-between">
+          <div>
+            <div class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Total de Usuários</div>
+            <div class="text-2xl font-extrabold text-white mt-1" id="stat-user-total">0</div>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 text-lg">
+            <i class="fa-solid fa-users"></i>
+          </div>
+        </div>
+        <div class="glass-card p-4 flex items-center justify-between">
+          <div>
+            <div class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Administradores (Admin)</div>
+            <div class="text-2xl font-extrabold text-emerald-400 mt-1" id="stat-user-admins">0</div>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-lg">
+            <i class="fa-solid fa-user-shield"></i>
+          </div>
+        </div>
+        <div class="glass-card p-4 flex items-center justify-between">
+          <div>
+            <div class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Usuários de Consulta</div>
+            <div class="text-2xl font-extrabold text-sky-400 mt-1" id="stat-user-consultas">0</div>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400 text-lg">
+            <i class="fa-solid fa-eye"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABELA DE USUÁRIOS E PERFIS -->
+      <div class="glass-card p-5">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-users-gear text-purple-400"></i> Lista de Usuários Cadastrados
+          </h3>
+          <div class="w-full md:w-72">
+            <input type="text" class="form-control text-xs" id="search-users" placeholder="Pesquisar por nome ou e-mail..." oninput="app.renderUsersTable()" />
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="custom-table w-full text-left">
+            <thead>
+              <tr>
+                <th style="width: 50px;">#</th>
+                <th>Nome Completo</th>
+                <th>E-mail Corporativo</th>
+                <th style="width: 200px;">Perfil de Acesso</th>
+                <th style="width: 140px;">Status</th>
+                <th style="width: 140px; text-align: right;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-users">
+              <!-- Renderizado Dinamicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
 
   </main>
@@ -790,9 +881,57 @@
   </div>
 </div>
 
+<!-- MODAL NOVO / EDITAR USUÁRIO DA GESTÃO DE ACESSOS -->
+<div class="modal-backdrop hidden" id="modal-user-edit" style="z-index: 9999; backdrop-filter: blur(8px);">
+  <div class="modal-content" style="max-width: 440px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.7); border-radius: 16px; padding: 24px;">
+    <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 font-bold text-lg">
+          <i class="fa-solid fa-user-pen"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-extrabold text-white tracking-tight" id="user-modal-title">Cadastrar Usuário</h3>
+          <p class="text-xs text-slate-400">Controle de Permissões Supabase</p>
+        </div>
+      </div>
+      <button class="text-slate-400 hover:text-white transition-colors" onclick="app.closeUserModal()">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <form onsubmit="app.saveUserFromModal(event)">
+      <input type="hidden" id="user-modal-id" />
+      <div class="form-group mb-3">
+        <label class="form-label text-xs text-slate-300 font-bold">Nome Completo</label>
+        <input type="text" class="form-control text-xs py-2.5" id="user-modal-name" placeholder="Ex: Lucas Machiori" required style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
+      </div>
+
+      <div class="form-group mb-3">
+        <label class="form-label text-xs text-slate-300 font-bold">E-mail Corporativo</label>
+        <input type="email" class="form-control text-xs py-2.5" id="user-modal-email" placeholder="Ex: usuario@naturapay.net" required style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
+      </div>
+
+      <div class="form-group mb-4">
+        <label class="form-label text-xs text-slate-300 font-bold">Perfil de Acesso</label>
+        <select class="form-control text-xs py-2.5" id="user-modal-role" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;">
+          <option value="consulta">👁️ Consulta (Somente Leitura)</option>
+          <option value="admin">👨‍💻 Admin (Acesso Total)</option>
+        </select>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-white/10">
+        <button type="button" class="btn btn-secondary text-xs px-4 py-2" onclick="app.closeUserModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary text-xs px-5 py-2">
+          <i class="fa-solid fa-floppy-disk me-1.5"></i> Salvar Usuário
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=1.8.0"></script>
-<script src="app.js?v=1.8.0"></script>
+<script src="jira-sync.js?v=1.9.0"></script>
+<script src="app.js?v=1.9.0"></script>
 
 </body>
 </html>
