@@ -23,7 +23,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=1.7.0">
+    <link rel="stylesheet" href="style.css?v=1.7.1">
 </head>
 <body>
 
@@ -319,15 +319,24 @@
         </div>
       </div>
 
-      <!-- CHARTS CONTAINER -->
+      <!-- CHARTS CONTAINER (COMPACT & HARMONIOUS) -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div class="glass-panel p-6">
-          <h3 class="text-base font-bold text-white mb-4"><i class="fa-solid fa-chart-pie me-2 text-emerald-400"></i> Distribuição por Squad</h3>
-          <canvas id="chart-squad-dist" height="220"></canvas>
+        <div class="glass-panel p-5" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px;">
+          <h3 style="font-size: 12px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 12px;">
+            <i class="fa-solid fa-chart-pie me-2 text-emerald-400"></i> Distribuição por Squad
+          </h3>
+          <div style="position: relative; height: 165px; width: 100%; display: flex; align-items: center; justify-content: center;">
+            <canvas id="chart-squad-dist"></canvas>
+          </div>
         </div>
-        <div class="glass-panel p-6">
-          <h3 class="text-base font-bold text-white mb-4"><i class="fa-solid fa-chart-bar me-2 text-blue-400"></i> Status das Demandas</h3>
-          <canvas id="chart-status-dist" height="220"></canvas>
+
+        <div class="glass-panel p-5" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px;">
+          <h3 style="font-size: 12px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 12px;">
+            <i class="fa-solid fa-chart-bar me-2 text-cyan-400"></i> Status das Demandas
+          </h3>
+          <div style="position: relative; height: 165px; width: 100%;">
+            <canvas id="chart-status-dist"></canvas>
+          </div>
         </div>
       </div>
     </div>
@@ -728,8 +737,8 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=1.7.0"></script>
-<script src="app.js?v=1.7.0"></script>
+<script src="jira-sync.js?v=1.7.1"></script>
+<script src="app.js?v=1.7.1"></script>
 
 </body>
 </html>

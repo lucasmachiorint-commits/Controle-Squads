@@ -1082,7 +1082,7 @@ const app = {
   renderCharts(demands) {
     if (!demands) demands = this.getAllDashboardDemands();
 
-    // 1. Gráfico: Distribuição por Squad
+    // 1. Gráfico: Distribuição por Squad (Doughnut compacto com legenda lateral)
     const ctxSquad = document.getElementById('chart-squad-dist')?.getContext('2d');
     if (ctxSquad) {
       if (window.squadChart) window.squadChart.destroy();
@@ -1098,20 +1098,32 @@ const app = {
           datasets: [{
             data: [countDados, countOperac, countRpa],
             backgroundColor: ['#10b981', '#f59e0b', '#f43f5e'],
-            borderWidth: 2,
-            borderColor: '#0f172a'
+            borderWidth: 3,
+            borderColor: '#0f172a',
+            hoverOffset: 6
           }]
         },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
+          cutout: '70%',
           plugins: {
-            legend: { labels: { color: '#94a3b8', font: { weight: 'bold' } } }
+            legend: {
+              position: 'right',
+              labels: {
+                color: '#94a3b8',
+                font: { size: 11, weight: '600' },
+                boxWidth: 10,
+                padding: 12,
+                usePointStyle: true
+              }
+            }
           }
         }
       });
     }
 
-    // 2. Gráfico: Status das Demandas
+    // 2. Gráfico: Status das Demandas (Bar Chart elegante e compacto)
     const ctxStatus = document.getElementById('chart-status-dist')?.getContext('2d');
     if (ctxStatus) {
       if (window.statusChart) window.statusChart.destroy();
@@ -1129,17 +1141,25 @@ const app = {
             label: 'Total de Demandas',
             data: [countInProgress, countBacklog, countBlocked, countCompleted],
             backgroundColor: ['#06b6d4', '#f59e0b', '#f43f5e', '#10b981'],
-            borderRadius: 6
+            borderRadius: 6,
+            maxBarThickness: 28
           }]
         },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
           plugins: {
             legend: { display: false }
           },
           scales: {
-            x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
-            y: { ticks: { color: '#94a3b8', precision: 0 }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            x: {
+              ticks: { color: '#94a3b8', font: { size: 10, weight: '600' } },
+              grid: { display: false }
+            },
+            y: {
+              ticks: { color: '#64748b', font: { size: 10 }, precision: 0 },
+              grid: { color: 'rgba(255,255,255,0.05)' }
+            }
           }
         }
       });
