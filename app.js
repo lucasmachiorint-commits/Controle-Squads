@@ -76,38 +76,103 @@ const app = {
   async setupUserSession(user) {
     if (!user) {
       this.showAuthOverlay();
-      return;
+      return false;
     }
 
-    this.hideAuthOverlay();
     this.authUserId = user.id;
     this.userEmail = user.email || '';
     this.userName = user.email ? user.email.split('@')[0] : 'Usuário';
     this.userRole = 'consulta'; // Default
+    this.userStatus = 'ATIVO';
 
-    // Buscar perfil na tabela profiles do Supabase (mesma do Painel-OPS)
+    // Buscar perfil na tabela profiles do Supabase
     if (supabaseClient) {
       try {
         const { data: profile } = await supabaseClient
           .from('profiles')
-          .select('perfil, nome')
+          .select('perfil, nome, status')
           .eq('id', user.id)
           .maybeSingle();
         if (profile) {
           if (profile.perfil) this.userRole = profile.perfil.toLowerCase() === 'admin' ? 'admin' : 'consulta';
           if (profile.nome) this.userName = profile.nome;
+          if (profile.status) this.userStatus = profile.status.toUpperCase();
         }
       } catch (e) {
         console.warn('Aviso ao buscar perfil:', e);
-        // Fallback: verificar user_metadata
         const meta = user.user_metadata || {};
         if (meta.perfil) this.userRole = meta.perfil.toLowerCase() === 'admin' ? 'admin' : 'consulta';
         if (meta.nome) this.userName = meta.nome;
+        if (meta.status) this.userStatus = meta.status.toUpperCase();
       }
     }
 
+    // VERIFICAÇÃO DE APROVAÇÃO DO USUÁRIO
+    if (this.userStatus === 'PENDENTE' || this.userStatus === 'PENDING') {
+      this.showPendingApprovalOverlay();
+      return false;
+    }
+
+    if (this.userStatus === 'BLOQUEADO' || this.userStatus === 'REJECTED') {
+      this.showBlockedOverlay();
+      return false;
+    }
+
+    // Acesso permitido (ATIVO)
+    this.hideAuthOverlay();
     this.updateUserBadgeUI();
     this.applyRolePermissions();
+    return true;
+  },
+
+  showPendingApprovalOverlay() {
+    this.showAuthOverlay();
+    const errorEl = document.getElementById('auth-error-msg');
+    const infoEl = document.getElementById('auth-info-msg');
+    if (errorEl) errorEl.style.display = 'none';
+    if (infoEl) {
+      infoEl.innerHTML = `
+        <div style="text-align: center; padding: 6px 0;">
+          <div style="font-size: 28px; margin-bottom: 8px;">⏳</div>
+          <strong style="font-size: 0.95rem; color: #fbbf24; display: block; margin-bottom: 6px;">Cadastro Pendente de Aprovação</strong>
+          <p style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 12px; line-height: 1.4;">
+            Seu usuário (<code style="color: #34d399;">${this.userEmail}</code>) foi cadastrado com sucesso!
+            <br>Por razões de segurança, um Administrador precisa aprovar seu acesso na aba <strong>Gestão de Acessos</strong> antes de você entrar.
+          </p>
+          <div style="display: flex; gap: 8px; justify-content: center; margin-top: 10px;">
+            <button onclick="app.checkSession().then(ok => { if(ok) { app.loadLocalState(); app.loadStateFromSupabase(); app.render(); } else { alert('Seu cadastro ainda está pendente de aprovação.'); } })" class="btn btn-primary" style="padding: 6px 12px; font-size: 0.8rem;">
+              <i class="fa-solid fa-rotate-right me-1"></i> Verificar Aprovação
+            </button>
+            <button onclick="app.handleLogout()" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; border-color: rgba(244,63,94,0.3); color: #f43f5e;">
+              <i class="fa-solid fa-right-from-bracket me-1"></i> Sair
+            </button>
+          </div>
+        </div>
+      `;
+      infoEl.style.display = 'block';
+    }
+  },
+
+  showBlockedOverlay() {
+    this.showAuthOverlay();
+    const errorEl = document.getElementById('auth-error-msg');
+    const infoEl = document.getElementById('auth-info-msg');
+    if (infoEl) infoEl.style.display = 'none';
+    if (errorEl) {
+      errorEl.innerHTML = `
+        <div style="text-align: center; padding: 6px 0;">
+          <div style="font-size: 28px; margin-bottom: 8px;">🚫</div>
+          <strong style="font-size: 0.95rem; color: #f43f5e; display: block; margin-bottom: 6px;">Acesso Temporariamente Bloqueado</strong>
+          <p style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 12px;">
+            Seu perfil de acesso foi suspenso ou recusado por um Administrador. Entre em contato com a equipe de Governança Jira.
+          </p>
+          <button onclick="app.handleLogout()" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">
+            <i class="fa-solid fa-right-from-bracket me-1"></i> Voltar ao Login
+          </button>
+        </div>
+      `;
+      errorEl.style.display = 'block';
+    }
   },
 
   async handleLogin() {
@@ -143,14 +208,16 @@ const app = {
       } else {
         const user = data?.session?.user || data?.user;
         if (user) {
-          await this.setupUserSession(user);
-          this.loadLocalState();
-          await this.loadStateFromSupabase();
-          this.loadUsersState();
-          this.seedDefaultDataIfEmpty();
-          this.setupRealtimeSync();
-          this.restoreLastSyncTime();
-          this.render();
+          const isApproved = await this.setupUserSession(user);
+          if (isApproved) {
+            this.loadLocalState();
+            await this.loadStateFromSupabase();
+            this.loadUsersState();
+            this.seedDefaultDataIfEmpty();
+            this.setupRealtimeSync();
+            this.restoreLastSyncTime();
+            this.render();
+          }
         } else {
           if (errorEl) { errorEl.textContent = 'E-mail ou senha incorretos.'; errorEl.style.display = 'block'; }
         }
@@ -194,23 +261,27 @@ const app = {
     try {
       const { data, error } = await supabaseClient.auth.signUp({
         email, password,
-        options: { data: { perfil: 'CONSULTA', nome: email.split('@')[0] } }
+        options: { data: { perfil: 'CONSULTA', status: 'PENDENTE', nome: email.split('@')[0] } }
       });
       if (error) {
         if (errorEl) { errorEl.textContent = error.message; errorEl.style.display = 'block'; }
       } else {
         const user = data?.session?.user || data?.user;
-        if (user && data?.session) {
-          if (infoEl) { infoEl.textContent = 'Conta criada com sucesso!'; infoEl.style.display = 'block'; }
+        if (user) {
+          // Inserir explicitamente na tabela profiles com status PENDENTE
+          try {
+            await supabaseClient.from('profiles').upsert({
+              id: user.id,
+              nome: email.split('@')[0],
+              email: email,
+              perfil: 'CONSULTA',
+              status: 'PENDENTE'
+            });
+          } catch (_) {}
+
           await this.setupUserSession(user);
-          this.loadLocalState();
-          await this.loadStateFromSupabase();
-          this.loadUsersState();
-          this.seedDefaultDataIfEmpty();
-          this.setupRealtimeSync();
-          this.render();
         } else {
-          if (infoEl) { infoEl.textContent = 'Conta criada! Se a confirmação de e-mail estiver ativa, verifique sua caixa de entrada.'; infoEl.style.display = 'block'; }
+          if (infoEl) { infoEl.textContent = 'Conta criada com sucesso! Aguarde a aprovação do Administrador.'; infoEl.style.display = 'block'; }
         }
       }
     } catch (err) {
@@ -751,25 +822,41 @@ const app = {
     } catch (e) {}
   },
 
+  userStatusFilter: 'ALL',
+
+  setUserStatusFilter(filter) {
+    this.userStatusFilter = filter;
+    document.querySelectorAll('.filter-user-status-btn').forEach(btn => {
+      if (btn.dataset.status === filter) {
+        btn.classList.add('bg-purple-600', 'text-white', 'active');
+        btn.classList.remove('text-slate-400');
+      } else {
+        btn.classList.remove('bg-purple-600', 'text-white', 'active');
+        btn.classList.add('text-slate-400');
+      }
+    });
+    this.renderUsersTable();
+  },
+
   async renderUsersTable() {
     const tbody = document.getElementById('tbody-users');
     if (!tbody) return;
 
-    // Buscar usuários da tabela profiles do Supabase
     let users = [];
     if (supabaseClient) {
       try {
         const { data, error } = await supabaseClient
           .from('profiles')
-          .select('id, nome, perfil, email')
-          .order('nome', { ascending: true });
+          .select('id, nome, perfil, status, email, created_at')
+          .order('created_at', { ascending: false });
         if (!error && data) {
           users = data.map(p => ({
             id: p.id,
-            name: p.nome || p.email || 'Usuário',
+            name: p.nome || (p.email ? p.email.split('@')[0] : 'Usuário'),
             email: p.email || '',
             role: p.perfil ? p.perfil.toLowerCase() : 'consulta',
-            status: 'Ativo'
+            status: (p.status || 'ATIVO').toUpperCase(),
+            createdAt: p.created_at ? new Date(p.created_at).toLocaleDateString('pt-BR') : '--'
           }));
         }
       } catch (e) {
@@ -777,35 +864,57 @@ const app = {
       }
     }
 
-    // Fallback para dados locais se Supabase não retornou nada
-    if (users.length === 0) {
-      users = this.state.usersList || [];
+    if (users.length === 0 && this.state.usersList) {
+      users = this.state.usersList.map(u => ({
+        ...u,
+        status: (u.status || 'ATIVO').toUpperCase()
+      }));
     }
 
-    // Atualizar estatísticas
+    // Contadores
+    const totalCount = users.length;
+    const pendingCount = users.filter(u => u.status === 'PENDENTE' || u.status === 'PENDING').length;
+    const adminCount = users.filter(u => u.role === 'admin' && u.status === 'ATIVO').length;
+    const consultaCount = users.filter(u => u.role === 'consulta' && u.status === 'ATIVO').length;
+
     const totalEl = document.getElementById('stat-user-total');
+    const pendingEl = document.getElementById('stat-user-pending');
     const adminsEl = document.getElementById('stat-user-admins');
     const consultasEl = document.getElementById('stat-user-consultas');
+    const badgePendingFilter = document.getElementById('badge-filter-pending');
 
-    const adminCount = users.filter(u => u.role === 'admin').length;
-    const consultaCount = users.filter(u => u.role === 'consulta' || u.role === 'CONSULTA').length;
-
-    if (totalEl) totalEl.textContent = users.length;
+    if (totalEl) totalEl.textContent = totalCount;
+    if (pendingEl) pendingEl.textContent = pendingCount;
     if (adminsEl) adminsEl.textContent = adminCount;
     if (consultasEl) consultasEl.textContent = consultaCount;
 
-    // Filtro de pesquisa
+    if (badgePendingFilter) {
+      if (pendingCount > 0) {
+        badgePendingFilter.textContent = pendingCount;
+        badgePendingFilter.classList.remove('hidden');
+      } else {
+        badgePendingFilter.classList.add('hidden');
+      }
+    }
+
+    // Filtros de busca e status
     const searchInput = document.getElementById('search-users');
     const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-    const filteredUsers = users.filter(u => 
+    let filteredUsers = users.filter(u => 
       !term || (u.name || '').toLowerCase().includes(term) || (u.email || '').toLowerCase().includes(term)
     );
+
+    if (this.userStatusFilter && this.userStatusFilter !== 'ALL') {
+      filteredUsers = filteredUsers.filter(u => u.status === this.userStatusFilter);
+    }
 
     if (filteredUsers.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="6" class="text-center py-8 text-slate-400 font-semibold">Nenhum usuário encontrado.</td>
+          <td colspan="5" class="text-center py-8 text-slate-400 font-semibold">
+            ${pendingCount > 0 && this.userStatusFilter === 'PENDENTE' ? 'Nenhum cadastro pendente de aprovação no momento.' : 'Nenhum usuário encontrado.'}
+          </td>
         </tr>
       `;
       return;
@@ -813,42 +922,122 @@ const app = {
 
     const isAdminCurrentUser = this.userRole === 'admin';
 
-    tbody.innerHTML = filteredUsers.map((user, idx) => `
-      <tr class="hover:bg-white/5 transition-all">
-        <td class="font-bold text-slate-400" style="width: 50px;">${idx + 1}</td>
-        <td>
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-full ${user.role === 'admin' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-sky-500/20 text-sky-400 border border-sky-500/30'} flex items-center justify-center font-bold text-xs">
-              <i class="fa-solid ${user.role === 'admin' ? 'fa-user-shield' : 'fa-user'}"></i>
+    tbody.innerHTML = filteredUsers.map((user, idx) => {
+      let statusBadge = '';
+      if (user.status === 'PENDENTE' || user.status === 'PENDING') {
+        statusBadge = `<span class="badge text-[11px] bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold px-2.5 py-1 rounded-md"><i class="fa-solid fa-clock me-1"></i> Pendente</span>`;
+      } else if (user.status === 'BLOQUEADO') {
+        statusBadge = `<span class="badge text-[11px] bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold px-2.5 py-1 rounded-md"><i class="fa-solid fa-ban me-1"></i> Bloqueado</span>`;
+      } else {
+        statusBadge = `<span class="badge text-[11px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold px-2.5 py-1 rounded-md"><i class="fa-solid fa-check me-1"></i> Ativo</span>`;
+      }
+
+      let actionButtons = '';
+      if (isAdminCurrentUser) {
+        if (user.status === 'PENDENTE' || user.status === 'PENDING') {
+          actionButtons = `
+            <div class="flex items-center justify-end gap-1.5 flex-wrap">
+              <button onclick="app.updateUserStatus('${user.id}', 'ATIVO', 'CONSULTA')" class="btn btn-primary text-xs py-1 px-2.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition-all" title="Aprovar como Perfil Consulta">
+                <i class="fa-solid fa-check me-1"></i> Aprovar (Consulta)
+              </button>
+              <button onclick="app.updateUserStatus('${user.id}', 'ATIVO', 'ADMIN')" class="btn btn-primary text-xs py-1 px-2.5 bg-purple-500/20 text-purple-300 border border-purple-500/40 hover:bg-purple-500/30 transition-all" title="Aprovar como Administrador">
+                <i class="fa-solid fa-user-shield me-1"></i> Aprovar (Admin)
+              </button>
+              <button onclick="app.updateUserStatus('${user.id}', 'BLOQUEADO')" class="btn btn-secondary text-xs py-1 px-2 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition-all" title="Recusar Solicitação">
+                <i class="fa-solid fa-xmark me-1"></i> Recusar
+              </button>
             </div>
-            <div>
-              <div class="font-bold text-white text-xs">${user.name}</div>
-              <div class="text-[11px] text-slate-400">${user.email === this.userEmail ? '(Você)' : ''}</div>
+          `;
+        } else if (user.status === 'BLOQUEADO') {
+          actionButtons = `
+            <div class="flex items-center justify-end gap-1.5">
+              <button onclick="app.updateUserStatus('${user.id}', 'ATIVO', 'CONSULTA')" class="btn btn-secondary text-xs py-1 px-2.5 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-all">
+                <i class="fa-solid fa-unlock me-1"></i> Desbloquear
+              </button>
             </div>
-          </div>
-        </td>
-        <td class="text-slate-300 text-xs font-mono">${user.email}</td>
-        <td style="width: 200px;">
-          <select class="form-control text-xs py-1 px-2 ${isAdminCurrentUser ? '' : 'pointer-events-none opacity-60'}" 
-                  onchange="app.changeUserRoleDirectly('${user.id}', this.value)"
-                  ${isAdminCurrentUser ? '' : 'disabled="true"'}
-                  style="background: rgba(15,23,42,0.9); color:#fff; border: 1px solid ${user.role === 'admin' ? 'rgba(52,211,153,0.4)' : 'rgba(56,189,248,0.4)'}; border-radius: 6px;">
-            <option value="consulta" ${user.role === 'consulta' ? 'selected' : ''}>👁️ Consulta (Leitura)</option>
-            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>👨‍💻 Admin (Acesso Total)</option>
-          </select>
-        </td>
-        <td style="width: 140px;">
-          <span class="badge ${user.status === 'Ativo' ? 'badge-success' : 'badge-neutral'} text-[11px]">${user.status || 'Ativo'}</span>
-        </td>
-        <td style="width: 140px; text-align: right;">
-          <div class="flex items-center justify-end gap-1.5">
-            <button class="btn btn-secondary text-xs p-1.5 hover:text-purple-300 ${isAdminCurrentUser ? '' : 'hidden'}" onclick="app.openEditUserModal('${user.id}')" title="Editar Usuário">
-              <i class="fa-solid fa-pen-to-square"></i>
-            </button>
-          </div>
-        </td>
-      </tr>
-    `).join('');
+          `;
+        } else {
+          actionButtons = `
+            <div class="flex items-center justify-end gap-1.5">
+              ${user.email !== this.userEmail ? `
+                <button onclick="app.updateUserStatus('${user.id}', 'BLOQUEADO')" class="btn btn-secondary text-xs py-1 px-2 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition-all" title="Bloquear Acesso">
+                  <i class="fa-solid fa-ban me-1"></i> Bloquear
+                </button>
+              ` : '<span class="text-[11px] text-slate-500 font-semibold">Sua Conta (Ativo)</span>'}
+            </div>
+          `;
+        }
+      } else {
+        actionButtons = `<span class="text-xs text-slate-500">Requer Perfil Admin</span>`;
+      }
+
+      return `
+        <tr class="hover:bg-white/5 transition-all ${user.status === 'PENDENTE' ? 'bg-amber-500/5' : ''}">
+          <td class="font-bold text-slate-400" style="width: 45px;">${idx + 1}</td>
+          <td>
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-full ${user.role === 'admin' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'bg-sky-500/20 text-sky-400 border border-sky-500/30'} flex items-center justify-center font-bold text-xs shrink-0">
+                <i class="fa-solid ${user.role === 'admin' ? 'fa-user-shield' : 'fa-user'}"></i>
+              </div>
+              <div>
+                <div class="font-bold text-white text-xs flex items-center gap-1.5">
+                  ${user.name}
+                  ${user.email === this.userEmail ? '<span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.2 rounded border border-emerald-500/30">Você</span>' : ''}
+                </div>
+                <div class="text-[11px] text-slate-400 font-mono">${user.email}</div>
+              </div>
+            </div>
+          </td>
+          <td style="width: 170px;">
+            <select class="form-control text-xs py-1 px-2 ${isAdminCurrentUser && user.status === 'ATIVO' ? '' : 'pointer-events-none opacity-60'}" 
+                    onchange="app.changeUserRoleDirectly('${user.id}', this.value)"
+                    ${isAdminCurrentUser && user.status === 'ATIVO' ? '' : 'disabled="true"'}
+                    style="background: rgba(15,23,42,0.9); color:#fff; border: 1px solid ${user.role === 'admin' ? 'rgba(168,85,247,0.4)' : 'rgba(56,189,248,0.4)'}; border-radius: 6px;">
+              <option value="consulta" ${user.role === 'consulta' ? 'selected' : ''}>👁️ Consulta (Leitura)</option>
+              <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>👨‍💻 Admin (Total)</option>
+            </select>
+          </td>
+          <td style="width: 150px;">
+            ${statusBadge}
+          </td>
+          <td style="width: 260px; text-align: right;">
+            ${actionButtons}
+          </td>
+        </tr>
+      `;
+    }).join('');
+  },
+
+  async updateUserStatus(userId, newStatus, newRole = null) {
+    if (this.userRole !== 'admin') {
+      alert('Acesso negado: Perfil ADMIN necessário para aprovar usuários.');
+      return;
+    }
+
+    if (!supabaseClient) {
+      alert('Supabase não conectado.');
+      return;
+    }
+
+    const payload = { status: newStatus };
+    if (newRole) payload.perfil = newRole;
+
+    try {
+      const { error } = await supabaseClient
+        .from('profiles')
+        .update(payload)
+        .eq('id', userId);
+
+      if (error) {
+        alert('Erro ao atualizar usuário no Supabase: ' + error.message);
+      } else {
+        const msg = newStatus === 'ATIVO' ? '✅ Usuário aprovado e ativado com sucesso!' : '🚫 Acesso do usuário atualizado para ' + newStatus;
+        console.log(msg);
+        this.renderUsersTable();
+      }
+    } catch (err) {
+      alert('Erro ao conectar ao Supabase: ' + (err.message || ''));
+    }
   },
 
   async changeUserRoleDirectly(userId, newRole) {
