@@ -2298,9 +2298,9 @@ const app = {
         if (bannerSub) bannerSub.innerHTML = 'Quarter vigente - 3° Término <span class="text-emerald-400 font-black">30/09</span>';
         if (bannerBadge) bannerBadge.textContent = '3° Quarter';
       } else if (this.activeSquad === 'rpa') {
-        if (bannerTitle) bannerTitle.textContent = 'Quarter squad de RPA';
-        if (bannerSub) bannerSub.innerHTML = 'Quarter vigente - 3° Término <span class="text-emerald-400 font-black">30/09</span>';
-        if (bannerBadge) bannerBadge.textContent = '3° Quarter';
+        if (bannerTitle) bannerTitle.textContent = 'Squad de RPA';
+        if (bannerSub) bannerSub.innerHTML = 'Atuação por demanda';
+        if (bannerBadge) bannerBadge.textContent = 'Sob Demanda';
       } else {
         // Squad de Dados
         if (bannerTitle) bannerTitle.textContent = 'Sprint Squad de Dados (15 dias)';
