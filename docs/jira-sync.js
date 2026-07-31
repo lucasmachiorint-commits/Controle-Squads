@@ -227,7 +227,11 @@ const JiraSyncEngine = {
         targetSquadName = 'Squad de Dados';
       }
 
-      // 2. Mapeamento Inteligente das 3 Filas (Abertos -> Triagem, Em Andamento/Bloqueado -> Backlog, Concluído/Done -> Concluídos)
+      // 2. Mapeamento Estrito conforme regras de Governança
+      // A) Abertos no Jira -> Mesa de Triagem
+      // B) Em Andamento / Atribuídos no Jira -> Aba Backlog da Squad (com status 'Backlog' ou 'Bloqueado')
+      // C) Concluídos no Jira -> Aba Concluídos da Squad
+
       let targetQueue = '';
       let defaultStatus = 'Backlog';
 
@@ -237,6 +241,8 @@ const JiraSyncEngine = {
         statusLower === 'triagem' || 
         statusLower === 'novo' || 
         statusLower === 'nova' ||
+        statusLower === 'to do' ||
+        statusLower === 'a fazer' ||
         statusLower.includes('aguardando triagem') ||
         statusLower.includes('pendente triagem')
       ) {
@@ -260,18 +266,8 @@ const JiraSyncEngine = {
 
         if (statusLower.includes('bloquead') || statusLower.includes('impedid') || statusLower.includes('block') || statusLower.includes('hold')) {
           defaultStatus = 'Bloqueado';
-        } else if (
-          statusLower.includes('andamento') || 
-          statusLower.includes('in progress') || 
-          statusLower.includes('desenvolvimento') ||
-          statusLower.includes('execução') ||
-          statusLower.includes('executando') ||
-          statusLower.includes('homologação') ||
-          statusLower.includes('testes') ||
-          statusLower.includes('wip')
-        ) {
-          defaultStatus = 'Em Andamento';
         } else {
+          // Cards em andamento ou atribuídos no Jira entram na aba Backlog da Squad com status 'Backlog'
           defaultStatus = 'Backlog';
         }
       }
