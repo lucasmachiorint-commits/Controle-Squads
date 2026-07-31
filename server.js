@@ -67,7 +67,7 @@ app.get('/api/jira/consultar-cards-jira', async (req, res) => {
     // Paginação híbrida (suporta nextPageToken do Jira Cloud REST v3 e startAt/total tradicional)
     while (pageCount < maxPages) {
       pageCount++;
-      let jiraUrl = `https://${domain}/rest/api/3/search/jql?jql=${jqlQuery}&maxResults=${maxResults}&startAt=${startAt}`;
+      let jiraUrl = `https://${domain}/rest/api/3/search/jql?jql=${jqlQuery}&fields=*all&maxResults=${maxResults}&startAt=${startAt}`;
       if (nextPageToken) {
         jiraUrl += `&nextPageToken=${encodeURIComponent(nextPageToken)}`;
       }
@@ -83,7 +83,7 @@ app.get('/api/jira/consultar-cards-jira', async (req, res) => {
       let json = null;
       if (!response.ok) {
         // Fallback para o endpoint v3 clássico /rest/api/3/search se o endpoint /jql não responder
-        const fallbackUrl = `https://${domain}/rest/api/3/search?jql=${jqlQuery}&maxResults=${maxResults}&startAt=${startAt}`;
+        const fallbackUrl = `https://${domain}/rest/api/3/search?jql=${jqlQuery}&fields=*all&maxResults=${maxResults}&startAt=${startAt}`;
         const fallbackRes = await fetch(fallbackUrl, {
           method: 'GET',
           headers: { 'Authorization': authHeader, 'Accept': 'application/json' }
