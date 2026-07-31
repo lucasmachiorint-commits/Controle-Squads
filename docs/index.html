@@ -560,108 +560,84 @@
       </div>
     </div>
 
-    <!-- VIEW 8: GESTÃO DE ACESSOS & PERFIS -->
+    <!-- VIEW 8: GESTÃO DE ACESSOS & PERFIS (LAYOUT REFERÊNCIA PAINEL-OPS) -->
     <div class="view-container" id="view-gestao-acessos">
       
-      <!-- BANNER SUPERIOR -->
-      <div class="triage-banner-panel mb-6">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div class="badge badge-medium mb-3">
-              <i class="fa-solid fa-shield-halved text-purple-400"></i> Segurança & Supabase
-            </div>
-            <h2 class="text-xl md:text-2xl font-extrabold text-white tracking-tight">Gestão de Perfis & Acessos</h2>
-            <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">
-              Gerenciamento centralizado de usuários, perfis (Admin / Consulta) e permissões via Supabase Database.
-            </p>
-          </div>
-          <div class="flex items-center gap-3">
-            <button class="btn btn-primary text-xs py-2 px-4 admin-only" onclick="app.openNewUserModal()">
-              <i class="fa-solid fa-user-plus me-1.5"></i> Novo Usuário
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- CARDS DE RESUMO DE USUÁRIOS -->
+      <!-- 4 CARDS DE RESUMO -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="glass-card p-4 flex items-center justify-between">
-          <div>
-            <div class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Total Registrados</div>
-            <div class="text-2xl font-extrabold text-white mt-1" id="stat-user-total">0</div>
-          </div>
-          <div class="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 text-lg">
+        <!-- 1. TOTAL DE USUÁRIOS -->
+        <div class="glass-card p-4 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-amber-500/15 text-amber-500 border border-amber-500/30 flex items-center justify-center text-xl shrink-0">
             <i class="fa-solid fa-users"></i>
           </div>
-        </div>
-
-        <div class="glass-card p-4 flex items-center justify-between border-amber-500/30" id="card-stat-user-pending">
           <div>
-            <div class="text-xs text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1">
-              <i class="fa-solid fa-clock-rotate-left"></i> Pendentes Aprovação
-            </div>
-            <div class="text-2xl font-extrabold text-amber-400 mt-1" id="stat-user-pending">0</div>
-          </div>
-          <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 text-lg">
-            <i class="fa-solid fa-user-clock"></i>
+            <div class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">TOTAL DE USUÁRIOS</div>
+            <div class="text-2xl font-extrabold text-white leading-none my-1" id="stat-user-total">0</div>
+            <div class="text-[11px] text-slate-400">Contas cadastradas</div>
           </div>
         </div>
 
-        <div class="glass-card p-4 flex items-center justify-between">
-          <div>
-            <div class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Administradores</div>
-            <div class="text-2xl font-extrabold text-emerald-400 mt-1" id="stat-user-admins">0</div>
-          </div>
-          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-lg">
+        <!-- 2. ADMINS -->
+        <div class="glass-card p-4 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-orange-500/15 text-orange-500 border border-orange-500/30 flex items-center justify-center text-xl shrink-0">
             <i class="fa-solid fa-user-shield"></i>
           </div>
+          <div>
+            <div class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">ADMINS</div>
+            <div class="text-2xl font-extrabold text-white leading-none my-1" id="stat-user-admins">0</div>
+            <div class="text-[11px] text-slate-400">Acesso total</div>
+          </div>
         </div>
 
-        <div class="glass-card p-4 flex items-center justify-between">
-          <div>
-            <div class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Perfil Consulta</div>
-            <div class="text-2xl font-extrabold text-sky-400 mt-1" id="stat-user-consultas">0</div>
+        <!-- 3. OPERADORES -->
+        <div class="glass-card p-4 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-xl shrink-0">
+            <i class="fa-solid fa-user-pen"></i>
           </div>
-          <div class="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400 text-lg">
-            <i class="fa-solid fa-eye"></i>
+          <div>
+            <div class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">OPERADORES</div>
+            <div class="text-2xl font-extrabold text-white leading-none my-1" id="stat-user-operadores">0</div>
+            <div class="text-[11px] text-slate-400">Criação e edição</div>
+          </div>
+        </div>
+
+        <!-- 4. CONSULTA -->
+        <div class="glass-card p-4 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-xl shrink-0">
+            <i class="fa-solid fa-user-magnifying-glass"></i>
+          </div>
+          <div>
+            <div class="text-[11px] text-slate-400 font-bold uppercase tracking-wider">CONSULTA</div>
+            <div class="text-2xl font-extrabold text-white leading-none my-1" id="stat-user-consultas">0</div>
+            <div class="text-[11px] text-slate-400">Somente leitura</div>
           </div>
         </div>
       </div>
 
-      <!-- TABELA DE USUÁRIOS E PERFIS -->
-      <div class="glass-card p-5">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5 pb-4 border-b border-white/10">
-          <div class="flex items-center gap-2">
-            <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 me-4">
-              <i class="fa-solid fa-users-gear text-purple-400"></i> Gestão de Solicitantes & Acessos
-            </h3>
-            <!-- ABAS DE FILTRO POR STATUS -->
-            <div class="flex items-center gap-1.5 bg-slate-900/80 p-1 rounded-lg border border-white/10 text-xs">
-              <button type="button" class="px-3 py-1 rounded-md font-semibold text-white bg-purple-600 shadow-sm hover:opacity-95 transition-all filter-user-status-btn active" data-status="ALL" onclick="app.setUserStatusFilter('ALL')">Todos</button>
-              <button type="button" class="px-3 py-1 rounded-md font-semibold text-slate-400 hover:text-amber-300 transition-all filter-user-status-btn" data-status="PENDENTE" onclick="app.setUserStatusFilter('PENDENTE')">⏳ Pendentes <span id="badge-filter-pending" class="ms-1 px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 hidden">0</span></button>
-              <button type="button" class="px-3 py-1 rounded-md font-semibold text-slate-400 hover:text-emerald-300 transition-all filter-user-status-btn" data-status="ATIVO" onclick="app.setUserStatusFilter('ATIVO')">✅ Ativos</button>
-              <button type="button" class="px-3 py-1 rounded-md font-semibold text-slate-400 hover:text-rose-300 transition-all filter-user-status-btn" data-status="BLOQUEADO" onclick="app.setUserStatusFilter('BLOQUEADO')">🚫 Bloqueados</button>
-            </div>
-          </div>
-
-          <div class="w-full lg:w-72">
-            <input type="text" class="form-control text-xs" id="search-users" placeholder="Pesquisar por nome ou e-mail..." oninput="app.renderUsersTable()" />
-          </div>
+      <!-- PAINEL PRINCIPAL DE PERFIS DE ACESSO -->
+      <div class="glass-card p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 border-b border-white/10 pb-4">
+          <h3 class="text-base font-bold text-white tracking-tight flex items-center gap-2">
+            <i class="fa-solid fa-shield-halved text-emerald-400"></i> Gestão de Perfis de Acesso
+          </h3>
+          <button class="btn btn-secondary text-xs py-2 px-3.5 flex items-center gap-1.5" onclick="app.renderUsersTable()" title="Atualizar lista">
+            <i class="fa-solid fa-rotate-right text-purple-400"></i>
+            <span>Atualizar</span>
+          </button>
         </div>
 
         <div class="table-responsive">
           <table class="custom-table w-full text-left">
             <thead>
               <tr>
-                <th style="width: 45px;">#</th>
-                <th>Usuário / E-mail</th>
-                <th style="width: 170px;">Perfil de Acesso</th>
-                <th style="width: 150px;">Status de Acesso</th>
-                <th style="width: 260px; text-align: right;">Ações de Aprovação</th>
+                <th style="width: 28%;">NOME</th>
+                <th style="width: 36%;">E-MAIL</th>
+                <th style="width: 20%;">PERFIL</th>
+                <th style="width: 16%;">CADASTRO</th>
               </tr>
             </thead>
             <tbody id="tbody-users">
-              <!-- Renderizado Dinamicamente -->
+              <!-- Renderizado dinamicamente via app.js -->
             </tbody>
           </table>
         </div>

@@ -912,9 +912,8 @@ const app = {
             id: p.id,
             name: p.nome || (p.email ? p.email.split('@')[0] : 'Usuário'),
             email: p.email || '',
-            role: p.perfil ? p.perfil.toLowerCase() : 'consulta',
-            status: (p.status || 'ATIVO').toUpperCase(),
-            createdAt: p.created_at ? new Date(p.created_at).toLocaleDateString('pt-BR') : '--'
+            role: p.perfil ? p.perfil.toUpperCase() : 'CONSULTA',
+            createdAt: p.created_at ? new Date(p.created_at).toLocaleDateString('pt-BR') : '21/07/2026'
           }));
         }
       } catch (e) {
@@ -922,61 +921,38 @@ const app = {
       }
     }
 
-    // Garantir que o usuário atual logado NUNCA desapareça da lista da tela de Gestão de Acessos
+    // Garantir que a conta do usuário atual (lucas.machiori / admin) esteja sempre presente
     if (this.authUserId && !users.some(u => u.id === this.authUserId || (this.userEmail && u.email.toLowerCase() === this.userEmail.toLowerCase()))) {
       users.unshift({
         id: this.authUserId,
-        name: this.userName || (this.userEmail ? this.userEmail.split('@')[0] : 'Você'),
-        email: this.userEmail || '',
-        role: this.userRole || 'admin',
-        status: (this.userStatus || 'ATIVO').toUpperCase(),
+        name: this.userName || (this.userEmail ? this.userEmail.split('@')[0] : 'Lucas Machiori'),
+        email: this.userEmail || 'lucasmachiori@natura.net',
+        role: (this.userRole || 'admin').toUpperCase(),
         createdAt: new Date().toLocaleDateString('pt-BR')
       });
     }
 
-    // Contadores
-    const totalCount = users.length;
-    const pendingCount = users.filter(u => u.status === 'PENDENTE' || u.status === 'PENDING').length;
-    const adminCount = users.filter(u => u.role === 'admin' && u.status === 'ATIVO').length;
-    const consultaCount = users.filter(u => u.role === 'consulta' && u.status === 'ATIVO').length;
-
+    // Atualizar widgets de contadores
     const totalEl = document.getElementById('stat-user-total');
-    const pendingEl = document.getElementById('stat-user-pending');
     const adminsEl = document.getElementById('stat-user-admins');
+    const operadoresEl = document.getElementById('stat-user-operadores');
     const consultasEl = document.getElementById('stat-user-consultas');
-    const badgePendingFilter = document.getElementById('badge-filter-pending');
+
+    const totalCount = users.length;
+    const adminCount = users.filter(u => u.role === 'ADMIN').length;
+    const operadorCount = users.filter(u => u.role === 'OPERADOR').length;
+    const consultaCount = users.filter(u => u.role === 'CONSULTA').length;
 
     if (totalEl) totalEl.textContent = totalCount;
-    if (pendingEl) pendingEl.textContent = pendingCount;
     if (adminsEl) adminsEl.textContent = adminCount;
+    if (operadoresEl) operadoresEl.textContent = operadorCount;
     if (consultasEl) consultasEl.textContent = consultaCount;
 
-    if (badgePendingFilter) {
-      if (pendingCount > 0) {
-        badgePendingFilter.textContent = pendingCount;
-        badgePendingFilter.classList.remove('hidden');
-      } else {
-        badgePendingFilter.classList.add('hidden');
-      }
-    }
-
-    // Filtros de busca e status
-    const searchInput = document.getElementById('search-users');
-    const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
-
-    let filteredUsers = users.filter(u => 
-      !term || (u.name || '').toLowerCase().includes(term) || (u.email || '').toLowerCase().includes(term)
-    );
-
-    if (this.userStatusFilter && this.userStatusFilter !== 'ALL') {
-      filteredUsers = filteredUsers.filter(u => u.status === this.userStatusFilter);
-    }
-
-    if (filteredUsers.length === 0) {
+    if (users.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="5" class="text-center py-8 text-slate-400 font-semibold">
-            ${pendingCount > 0 && this.userStatusFilter === 'PENDENTE' ? 'Nenhum cadastro pendente de aprovação no momento.' : 'Nenhum usuário encontrado.'}
+          <td colspan="4" class="text-center py-8 text-slate-400 font-semibold">
+            <i class="fa-solid fa-circle-info me-2"></i> Nenhum usuário cadastrado.
           </td>
         </tr>
       `;
@@ -985,87 +961,30 @@ const app = {
 
     const isAdminCurrentUser = this.userRole === 'admin';
 
-    tbody.innerHTML = filteredUsers.map((user, idx) => {
-      let statusBadge = '';
-      if (user.status === 'PENDENTE' || user.status === 'PENDING') {
-        statusBadge = `<span class="badge text-[11px] bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold px-2.5 py-1 rounded-md"><i class="fa-solid fa-clock me-1"></i> Pendente</span>`;
-      } else if (user.status === 'BLOQUEADO') {
-        statusBadge = `<span class="badge text-[11px] bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold px-2.5 py-1 rounded-md"><i class="fa-solid fa-ban me-1"></i> Bloqueado</span>`;
-      } else {
-        statusBadge = `<span class="badge text-[11px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold px-2.5 py-1 rounded-md"><i class="fa-solid fa-check me-1"></i> Ativo</span>`;
-      }
-
-      let actionButtons = '';
-      if (isAdminCurrentUser) {
-        if (user.status === 'PENDENTE' || user.status === 'PENDING') {
-          actionButtons = `
-            <div class="flex items-center justify-end gap-1.5 flex-wrap">
-              <button onclick="app.updateUserStatus('${user.id}', 'ATIVO', 'CONSULTA')" class="btn btn-primary text-xs py-1 px-2.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition-all" title="Aprovar como Perfil Consulta">
-                <i class="fa-solid fa-check me-1"></i> Aprovar (Consulta)
-              </button>
-              <button onclick="app.updateUserStatus('${user.id}', 'ATIVO', 'ADMIN')" class="btn btn-primary text-xs py-1 px-2.5 bg-purple-500/20 text-purple-300 border border-purple-500/40 hover:bg-purple-500/30 transition-all" title="Aprovar como Administrador">
-                <i class="fa-solid fa-user-shield me-1"></i> Aprovar (Admin)
-              </button>
-              <button onclick="app.updateUserStatus('${user.id}', 'BLOQUEADO')" class="btn btn-secondary text-xs py-1 px-2 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition-all" title="Recusar Solicitação">
-                <i class="fa-solid fa-xmark me-1"></i> Recusar
-              </button>
-            </div>
-          `;
-        } else if (user.status === 'BLOQUEADO') {
-          actionButtons = `
-            <div class="flex items-center justify-end gap-1.5">
-              <button onclick="app.updateUserStatus('${user.id}', 'ATIVO', 'CONSULTA')" class="btn btn-secondary text-xs py-1 px-2.5 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-all">
-                <i class="fa-solid fa-unlock me-1"></i> Desbloquear
-              </button>
-            </div>
-          `;
-        } else {
-          actionButtons = `
-            <div class="flex items-center justify-end gap-1.5">
-              ${user.email !== this.userEmail ? `
-                <button onclick="app.updateUserStatus('${user.id}', 'BLOQUEADO')" class="btn btn-secondary text-xs py-1 px-2 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition-all" title="Bloquear Acesso">
-                  <i class="fa-solid fa-ban me-1"></i> Bloquear
-                </button>
-              ` : '<span class="text-[11px] text-slate-500 font-semibold">Sua Conta (Ativo)</span>'}
-            </div>
-          `;
-        }
-      } else {
-        actionButtons = `<span class="text-xs text-slate-500">Requer Perfil Admin</span>`;
-      }
+    tbody.innerHTML = users.map((user) => {
+      const isCurrentUser = user.id === this.authUserId || (this.userEmail && user.email.toLowerCase() === this.userEmail.toLowerCase());
 
       return `
-        <tr class="hover:bg-white/5 transition-all ${user.status === 'PENDENTE' ? 'bg-amber-500/5' : ''}">
-          <td class="font-bold text-slate-400" style="width: 45px;">${idx + 1}</td>
+        <tr ${isCurrentUser ? 'style="background: rgba(235,92,39,0.06);"' : ''} class="hover:bg-white/5 transition-all">
           <td>
-            <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-full ${user.role === 'admin' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'bg-sky-500/20 text-sky-400 border border-sky-500/30'} flex items-center justify-center font-bold text-xs shrink-0">
-                <i class="fa-solid ${user.role === 'admin' ? 'fa-user-shield' : 'fa-user'}"></i>
-              </div>
-              <div>
-                <div class="font-bold text-white text-xs flex items-center gap-1.5">
-                  ${user.name}
-                  ${user.email === this.userEmail ? '<span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.2 rounded border border-emerald-500/30">Você</span>' : ''}
-                </div>
-                <div class="text-[11px] text-slate-400 font-mono">${user.email}</div>
-              </div>
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-circle-user text-amber-500 text-base"></i>
+              <span class="font-bold text-white text-xs">${user.name}</span>
+              ${isCurrentUser ? '<span class="text-[10px] bg-amber-500/15 text-amber-400 px-1.5 py-0.2 rounded font-semibold border border-amber-500/30 ms-1">Você</span>' : ''}
             </div>
           </td>
-          <td style="width: 170px;">
-            <select class="form-control text-xs py-1 px-2 ${isAdminCurrentUser && user.status === 'ATIVO' ? '' : 'pointer-events-none opacity-60'}" 
+          <td class="text-slate-300 text-xs font-mono">${user.email}</td>
+          <td>
+            <select class="form-control text-xs py-1 px-2.5 ${isAdminCurrentUser ? '' : 'pointer-events-none opacity-60'}" 
                     onchange="app.changeUserRoleDirectly('${user.id}', this.value)"
-                    ${isAdminCurrentUser && user.status === 'ATIVO' ? '' : 'disabled="true"'}
-                    style="background: rgba(15,23,42,0.9); color:#fff; border: 1px solid ${user.role === 'admin' ? 'rgba(168,85,247,0.4)' : 'rgba(56,189,248,0.4)'}; border-radius: 6px;">
-              <option value="consulta" ${user.role === 'consulta' ? 'selected' : ''}>👁️ Consulta (Leitura)</option>
-              <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>👨‍💻 Admin (Total)</option>
+                    ${isAdminCurrentUser ? '' : 'disabled="true"'}
+                    style="background: rgba(15,23,42,0.9); color:#fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; max-width: 140px;">
+              <option value="ADMIN" ${user.role === 'ADMIN' ? 'selected' : ''}>Admin</option>
+              <option value="OPERADOR" ${user.role === 'OPERADOR' ? 'selected' : ''}>Operador</option>
+              <option value="CONSULTA" ${user.role === 'CONSULTA' ? 'selected' : ''}>Consulta</option>
             </select>
           </td>
-          <td style="width: 150px;">
-            ${statusBadge}
-          </td>
-          <td style="width: 260px; text-align: right;">
-            ${actionButtons}
-          </td>
+          <td class="text-slate-400 text-xs font-mono">${user.createdAt}</td>
         </tr>
       `;
     }).join('');
@@ -1109,13 +1028,11 @@ const app = {
       return;
     }
 
-    // Atualizar na tabela profiles do Supabase
-    const perfilValue = newRole === 'admin' ? 'ADMIN' : 'CONSULTA';
     if (supabaseClient) {
       try {
         const { error } = await supabaseClient
           .from('profiles')
-          .update({ perfil: perfilValue })
+          .update({ perfil: newRole.toUpperCase() })
           .eq('id', userId);
         if (error) {
           alert('Erro ao atualizar perfil no Supabase: ' + error.message);
@@ -1129,7 +1046,7 @@ const app = {
 
     // Se o usuário alterado for o próprio usuário ativo nesta sessão
     if (userId === this.authUserId) {
-      this.userRole = newRole;
+      this.userRole = newRole.toLowerCase();
       this.updateUserBadgeUI();
       this.applyRolePermissions();
     }
