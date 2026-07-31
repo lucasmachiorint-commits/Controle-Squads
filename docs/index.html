@@ -93,16 +93,8 @@
         <h1 class="header-title" id="page-title">Mesa de Triagem & Governança Jira</h1>
       </div>
 
-      <!-- BADGE DE PERFIL E BOTÕES LIMPAR / SINCRONIZAR -->
+      <!-- BOTÕES LIMPAR / SINCRONIZAR (À ESQUERDA) E BADGE DE PERFIL / SAIR (À DIREITA) -->
       <div class="flex items-center gap-3">
-        <div class="user-profile-badge flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-slate-200 cursor-default" id="user-profile-badge" title="Usuário autenticado via Supabase">
-          <i class="fa-solid fa-user-shield text-emerald-400" id="user-role-icon"></i>
-          <span id="user-display-info" class="font-semibold">Carregando...</span>
-          <button onclick="app.handleLogout()" title="Sair do sistema" style="background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; border-radius: 6px; padding: 2px 8px; cursor: pointer; font-size: 11px; display: flex; align-items: center; gap: 4px; transition: all 0.2s; margin-left: 6px;" onmouseover="this.style.background='rgba(244,63,94,0.12)';this.style.color='#f43f5e';this.style.borderColor='rgba(244,63,94,0.3)'" onmouseout="this.style.background='transparent';this.style.color='#94a3b8';this.style.borderColor='rgba(255,255,255,0.1)'">
-            <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
-          </button>
-        </div>
-
         <button class="btn btn-secondary text-xs py-2 px-3 border-rose-500/30 hover:bg-rose-500/20 text-rose-300 admin-only" id="btn-clear-cards" onclick="app.clearAllCards()">
           <i class="fa-solid fa-trash-can me-1 text-rose-400"></i>
           <span>Limpar Cards</span>
@@ -111,6 +103,15 @@
           <i class="fa-solid fa-rotate-right me-1" id="icon-spin-jira"></i>
           <span>🔄 Sincronizar com Jira</span>
         </button>
+
+        <div class="user-profile-badge inline-flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-white/10 text-xs text-slate-200 shrink-0 whitespace-nowrap shadow-sm" id="user-profile-badge" title="Usuário autenticado via Supabase">
+          <i class="fa-solid fa-user-shield text-emerald-400 text-sm" id="user-role-icon"></i>
+          <span id="user-display-info" class="font-semibold text-slate-200">Carregando...</span>
+          <button onclick="app.handleLogout()" title="Sair do sistema" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-white/10 hover:border-rose-500/30 text-[11px] font-semibold transition-all cursor-pointer ms-1">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            <span>Sair</span>
+          </button>
+        </div>
       </div>
     </header>
 
