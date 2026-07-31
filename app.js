@@ -903,7 +903,8 @@ const app = {
       try {
         const { data, error } = await supabaseClient
           .from('profiles')
-          .select('*');
+          .select('*')
+          .order('created_at', { ascending: false });
 
         if (error) {
           console.warn('[renderUsersTable Supabase Warning]', error.message);
@@ -913,7 +914,8 @@ const app = {
             name: p.nome || (p.email ? p.email.split('@')[0] : 'Usuário'),
             email: p.email || '',
             role: p.perfil ? p.perfil.toUpperCase() : 'CONSULTA',
-            createdAt: p.created_at ? new Date(p.created_at).toLocaleDateString('pt-BR') : '21/07/2026'
+            status: (p.status || 'ATIVO').toUpperCase(),
+            createdAt: p.created_at ? new Date(p.created_at).toLocaleDateString('pt-BR') : '--'
           }));
         }
       } catch (e) {
@@ -928,6 +930,7 @@ const app = {
         name: this.userName || (this.userEmail ? this.userEmail.split('@')[0] : 'Lucas Machiori'),
         email: this.userEmail || 'lucasmachiori@natura.net',
         role: (this.userRole || 'admin').toUpperCase(),
+        status: (this.userStatus || 'ATIVO').toUpperCase(),
         createdAt: new Date().toLocaleDateString('pt-BR')
       });
     }
@@ -951,7 +954,7 @@ const app = {
     if (users.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="4" class="text-center py-8 text-slate-400 font-semibold">
+          <td colspan="6" class="text-center py-8 text-slate-400 font-semibold">
             <i class="fa-solid fa-circle-info me-2"></i> Nenhum usuário cadastrado.
           </td>
         </tr>
@@ -963,6 +966,51 @@ const app = {
 
     tbody.innerHTML = users.map((user) => {
       const isCurrentUser = user.id === this.authUserId || (this.userEmail && user.email.toLowerCase() === this.userEmail.toLowerCase());
+
+      let statusBadge = '';
+      if (user.status === 'PENDENTE' || user.status === 'PENDING') {
+        statusBadge = `<span class="badge text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold px-2 py-0.5 rounded"><i class="fa-solid fa-clock me-1"></i> Pendente</span>`;
+      } else if (user.status === 'BLOQUEADO') {
+        statusBadge = `<span class="badge text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold px-2 py-0.5 rounded"><i class="fa-solid fa-ban me-1"></i> Bloqueado</span>`;
+      } else {
+        statusBadge = `<span class="badge text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold px-2 py-0.5 rounded"><i class="fa-solid fa-check me-1"></i> Ativo</span>`;
+      }
+
+      let approvalButtons = '';
+      if (isAdminCurrentUser) {
+        if (user.status === 'PENDENTE' || user.status === 'PENDING') {
+          approvalButtons = `
+            <div class="flex items-center justify-end gap-1">
+              <button onclick="app.updateUserStatus('${user.id}', 'ATIVO')" class="btn btn-primary text-[11px] py-1 px-2.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30" title="Aprovar Cadastro">
+                <i class="fa-solid fa-check me-1"></i> Aprovar
+              </button>
+              <button onclick="app.updateUserStatus('${user.id}', 'BLOQUEADO')" class="btn btn-secondary text-[11px] py-1 px-2 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30" title="Recusar Solicitação">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          `;
+        } else if (user.status === 'BLOQUEADO') {
+          approvalButtons = `
+            <div class="flex items-center justify-end">
+              <button onclick="app.updateUserStatus('${user.id}', 'ATIVO')" class="btn btn-secondary text-[11px] py-1 px-2 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <i class="fa-solid fa-unlock me-1"></i> Desbloquear
+              </button>
+            </div>
+          `;
+        } else {
+          approvalButtons = `
+            <div class="flex items-center justify-end">
+              ${!isCurrentUser ? `
+                <button onclick="app.updateUserStatus('${user.id}', 'BLOQUEADO')" class="btn btn-secondary text-[11px] py-1 px-2 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30" title="Bloquear Acesso">
+                  <i class="fa-solid fa-ban me-1"></i> Bloquear
+                </button>
+              ` : '<span class="text-[10px] text-slate-500 font-semibold">Sua Conta</span>'}
+            </div>
+          `;
+        }
+      } else {
+        approvalButtons = `<span class="text-[11px] text-slate-500">Somente Admin</span>`;
+      }
 
       return `
         <tr ${isCurrentUser ? 'style="background: rgba(235,92,39,0.06);"' : ''} class="hover:bg-white/5 transition-all">
@@ -978,13 +1026,15 @@ const app = {
             <select class="form-control text-xs py-1 px-2.5 ${isAdminCurrentUser ? '' : 'pointer-events-none opacity-60'}" 
                     onchange="app.changeUserRoleDirectly('${user.id}', this.value)"
                     ${isAdminCurrentUser ? '' : 'disabled="true"'}
-                    style="background: rgba(15,23,42,0.9); color:#fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; max-width: 140px;">
+                    style="background: rgba(15,23,42,0.9); color:#fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; max-width: 130px;">
               <option value="ADMIN" ${user.role === 'ADMIN' ? 'selected' : ''}>Admin</option>
               <option value="OPERADOR" ${user.role === 'OPERADOR' ? 'selected' : ''}>Operador</option>
               <option value="CONSULTA" ${user.role === 'CONSULTA' ? 'selected' : ''}>Consulta</option>
             </select>
           </td>
           <td class="text-slate-400 text-xs font-mono">${user.createdAt}</td>
+          <td>${statusBadge}</td>
+          <td style="text-align: right;">${approvalButtons}</td>
         </tr>
       `;
     }).join('');

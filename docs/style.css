@@ -1138,6 +1138,54 @@ body {
   box-shadow: 0 0 12px rgba(244, 63, 94, 0.35) !important;
 }
 
+/* Grid e Cards dos Painéis de Indicadores de Acesso */
+.access-widgets-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1024px) {
+  .access-widgets-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .access-widgets-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Card 1: Total de Usuários (Cyan/Sky Border & Glow) */
+.access-widget-total {
+  border: 1px solid rgba(56, 189, 248, 0.4) !important;
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.9) 0%, rgba(14, 165, 233, 0.08) 100%) !important;
+  box-shadow: 0 4px 20px rgba(14, 165, 233, 0.12) !important;
+}
+
+/* Card 2: Admins (Orange/Amber Border & Glow) */
+.access-widget-admins {
+  border: 1px solid rgba(245, 158, 11, 0.4) !important;
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.9) 0%, rgba(245, 158, 11, 0.08) 100%) !important;
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.12) !important;
+}
+
+/* Card 3: Operadores (Indigo/Purple Border & Glow) */
+.access-widget-operadores {
+  border: 1px solid rgba(168, 85, 247, 0.4) !important;
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.9) 0%, rgba(168, 85, 247, 0.08) 100%) !important;
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.12) !important;
+}
+
+/* Card 4: Consulta (Emerald/Green Border & Glow) */
+.access-widget-consultas {
+  border: 1px solid rgba(16, 185, 129, 0.4) !important;
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.9) 0%, rgba(16, 185, 129, 0.08) 100%) !important;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.12) !important;
+}
+
 /* Sidebar Footer & Theme Toggle (Extremidade Inferior Esquerda - Ícone Minimalista) */
 .sidebar-footer {
   margin-top: auto;
