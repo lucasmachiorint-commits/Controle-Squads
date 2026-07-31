@@ -245,8 +245,8 @@
     <!-- VIEW 2: DASHBOARD CONSOLIDADO -->
     <div class="view-container" id="view-dashboard">
       
-      <!-- PAINEL DE FILTROS AVANÇADOS E MÉTRICAS DO DASHBOARD -->
-      <div class="glass-panel mb-6" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 24px !important;">
+      <!-- PAINEL 1: FILTROS AVANÇADOS DO DASHBOARD -->
+      <div class="glass-panel" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 24px !important; margin-bottom: 28px !important;">
         <!-- Cabeçalho dos Filtros -->
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
           <h3 style="font-size: 13px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.8px; margin: 0; padding-top: 2px;">
@@ -258,7 +258,7 @@
         </div>
 
         <!-- Linha de Controles de Seleção -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: end; margin-bottom: 24px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: end;">
           <!-- 1. Filtro por Squad -->
           <div>
             <label style="color: #94a3b8; display: block; font-size: 11px; margin-bottom: 8px; font-weight: 700;">Filtrar por Squad:</label>
@@ -307,65 +307,63 @@
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- DIVISOR LIMPO E 4 MÉTRICAS PERFEITAMENTE AFASTADAS -->
-        <div class="border-t border-white/10 pt-5">
-          <div class="grid-metrics" style="margin-bottom: 0;">
-            <!-- 1. Em Andamento -->
-            <div class="glass-panel metric-card">
-              <div>
-                <div class="metric-val text-cyan-400" id="dash-total-in-progress">0</div>
-                <div class="metric-lbl">Total Em Andamento</div>
-              </div>
-              <div class="metric-icon bg-cyan-500/20 text-cyan-400"><i class="fa-solid fa-spinner fa-spin-pulse"></i></div>
-            </div>
-
-            <!-- 2. Em Backlog -->
-            <div class="glass-panel metric-card">
-              <div>
-                <div class="metric-val text-amber-400" id="dash-total-backlog">0</div>
-                <div class="metric-lbl">Total em Backlog</div>
-              </div>
-              <div class="metric-icon bg-amber-500/20 text-amber-400"><i class="fa-solid fa-list-check"></i></div>
-            </div>
-
-            <!-- 3. Com Bloqueio -->
-            <div class="glass-panel metric-card">
-              <div>
-                <div class="metric-val text-rose-400" id="dash-total-blocked">0</div>
-                <div class="metric-lbl">Total com Bloqueio</div>
-              </div>
-              <div class="metric-icon bg-rose-500/20 text-rose-400"><i class="fa-solid fa-ban"></i></div>
-            </div>
-
-            <!-- 4. Total Concluídos -->
-            <div class="glass-panel metric-card">
-              <div>
-                <div class="metric-val text-emerald-400" id="dash-total-completed">0</div>
-                <div class="metric-lbl">Total Concluídos</div>
-              </div>
-              <div class="metric-icon bg-emerald-500/20 text-emerald-400"><i class="fa-solid fa-circle-check"></i></div>
-            </div>
+      <!-- PAINEL 2: AS 4 MÉTRICAS PRINCIPAIS (SEPARADAS COM MARGEM DE 28px) -->
+      <div class="grid-metrics" style="margin-bottom: 28px !important; gap: 20px !important;">
+        <!-- 1. Em Andamento -->
+        <div class="glass-panel metric-card" style="margin-bottom: 0 !important;">
+          <div>
+            <div class="metric-val text-cyan-400" id="dash-total-in-progress">0</div>
+            <div class="metric-lbl">Total Em Andamento</div>
           </div>
+          <div class="metric-icon bg-cyan-500/20 text-cyan-400"><i class="fa-solid fa-spinner fa-spin-pulse"></i></div>
+        </div>
+
+        <!-- 2. Em Backlog -->
+        <div class="glass-panel metric-card" style="margin-bottom: 0 !important;">
+          <div>
+            <div class="metric-val text-amber-400" id="dash-total-backlog">0</div>
+            <div class="metric-lbl">Total em Backlog</div>
+          </div>
+          <div class="metric-icon bg-amber-500/20 text-amber-400"><i class="fa-solid fa-list-check"></i></div>
+        </div>
+
+        <!-- 3. Com Bloqueio -->
+        <div class="glass-panel metric-card" style="margin-bottom: 0 !important;">
+          <div>
+            <div class="metric-val text-rose-400" id="dash-total-blocked">0</div>
+            <div class="metric-lbl">Total com Bloqueio</div>
+          </div>
+          <div class="metric-icon bg-rose-500/20 text-rose-400"><i class="fa-solid fa-ban"></i></div>
+        </div>
+
+        <!-- 4. Total Concluídos -->
+        <div class="glass-panel metric-card" style="margin-bottom: 0 !important;">
+          <div>
+            <div class="metric-val text-emerald-400" id="dash-total-completed">0</div>
+            <div class="metric-lbl">Total Concluídos</div>
+          </div>
+          <div class="metric-icon bg-emerald-500/20 text-emerald-400"><i class="fa-solid fa-circle-check"></i></div>
         </div>
       </div>
 
-      <!-- CHARTS CONTAINER (COM PADDING 24px E ALINHAMENTO IMPECÁVEL) -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div class="glass-panel" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 24px !important; margin-bottom: 24px !important;">
+      <!-- PAINEL 3: GRÁFICOS DE DISTRIBUIÇÃO E STATUS (COM MARGEM E GAP DE 28px) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6" style="margin-bottom: 28px !important; gap: 24px !important;">
+        <div class="glass-panel" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 24px !important; margin-bottom: 0 !important;">
           <h3 style="font-size: 13px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 16px; margin-top: 0; padding-top: 2px;">
             <i class="fa-solid fa-chart-pie me-2 text-emerald-400"></i> Distribuição por Squad
           </h3>
-          <div style="position: relative; height: 175px; width: 100%; display: flex; align-items: center; justify-content: center;">
+          <div style="position: relative; height: 180px; width: 100%; display: flex; align-items: center; justify-content: center;">
             <canvas id="chart-squad-dist"></canvas>
           </div>
         </div>
 
-        <div class="glass-panel" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 24px !important; margin-bottom: 24px !important;">
+        <div class="glass-panel" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 24px !important; margin-bottom: 0 !important;">
           <h3 style="font-size: 13px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 16px; margin-top: 0; padding-top: 2px;">
             <i class="fa-solid fa-chart-bar me-2 text-cyan-400"></i> Status das Demandas
           </h3>
-          <div style="position: relative; height: 175px; width: 100%;">
+          <div style="position: relative; height: 180px; width: 100%;">
             <canvas id="chart-status-dist"></canvas>
           </div>
         </div>
