@@ -920,48 +920,228 @@ const app = {
     }
   },
 
-  // RENDER: Dashboard Consolidado
-  renderDashboardView() {
-    let totalMembers = 0;
-    let activeMembers = 0;
-    let totalPending = 0;
-    let totalCompleted = 0;
-
-    ['dados', 'operacoes', 'rpa'].forEach(id => {
-      const resList = this.state.resources[id] || [];
-      totalMembers += resList.length;
-      activeMembers += resList.filter(r => r.status === 'Ativo').length;
-      totalPending += (this.state.backlogItems[id] || []).length;
-      totalCompleted += (this.state.completedTasks[id] || []).length;
-    });
-
-    document.getElementById('dash-total-members').textContent = totalMembers;
-    document.getElementById('dash-active-members').textContent = activeMembers;
-    document.getElementById('dash-pending-backlog').textContent = totalPending;
-    document.getElementById('dash-total-completed').textContent = totalCompleted;
-
-    this.renderCharts();
+  // Parseador robusto de datas para chamados e entregas
+  parseItemDate(dateStr) {
+    if (!dateStr) return null;
+    if (typeof dateStr === 'number') return new Date(dateStr);
+    
+    const str = String(dateStr).trim();
+    if (str.includes('/')) {
+      const parts = str.split('/');
+      if (parts.length === 3) {
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        let year = parseInt(parts[2], 10);
+        if (year < 100) year += 2000;
+        return new Date(year, month, day);
+      }
+    }
+    const d = new Date(str);
+    return isNaN(d.getTime()) ? null : d;
   },
 
-  renderCharts() {
-    // Gráfico de Distribuição por Squad
+  // Agrupar todos os chamados das 3 squads para análise consolidada
+  getAllDashboardDemands() {
+    let allDemands = [];
+    ['dados', 'operacoes', 'rpa'].forEach(squadId => {
+      // 1. Demanda em Backlog / Em Andamento / Bloqueado
+      (this.state.backlogItems[squadId] || []).forEach(item => {
+        allDemands.push({
+          ...item,
+          squadId,
+          itemType: 'active'
+        });
+      });
+
+      // 2. Demandas Concluídas
+      (this.state.completedTasks[squadId] || []).forEach(item => {
+        allDemands.push({
+          ...item,
+          squadId,
+          status: 'Concluído',
+          itemType: 'completed'
+        });
+      });
+    });
+    return allDemands;
+  },
+
+  // Limpar todos os filtros do Dashboard
+  clearDashboardFilters() {
+    const sSquad = document.getElementById('dash-filter-squad');
+    const sStatus = document.getElementById('dash-filter-status');
+    const sPeriod = document.getElementById('dash-filter-period');
+    const dFrom = document.getElementById('dash-date-from');
+    const dTo = document.getElementById('dash-date-to');
+
+    if (sSquad) sSquad.value = 'all';
+    if (sStatus) sStatus.value = 'all';
+    if (sPeriod) sPeriod.value = 'all';
+    if (dFrom) dFrom.value = '';
+    if (dTo) dTo.value = '';
+
+    this.renderDashboardView();
+  },
+
+  // RENDER: Dashboard Consolidado com Filtros Dinâmicos por Squad, Status e Período
+  renderDashboardView() {
+    const squadFilter = document.getElementById('dash-filter-squad')?.value || 'all';
+    const statusFilter = document.getElementById('dash-filter-status')?.value || 'all';
+    const periodFilter = document.getElementById('dash-filter-period')?.value || 'all';
+
+    // Se seleção customizada, exibir/ocultar contêiner de De/Até
+    const customContainer = document.getElementById('dash-custom-date-container');
+    if (customContainer) {
+      if (periodFilter === 'custom') {
+        customContainer.classList.remove('hidden');
+        customContainer.style.display = 'flex';
+      } else {
+        customContainer.classList.add('hidden');
+        customContainer.style.display = 'none';
+      }
+    }
+
+    const dateFromStr = document.getElementById('dash-date-from')?.value;
+    const dateToStr = document.getElementById('dash-date-to')?.value;
+
+    const dateFrom = dateFromStr ? new Date(dateFromStr + 'T00:00:00') : null;
+    const dateTo = dateToStr ? new Date(dateToStr + 'T23:59:59') : null;
+
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
+    const dayOfWeek = now.getDay() === 0 ? 7 : now.getDay();
+    const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (dayOfWeek - 1), 0, 0, 0);
+
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+    const yearStart = new Date(now.getFullYear(), 0, 1, 0, 0, 0);
+
+    let demands = this.getAllDashboardDemands();
+
+    // 1. Filtro por Squad (dados, operacoes, rpa)
+    if (squadFilter !== 'all') {
+      demands = demands.filter(d => d.squadId === squadFilter);
+    }
+
+    // 2. Filtro por Status (Em Andamento, Backlog, Bloqueado, Concluído)
+    if (statusFilter !== 'all') {
+      demands = demands.filter(d => {
+        if (statusFilter === 'Concluído') return d.status === 'Concluído' || d.status === 'Concluido' || d.itemType === 'completed';
+        if (statusFilter === 'Em Andamento') return d.status === 'Em Andamento';
+        if (statusFilter === 'Backlog') return d.status === 'Backlog';
+        if (statusFilter === 'Bloqueado') return d.status === 'Bloqueado';
+        return d.status === statusFilter;
+      });
+    }
+
+    // 3. Filtro por Período (Hoje, Esta Semana, Este Mês, Este Ano, Custom)
+    if (periodFilter !== 'all') {
+      demands = demands.filter(d => {
+        const dateObj = this.parseItemDate(d.createdDate || d.date || d.createdAt || d.completionDate);
+        if (!dateObj) return true;
+
+        if (periodFilter === 'today') {
+          return dateObj >= todayStart && dateObj <= todayEnd;
+        } else if (periodFilter === 'week') {
+          return dateObj >= weekStart;
+        } else if (periodFilter === 'month') {
+          return dateObj >= monthStart;
+        } else if (periodFilter === 'year') {
+          return dateObj >= yearStart;
+        } else if (periodFilter === 'custom') {
+          if (dateFrom && dateObj < dateFrom) return false;
+          if (dateTo && dateObj > dateTo) return false;
+          return true;
+        }
+        return true;
+      });
+    }
+
+    // Calcular as 4 Métricas Consolidadas
+    const inProgressCount = demands.filter(d => d.status === 'Em Andamento').length;
+    const backlogCount = demands.filter(d => d.status === 'Backlog').length;
+    const blockedCount = demands.filter(d => d.status === 'Bloqueado').length;
+    const completedCount = demands.filter(d => d.status === 'Concluído' || d.status === 'Concluido' || d.itemType === 'completed').length;
+
+    // Atualizar os 4 quadros do Dashboard
+    const elInProgress = document.getElementById('dash-total-in-progress');
+    const elBacklog = document.getElementById('dash-total-backlog');
+    const elBlocked = document.getElementById('dash-total-blocked');
+    const elCompleted = document.getElementById('dash-total-completed');
+
+    if (elInProgress) elInProgress.textContent = inProgressCount;
+    if (elBacklog) elBacklog.textContent = backlogCount;
+    if (elBlocked) elBlocked.textContent = blockedCount;
+    if (elCompleted) elCompleted.textContent = completedCount;
+
+    // Renderizar Gráficos com Dados Filtrados
+    this.renderCharts(demands);
+  },
+
+  renderCharts(demands) {
+    if (!demands) demands = this.getAllDashboardDemands();
+
+    // 1. Gráfico: Distribuição por Squad
     const ctxSquad = document.getElementById('chart-squad-dist')?.getContext('2d');
     if (ctxSquad) {
       if (window.squadChart) window.squadChart.destroy();
+
+      const countDados = demands.filter(d => d.squadId === 'dados').length;
+      const countOperac = demands.filter(d => d.squadId === 'operacoes').length;
+      const countRpa = demands.filter(d => d.squadId === 'rpa').length;
+
       window.squadChart = new Chart(ctxSquad, {
         type: 'doughnut',
         data: {
           labels: ['Squad de Dados', 'Squad de Operações', 'Squad de RPA'],
           datasets: [{
-            data: [
-              (this.state.backlogItems.dados || []).length,
-              (this.state.backlogItems.operacoes || []).length,
-              (this.state.backlogItems.rpa || []).length
-            ],
-            backgroundColor: ['#00B074', '#FF5E00', '#E31C79']
+            data: [countDados, countOperac, countRpa],
+            backgroundColor: ['#10b981', '#f59e0b', '#f43f5e'],
+            borderWidth: 2,
+            borderColor: '#0f172a'
           }]
         },
-        options: { responsive: true, plugins: { legend: { labels: { color: '#94a3b8' } } } }
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: '#94a3b8', font: { weight: 'bold' } } }
+          }
+        }
+      });
+    }
+
+    // 2. Gráfico: Status das Demandas
+    const ctxStatus = document.getElementById('chart-status-dist')?.getContext('2d');
+    if (ctxStatus) {
+      if (window.statusChart) window.statusChart.destroy();
+
+      const countInProgress = demands.filter(d => d.status === 'Em Andamento').length;
+      const countBacklog = demands.filter(d => d.status === 'Backlog').length;
+      const countBlocked = demands.filter(d => d.status === 'Bloqueado').length;
+      const countCompleted = demands.filter(d => d.status === 'Concluído' || d.status === 'Concluido' || d.itemType === 'completed').length;
+
+      window.statusChart = new Chart(ctxStatus, {
+        type: 'bar',
+        data: {
+          labels: ['Em Andamento', 'Backlog', 'Bloqueado', 'Concluído'],
+          datasets: [{
+            label: 'Total de Demandas',
+            data: [countInProgress, countBacklog, countBlocked, countCompleted],
+            backgroundColor: ['#06b6d4', '#f59e0b', '#f43f5e', '#10b981'],
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8', precision: 0 }, grid: { color: 'rgba(255,255,255,0.05)' } }
+          }
+        }
       });
     }
   },

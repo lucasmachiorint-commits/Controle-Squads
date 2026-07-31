@@ -23,7 +23,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=1.6.2">
+    <link rel="stylesheet" href="style.css?v=1.7.0">
 </head>
 <body>
 
@@ -217,35 +217,103 @@
 
     <!-- VIEW 2: DASHBOARD CONSOLIDADO -->
     <div class="view-container" id="view-dashboard">
-      <div class="grid-metrics">
-        <div class="glass-panel metric-card">
-          <div>
-            <div class="metric-val" id="dash-total-members">0</div>
-            <div class="metric-lbl">Total de Chamados</div>
-          </div>
-          <div class="metric-icon bg-blue-500/20 text-blue-400"><i class="fa-solid fa-folder-open"></i></div>
+      
+      <!-- PAINEL DE FILTROS AVANÇADOS DO DASHBOARD -->
+      <div class="glass-panel p-5 mb-6" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px;">
+          <h3 style="font-size: 14px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">
+            <i class="fa-solid fa-filter text-emerald-400 me-2"></i> Filtros do Dashboard Consolidado
+          </h3>
+          <button type="button" class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.clearDashboardFilters()">
+            <i class="fa-solid fa-rotate-left me-1"></i> Limpar Filtros
+          </button>
         </div>
 
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; align-items: end;">
+          <!-- 1. Filtro por Squad -->
+          <div>
+            <label style="color: #94a3b8; display: block; font-size: 11px; margin-bottom: 4px; font-weight: 700;">Filtrar por Squad:</label>
+            <select id="dash-filter-squad" style="width: 100%; padding: 8px 10px; font-size: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; border-radius: 8px; outline: none;" onchange="app.renderDashboardView()">
+              <option value="all">Todas as Squads (Dados, Operações, RPA)</option>
+              <option value="dados">Squad de Dados</option>
+              <option value="operacoes">Squad de Operações</option>
+              <option value="rpa">Squad de RPA</option>
+            </select>
+          </div>
+
+          <!-- 2. Filtro por Status -->
+          <div>
+            <label style="color: #94a3b8; display: block; font-size: 11px; margin-bottom: 4px; font-weight: 700;">Filtrar por Status:</label>
+            <select id="dash-filter-status" style="width: 100%; padding: 8px 10px; font-size: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; border-radius: 8px; outline: none;" onchange="app.renderDashboardView()">
+              <option value="all">Todos os Status</option>
+              <option value="Em Andamento">Em Andamento</option>
+              <option value="Backlog">Backlog</option>
+              <option value="Bloqueado">Bloqueado</option>
+              <option value="Concluído">Concluído</option>
+            </select>
+          </div>
+
+          <!-- 3. Período Customizável -->
+          <div>
+            <label style="color: #94a3b8; display: block; font-size: 11px; margin-bottom: 4px; font-weight: 700;">Período Temporal:</label>
+            <select id="dash-filter-period" style="width: 100%; padding: 8px 10px; font-size: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; border-radius: 8px; outline: none;" onchange="app.renderDashboardView()">
+              <option value="all">Todo o Período</option>
+              <option value="today">Hoje (Dia)</option>
+              <option value="week">Esta Semana</option>
+              <option value="month">Este Mês</option>
+              <option value="year">Este Ano</option>
+              <option value="custom">De xxxx Até xxxx (Personalizado)</option>
+            </select>
+          </div>
+
+          <!-- 4. Seleção Customizada de Data (De / Até) -->
+          <div id="dash-custom-date-container" class="hidden" style="display: flex; gap: 8px; width: 100%;">
+            <div style="flex: 1;">
+              <label style="color: #94a3b8; display: block; font-size: 10px; margin-bottom: 4px; font-weight: 700;">De (Data Inicial):</label>
+              <input type="date" id="dash-date-from" style="width: 100%; padding: 7px 8px; font-size: 11px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #34d399; border-radius: 8px; outline: none;" onchange="app.renderDashboardView()" />
+            </div>
+            <div style="flex: 1;">
+              <label style="color: #94a3b8; display: block; font-size: 10px; margin-bottom: 4px; font-weight: 700;">Até (Data Final):</label>
+              <input type="date" id="dash-date-to" style="width: 100%; padding: 7px 8px; font-size: 11px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #34d399; border-radius: 8px; outline: none;" onchange="app.renderDashboardView()" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARDS DAS 4 MÉTRICAS SOLICITADAS -->
+      <div class="grid-metrics mb-6">
+        <!-- 1. Em Andamento -->
         <div class="glass-panel metric-card">
           <div>
-            <div class="metric-val" id="dash-active-members">0</div>
-            <div class="metric-lbl">Membros Ativos</div>
+            <div class="metric-val text-cyan-400" id="dash-total-in-progress">0</div>
+            <div class="metric-lbl">Total Em Andamento</div>
           </div>
-          <div class="metric-icon bg-emerald-500/20 text-emerald-400"><i class="fa-solid fa-user-check"></i></div>
+          <div class="metric-icon bg-cyan-500/20 text-cyan-400"><i class="fa-solid fa-spinner fa-spin-pulse"></i></div>
         </div>
 
+        <!-- 2. Em Backlog -->
         <div class="glass-panel metric-card">
           <div>
-            <div class="metric-val" id="dash-pending-backlog">0</div>
-            <div class="metric-lbl">Backlog Pendente</div>
+            <div class="metric-val text-amber-400" id="dash-total-backlog">0</div>
+            <div class="metric-lbl">Total em Backlog</div>
           </div>
-          <div class="metric-icon bg-amber-500/20 text-amber-400"><i class="fa-solid fa-list"></i></div>
+          <div class="metric-icon bg-amber-500/20 text-amber-400"><i class="fa-solid fa-list-check"></i></div>
         </div>
 
+        <!-- 3. Com Bloqueio -->
         <div class="glass-panel metric-card">
           <div>
-            <div class="metric-val" id="dash-total-completed">0</div>
-            <div class="metric-lbl">Entregas Concluídas</div>
+            <div class="metric-val text-rose-400" id="dash-total-blocked">0</div>
+            <div class="metric-lbl">Total com Bloqueio</div>
+          </div>
+          <div class="metric-icon bg-rose-500/20 text-rose-400"><i class="fa-solid fa-ban"></i></div>
+        </div>
+
+        <!-- 4. Total Concluídos -->
+        <div class="glass-panel metric-card">
+          <div>
+            <div class="metric-val text-emerald-400" id="dash-total-completed">0</div>
+            <div class="metric-lbl">Total Concluídos</div>
           </div>
           <div class="metric-icon bg-emerald-500/20 text-emerald-400"><i class="fa-solid fa-circle-check"></i></div>
         </div>
@@ -258,7 +326,7 @@
           <canvas id="chart-squad-dist" height="220"></canvas>
         </div>
         <div class="glass-panel p-6">
-          <h3 class="text-base font-bold text-white mb-4"><i class="fa-solid fa-chart-bar me-2 text-blue-400"></i> Status do Backlog</h3>
+          <h3 class="text-base font-bold text-white mb-4"><i class="fa-solid fa-chart-bar me-2 text-blue-400"></i> Status das Demandas</h3>
           <canvas id="chart-status-dist" height="220"></canvas>
         </div>
       </div>
@@ -660,8 +728,8 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=1.6.2"></script>
-<script src="app.js?v=1.6.2"></script>
+<script src="jira-sync.js?v=1.7.0"></script>
+<script src="app.js?v=1.7.0"></script>
 
 </body>
 </html>
