@@ -969,11 +969,11 @@ const app = {
 
       let statusBadge = '';
       if (user.status === 'PENDENTE' || user.status === 'PENDING') {
-        statusBadge = `<span class="badge text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold px-2 py-0.5 rounded"><i class="fa-solid fa-clock me-1"></i> Pendente</span>`;
+        statusBadge = `<span class="badge text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 font-extrabold px-3 py-1 rounded-full uppercase tracking-wider"><i class="fa-solid fa-clock me-1"></i> Pendente</span>`;
       } else if (user.status === 'BLOQUEADO') {
-        statusBadge = `<span class="badge text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold px-2 py-0.5 rounded"><i class="fa-solid fa-ban me-1"></i> Bloqueado</span>`;
+        statusBadge = `<span class="badge text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/40 font-extrabold px-3 py-1 rounded-full uppercase tracking-wider"><i class="fa-solid fa-ban me-1"></i> Bloqueado</span>`;
       } else {
-        statusBadge = `<span class="badge text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold px-2 py-0.5 rounded"><i class="fa-solid fa-check me-1"></i> Ativo</span>`;
+        statusBadge = `<span class="badge text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-extrabold px-3 py-1 rounded-full uppercase tracking-wider"><i class="fa-solid fa-check me-1"></i> Ativo</span>`;
       }
 
       let approvalButtons = '';
