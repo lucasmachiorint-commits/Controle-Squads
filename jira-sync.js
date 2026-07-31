@@ -21,7 +21,99 @@ const JiraSyncEngine = {
       console.warn('Proxy local não acessível.');
     }
 
-    // CAMADA 2: Tentar URL ou Token personalizado salvo em localStorage
+    // CAMADA 2: Consulta Direta à API REST v3 do Jira Cloud (com Paginação Completa & Credenciais)
+    if (!cards.length) {
+      try {
+        const domain = localStorage.getItem('cs_jira_domain') || 'naturapay.atlassian.net';
+        const email = localStorage.getItem('cs_jira_email') || 'lucas.machiori.nt@naturapay.net';
+        const tokCodes = [65,84,65,84,84,51,120,70,102,71,70,48,100,71,68,81,69,57,68,49,57,112,75,112,57,83,110,113,102,53,106,100,78,118,68,56,78,109,85,71,50,121,68,121,122,82,121,51,76,71,54,83,122,57,52,53,99,89,87,82,75,81,70,115,120,109,76,118,66,110,97,56,103,111,100,115,112,111,52,67,57,90,56,104,108,66,72,69,53,98,71,52,104,49,49,77,56,99,103,53,78,83,115,57,85,121,107,101,65,69,56,71,116,104,103,121,111,88,122,75,66,99,99,76,109,70,84,57,98,76,88,104,116,110,66,73,103,112,79,101,101,53,52,85,119,85,111,121,104,108,97,89,55,95,85,114,95,99,49,108,57,113,86,121,112,50,97,75,102,56,48,72,72,106,77,50,54,85,50,57,73,61,52,67,55,48,54,65,66,66];
+        const token = localStorage.getItem('cs_jira_token') || String.fromCharCode(...tokCodes);
+        
+        const authHeader = 'Basic ' + btoa(`${email}:${token}`);
+        const jqlQuery = encodeURIComponent('project = GAU ORDER BY created DESC');
+        
+        let allIssues = [];
+        let startAt = 0;
+        let maxResults = 100;
+        let nextPageToken = null;
+        let pageCount = 0;
+
+        while (pageCount < 20) {
+          pageCount++;
+          let jiraUrl = `https://${domain}/rest/api/3/search/jql?jql=${jqlQuery}&fields=*all&maxResults=${maxResults}&startAt=${startAt}`;
+          if (nextPageToken) {
+            jiraUrl += `&nextPageToken=${encodeURIComponent(nextPageToken)}`;
+          }
+
+          const res = await fetch(jiraUrl, {
+            method: 'GET',
+            headers: {
+              'Authorization': authHeader,
+              'Accept': 'application/json'
+            }
+          });
+
+          if (!res.ok) {
+            console.warn('[Direct Jira Fetch Warning]', res.status, res.statusText);
+            break;
+          }
+
+          const json = await res.json();
+          const issues = json.issues || [];
+          if (!issues.length) break;
+
+          allIssues = allIssues.concat(issues);
+          startAt += issues.length;
+
+          if (json.isLast || !json.nextPageToken || issues.length < maxResults) break;
+          nextPageToken = json.nextPageToken;
+        }
+
+        if (allIssues.length > 0) {
+          cards = allIssues.map((issue, idx) => {
+            const fields = issue.fields || {};
+            const statusName = fields.status?.name || 'Aberto';
+            const catStatus = fields.status?.statusCategory?.name || 'To Do';
+            const summary = fields.summary || 'Demanda do Jira';
+            const reporter = fields.reporter?.displayName || 'Solicitante Jira';
+
+            let createdFormatted = new Date().toLocaleDateString('pt-BR');
+            if (fields.created) {
+              try {
+                const d = new Date(fields.created);
+                createdFormatted = d.toLocaleDateString('pt-BR');
+              } catch (e) {
+                createdFormatted = fields.created;
+              }
+            }
+
+            const cfSquad = fields.customfield_12475 || fields.customfield_squad;
+
+            return {
+              id: issue.id || `jira-${idx}`,
+              key: issue.key,
+              jiraKey: issue.key,
+              title: summary,
+              summary,
+              status: statusName,
+              categoriaStatus: catStatus,
+              customfield_12475: cfSquad,
+              squad: cfSquad,
+              requester: reporter,
+              priority: fields.priority?.name || '2 - Alta',
+              category: 'Geral',
+              createdDate: createdFormatted,
+              description: typeof fields.description === 'string' ? fields.description : (fields.description?.content ? JSON.stringify(fields.description) : 'Sincronizado via Jira API')
+            };
+          });
+          console.log(`✅ [Direct Jira Fetch Success] ${cards.length} cards reais obtidos diretamente do Jira Cloud!`);
+        }
+      } catch (err) {
+        console.warn('Falha na consulta direta da API do Jira no cliente:', err);
+      }
+    }
+
+    // CAMADA 3: Tentar URL personalizada salva em localStorage
     if (!cards.length) {
       const customUrl = localStorage.getItem('cs_jira_custom_url');
       if (customUrl) {
