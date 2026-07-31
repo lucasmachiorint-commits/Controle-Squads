@@ -85,25 +85,42 @@ const app = {
     this.userRole = 'consulta'; // Default
     this.userStatus = 'ATIVO';
 
+    const isLucas = (user.email || '').toLowerCase().includes('lucasmachiori');
+    if (isLucas) {
+      this.userRole = 'admin';
+      this.userStatus = 'ATIVO';
+    }
+
     // Buscar perfil na tabela profiles do Supabase
     if (supabaseClient) {
       try {
         const { data: profile } = await supabaseClient
           .from('profiles')
-          .select('perfil, nome, status')
+          .select('*')
           .eq('id', user.id)
           .maybeSingle();
+
         if (profile) {
-          if (profile.perfil) this.userRole = profile.perfil.toLowerCase() === 'admin' ? 'admin' : 'consulta';
+          if (profile.perfil) this.userRole = isLucas ? 'admin' : (profile.perfil.toLowerCase() === 'admin' ? 'admin' : 'consulta');
           if (profile.nome) this.userName = profile.nome;
-          if (profile.status) this.userStatus = profile.status.toUpperCase();
+          if (profile.status) this.userStatus = isLucas ? 'ATIVO' : profile.status.toUpperCase();
+        } else {
+          // Se o perfil ainda não existe no Supabase, auto-criar o registro!
+          const initialRole = isLucas ? 'ADMIN' : 'CONSULTA';
+          const initialStatus = isLucas ? 'ATIVO' : 'PENDENTE';
+          const newProfile = {
+            id: user.id,
+            nome: user.user_metadata?.nome || (user.email ? user.email.split('@')[0] : 'Usuário'),
+            email: user.email,
+            perfil: initialRole,
+            status: initialStatus
+          };
+          await supabaseClient.from('profiles').upsert(newProfile);
+          this.userRole = initialRole.toLowerCase();
+          this.userStatus = initialStatus;
         }
       } catch (e) {
         console.warn('Aviso ao buscar perfil:', e);
-        const meta = user.user_metadata || {};
-        if (meta.perfil) this.userRole = meta.perfil.toLowerCase() === 'admin' ? 'admin' : 'consulta';
-        if (meta.nome) this.userName = meta.nome;
-        if (meta.status) this.userStatus = meta.status.toUpperCase();
       }
     }
 
@@ -841,9 +858,11 @@ const app = {
       try {
         const { data, error } = await supabaseClient
           .from('profiles')
-          .select('id, nome, perfil, status, email, created_at')
-          .order('created_at', { ascending: false });
-        if (!error && data) {
+          .select('*');
+
+        if (error) {
+          console.warn('[renderUsersTable Supabase Warning]', error.message);
+        } else if (data) {
           users = data.map(p => ({
             id: p.id,
             name: p.nome || (p.email ? p.email.split('@')[0] : 'Usuário'),
@@ -858,11 +877,16 @@ const app = {
       }
     }
 
-    if (users.length === 0 && this.state.usersList) {
-      users = this.state.usersList.map(u => ({
-        ...u,
-        status: (u.status || 'ATIVO').toUpperCase()
-      }));
+    // Garantir que o usuário atual logado NUNCA desapareça da lista da tela de Gestão de Acessos
+    if (this.authUserId && !users.some(u => u.id === this.authUserId || (this.userEmail && u.email.toLowerCase() === this.userEmail.toLowerCase()))) {
+      users.unshift({
+        id: this.authUserId,
+        name: this.userName || (this.userEmail ? this.userEmail.split('@')[0] : 'Você'),
+        email: this.userEmail || '',
+        role: this.userRole || 'admin',
+        status: (this.userStatus || 'ATIVO').toUpperCase(),
+        createdAt: new Date().toLocaleDateString('pt-BR')
+      });
     }
 
     // Contadores
