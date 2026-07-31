@@ -1030,26 +1030,26 @@ const app = {
 
       return `
         <tr ${isCurrentUser ? 'style="background: rgba(235,92,39,0.06);"' : ''} class="hover:bg-white/5 transition-all">
-          <td>
-            <div class="flex items-center gap-2">
-              <i class="fa-solid fa-circle-user text-amber-500 text-base"></i>
-              <span class="font-bold text-white text-xs">${user.name}</span>
-              ${isCurrentUser ? '<span class="text-[10px] bg-amber-500/15 text-amber-400 px-1.5 py-0.2 rounded font-semibold border border-amber-500/30 ms-1">Você</span>' : ''}
+          <td style="padding: 16px 20px;">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-circle-user text-amber-500 text-base shrink-0"></i>
+              <span class="font-bold text-white text-xs me-2.5 whitespace-nowrap">${user.name}</span>
+              ${isCurrentUser ? '<span class="text-[10px] bg-amber-500/15 text-amber-400 px-2 py-0.5 rounded font-semibold border border-amber-500/30 shrink-0 whitespace-nowrap">Você</span>' : ''}
             </div>
           </td>
-          <td class="text-slate-300 text-xs font-mono">${user.email}</td>
-          <td>
-            <select class="form-control text-xs py-1 px-2.5 ${isAdminCurrentUser ? '' : 'pointer-events-none opacity-60'}" 
+          <td class="text-slate-300 text-xs font-mono" style="padding: 16px 20px;">${user.email}</td>
+          <td style="padding: 16px 20px;">
+            <select class="form-control text-xs py-1.5 px-3 ${isAdminCurrentUser ? '' : 'pointer-events-none opacity-60'}" 
                     onchange="app.changeUserRoleDirectly('${user.id}', this.value)"
                     ${isAdminCurrentUser ? '' : 'disabled="true"'}
-                    style="background: rgba(15,23,42,0.9); color:#fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; max-width: 130px;">
+                    style="background: rgba(15,23,42,0.9); color:#fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; min-width: 120px;">
               <option value="ADMIN" ${user.role === 'ADMIN' ? 'selected' : ''}>Admin</option>
               <option value="CONSULTA" ${user.role === 'CONSULTA' ? 'selected' : ''}>Consulta</option>
             </select>
           </td>
-          <td class="text-slate-400 text-xs font-mono">${user.createdAt}</td>
-          <td>${statusBadge}</td>
-          <td style="text-align: right;">${approvalButtons}</td>
+          <td class="text-slate-400 text-xs font-mono" style="padding: 16px 20px;">${user.createdAt}</td>
+          <td style="padding: 16px 20px;">${statusBadge}</td>
+          <td style="text-align: right; padding: 16px 20px;">${approvalButtons}</td>
         </tr>
       `;
     }).join('');
