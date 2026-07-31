@@ -93,17 +93,24 @@
         <h1 class="header-title" id="page-title">Mesa de Triagem & Governança Jira</h1>
       </div>
 
-      <!-- BOTÕES LIMPAR / SINCRONIZAR (À ESQUERDA) E BADGE DE PERFIL / SAIR (À DIREITA) -->
-      <div class="flex items-center gap-3">
-        <button class="btn btn-secondary text-xs py-2 px-3 border-rose-500/30 hover:bg-rose-500/20 text-rose-300 admin-only" id="btn-clear-cards" onclick="app.clearAllCards()">
-          <i class="fa-solid fa-trash-can me-1 text-rose-400"></i>
-          <span>Limpar Cards</span>
-        </button>
-        <button class="btn btn-primary text-xs py-2 px-3 admin-only" id="btn-sync-jira" onclick="app.triggerJiraSync()">
-          <i class="fa-solid fa-rotate-right me-1" id="icon-spin-jira"></i>
-          <span>🔄 Sincronizar com Jira</span>
-        </button>
+      <!-- CONTROLES DO HEADER: BOTÕES DE AÇÃO À ESQUERDA & USER CHIP À EXTREMA DIREITA -->
+      <div class="flex items-center gap-3 sm:gap-4 flex-nowrap shrink-0">
+        <!-- BOTÕES DE AÇÃO DA APLICAÇÃO -->
+        <div class="flex items-center gap-2 flex-nowrap">
+          <button class="btn btn-secondary text-xs py-2 px-3 border-rose-500/30 hover:bg-rose-500/20 text-rose-300 admin-only whitespace-nowrap" id="btn-clear-cards" onclick="app.clearAllCards()">
+            <i class="fa-solid fa-trash-can me-1 text-rose-400"></i>
+            <span>Limpar Cards</span>
+          </button>
+          <button class="btn btn-primary text-xs py-2 px-3 admin-only whitespace-nowrap" id="btn-sync-jira" onclick="app.triggerJiraSync()">
+            <i class="fa-solid fa-rotate-right me-1" id="icon-spin-jira"></i>
+            <span>🔄 Sincronizar com Jira</span>
+          </button>
+        </div>
 
+        <!-- SEPARADOR VERTICAL SUTIL -->
+        <div class="h-6 w-px bg-white/10 hidden md:block"></div>
+
+        <!-- BADGE DO USUÁRIO & SAIR (EXTREMA DIREITA) -->
         <div class="user-profile-badge inline-flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-white/10 text-xs text-slate-200 shrink-0 whitespace-nowrap shadow-sm" id="user-profile-badge" title="Usuário autenticado via Supabase">
           <i class="fa-solid fa-user-shield text-emerald-400 text-sm" id="user-role-icon"></i>
           <span id="user-display-info" class="font-semibold text-slate-200">Carregando...</span>
