@@ -14,6 +14,9 @@ if (window.supabase) {
 const app = {
   activeSquad: 'dados',
   activeView: 'triagem',
+  userRole: 'consulta', // 'admin' ou 'consulta'
+  userEmail: 'consulta@naturapay.net',
+  realtimeChannel: null,
   
   state: {
     triageItems: [],
@@ -24,12 +27,164 @@ const app = {
   },
 
   init() {
+    this.loadUserSession();
     this.loadLocalState();
     this.seedDefaultDataIfEmpty();
     this.setupRealtimeSync();
     this.restoreLastSyncTime();
     this.setupKeyboardShortcuts();
     this.render();
+  },
+
+  loadUserSession() {
+    const savedRole = localStorage.getItem('cs_user_role');
+    const savedEmail = localStorage.getItem('cs_user_email');
+    if (savedRole) this.userRole = savedRole;
+    if (savedEmail) this.userEmail = savedEmail;
+    this.updateUserBadgeUI();
+  },
+
+  updateUserBadgeUI() {
+    const infoEl = document.getElementById('user-display-info');
+    const iconEl = document.getElementById('user-role-icon');
+    if (infoEl) {
+      if (this.userRole === 'admin') {
+        infoEl.textContent = `Admin: ${this.userEmail.split('@')[0]}`;
+        infoEl.style.color = '#34d399';
+        if (iconEl) iconEl.className = 'fa-solid fa-user-shield text-emerald-400';
+      } else {
+        infoEl.textContent = `Consulta: ${this.userEmail.split('@')[0]}`;
+        infoEl.style.color = '#38bdf8';
+        if (iconEl) iconEl.className = 'fa-solid fa-eye text-sky-400';
+      }
+    }
+  },
+
+  toggleLoginModal() {
+    const modal = document.getElementById('modal-login');
+    if (!modal) return;
+    const roleSelect = document.getElementById('login-role');
+    const emailInput = document.getElementById('login-email');
+    if (roleSelect) roleSelect.value = this.userRole;
+    if (emailInput) emailInput.value = this.userEmail;
+    this.onLoginRoleChange();
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+  },
+
+  closeLoginModal() {
+    const modal = document.getElementById('modal-login');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.style.display = 'none';
+    }
+  },
+
+  onLoginRoleChange() {
+    const roleSelect = document.getElementById('login-role');
+    const pinGroup = document.getElementById('group-login-pin');
+    if (roleSelect && pinGroup) {
+      if (roleSelect.value === 'admin') {
+        pinGroup.style.display = 'block';
+      } else {
+        pinGroup.style.display = 'none';
+      }
+    }
+  },
+
+  handleAuthSubmit(e) {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    const roleSelect = document.getElementById('login-role');
+    const emailInput = document.getElementById('login-email');
+    const pinInput = document.getElementById('login-pin');
+
+    const selectedRole = roleSelect ? roleSelect.value : 'consulta';
+    const emailVal = emailInput ? emailInput.value.trim() : 'usuario@naturapay.net';
+
+    if (selectedRole === 'admin') {
+      const pin = pinInput ? pinInput.value.trim() : '';
+      if (pin !== 'admin123' && pin !== 'admin') {
+        alert('Senha de Administrador incorreta. A senha padrão é admin123');
+        return;
+      }
+    }
+
+    this.userRole = selectedRole;
+    this.userEmail = emailVal || (selectedRole === 'admin' ? 'admin@naturapay.net' : 'consulta@naturapay.net');
+
+    localStorage.setItem('cs_user_role', this.userRole);
+    localStorage.setItem('cs_user_email', this.userEmail);
+
+    this.updateUserBadgeUI();
+    this.closeLoginModal();
+    this.applyRolePermissions();
+    this.render();
+  },
+
+  applyRolePermissions() {
+    const isAdmin = this.userRole === 'admin';
+
+    // 1. Esconder/Exibir botões exclusivos do perfil Admin
+    document.querySelectorAll('.admin-only').forEach(el => {
+      if (isAdmin) {
+        el.classList.remove('hidden');
+        el.style.display = '';
+      } else {
+        el.classList.add('hidden');
+        el.style.display = 'none';
+      }
+    });
+
+    // 2. Botões de Ação na aplicação
+    const actionSelector = '.btn-add-demand, .btn-forward-squad, #btn-new-member, #btn-save-timeline, #btn-add-timeline-entry';
+    document.querySelectorAll(actionSelector).forEach(btn => {
+      if (isAdmin) {
+        btn.removeAttribute('disabled');
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = 'auto';
+      } else {
+        btn.setAttribute('disabled', 'true');
+        btn.style.opacity = '0.4';
+        btn.style.pointerEvents = 'none';
+      }
+    });
+
+    // 3. Campos editáveis no Modal de Detalhes (Read-Only para Consulta)
+    const modalDetailFields = [
+      'task-gau', 'task-title', 'task-requester', 'task-priority',
+      'followup-dev-role', 'followup-dev-name', 'followup-dev-target-date',
+      'followup-dev-progress', 'followup-ganhos', 'followup-timeline-text'
+    ];
+
+    modalDetailFields.forEach(id => {
+      const field = document.getElementById(id);
+      if (field) {
+        if (isAdmin) {
+          field.removeAttribute('disabled');
+          field.removeAttribute('readonly');
+          field.style.opacity = '1';
+          field.style.pointerEvents = 'auto';
+        } else {
+          field.setAttribute('disabled', 'true');
+          field.setAttribute('readonly', 'true');
+          field.style.opacity = '0.75';
+          field.style.pointerEvents = 'none';
+        }
+      }
+    });
+
+    // 4. Inputs de reordenação numérica do Backlog
+    document.querySelectorAll('.treatment-order-input').forEach(input => {
+      if (isAdmin) {
+        input.removeAttribute('disabled');
+        input.style.opacity = '1';
+        input.style.pointerEvents = 'auto';
+      } else {
+        input.setAttribute('disabled', 'true');
+        input.style.opacity = '0.6';
+        input.style.pointerEvents = 'none';
+      }
+    });
   },
 
   setupKeyboardShortcuts() {
@@ -209,6 +364,7 @@ const app = {
       console.warn('Erro ao salvar LocalStorage:', e);
     }
 
+    this.broadcastStateChange();
     this.render();
   },
 
@@ -294,15 +450,46 @@ const app = {
   setupRealtimeSync() {
     if (!supabaseClient) return;
     try {
-      supabaseClient.channel('controle_squads_realtime')
+      const channel = supabaseClient.channel('controle_squads_realtime_sync');
+      
+      channel
+        .on('broadcast', { event: 'state_updated' }, (payload) => {
+          if (payload && payload.state) {
+            console.log('[Realtime Broadcast] Atualização recebida de outro usuário:', payload.updatedBy);
+            this.state = payload.state;
+            try {
+              localStorage.setItem('cs_triage_items', JSON.stringify(this.state.triageItems));
+              ['dados', 'operacoes', 'rpa'].forEach(id => {
+                localStorage.setItem(`cs_backlog_${id}`, JSON.stringify(this.state.backlogItems[id] || []));
+                localStorage.setItem(`cs_completed_${id}`, JSON.stringify(this.state.completedTasks[id] || []));
+                localStorage.setItem(`cs_resources_${id}`, JSON.stringify(this.state.resources[id] || []));
+              });
+            } catch (e) {}
+            this.render();
+          }
+        })
         .on('postgres_changes', { event: '*', schema: 'public' }, () => {
-          console.log('[Realtime] Atualização recebida de outro usuário.');
+          console.log('[Realtime Postgres] Alteração detectada.');
           this.loadLocalState();
           this.render();
         })
         .subscribe();
+
+      this.realtimeChannel = channel;
     } catch (e) {
       console.warn('Realtime sync offline:', e);
+    }
+  },
+
+  broadcastStateChange() {
+    if (this.realtimeChannel) {
+      try {
+        this.realtimeChannel.send({
+          type: 'broadcast',
+          event: 'state_updated',
+          payload: { state: this.state, updatedBy: this.userEmail, timestamp: new Date().toISOString() }
+        });
+      } catch (e) {}
     }
   },
 
@@ -315,6 +502,8 @@ const app = {
     else if (this.activeView === 'board') this.renderBoardView();
     else if (this.activeView === 'backlog') this.renderBacklogView();
     else if (this.activeView === 'concluidos') this.renderCompletedView();
+
+    this.applyRolePermissions();
   },
 
   // Badges da Sidebar
