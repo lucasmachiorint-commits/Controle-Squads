@@ -1,5 +1,6 @@
 /* ==========================================================================
    Controle de Squads & Governança Jira - Core Application Script (Padrão Painel-OPS)
+   Supabase Auth + Realtime + RBAC (v2.0.0)
    ========================================================================== */
 
 const SUPABASE_URL = 'https://maguyzjhldcgpcvkvkqe.supabase.co';
@@ -7,15 +8,24 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 let supabaseClient = null;
 if (window.supabase) {
-  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  try {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } catch (err) {
+    console.warn('Erro ao inicializar Supabase Client:', err);
+  }
 }
+
+let _lastSelfSaveTime = 0;
+let _saveDebounceTimer = null;
 
 // Global Application State
 const app = {
   activeSquad: 'dados',
   activeView: 'triagem',
   userRole: 'consulta', // 'admin' ou 'consulta'
-  userEmail: 'consulta@naturapay.net',
+  userEmail: '',
+  userName: 'Visitante',
+  authUserId: null,
   realtimeChannel: null,
   
   state: {
@@ -27,10 +37,18 @@ const app = {
     usersList: []
   },
 
-  init() {
-    this.loadUserSession();
-    this.loadUsersState();
+  // ============================================================
+  // INICIALIZAÇÃO
+  // ============================================================
+  async init() {
+    const hasSession = await this.checkSession();
+    if (!hasSession) {
+      this.showAuthOverlay();
+      return;
+    }
     this.loadLocalState();
+    await this.loadStateFromSupabase();
+    this.loadUsersState();
     this.seedDefaultDataIfEmpty();
     this.setupRealtimeSync();
     this.restoreLastSyncTime();
@@ -38,24 +56,275 @@ const app = {
     this.render();
   },
 
-  loadUserSession() {
-    const savedRole = localStorage.getItem('cs_user_role');
-    const savedEmail = localStorage.getItem('cs_user_email');
-    if (savedRole) this.userRole = savedRole;
-    if (savedEmail) this.userEmail = savedEmail;
-    this.updateUserBadgeUI();
+  // ============================================================
+  // SUPABASE AUTH - LOGIN / SIGNUP / LOGOUT / SESSION
+  // ============================================================
+  async checkSession() {
+    if (!supabaseClient) return false;
+    try {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session && session.user) {
+        await this.setupUserSession(session.user);
+        return true;
+      }
+    } catch (e) {
+      console.warn('Erro ao verificar sessão:', e);
+    }
+    return false;
   },
 
+  async setupUserSession(user) {
+    if (!user) {
+      this.showAuthOverlay();
+      return;
+    }
+
+    this.hideAuthOverlay();
+    this.authUserId = user.id;
+    this.userEmail = user.email || '';
+    this.userName = user.email ? user.email.split('@')[0] : 'Usuário';
+    this.userRole = 'consulta'; // Default
+
+    // Buscar perfil na tabela profiles do Supabase (mesma do Painel-OPS)
+    if (supabaseClient) {
+      try {
+        const { data: profile } = await supabaseClient
+          .from('profiles')
+          .select('perfil, nome')
+          .eq('id', user.id)
+          .maybeSingle();
+        if (profile) {
+          if (profile.perfil) this.userRole = profile.perfil.toLowerCase() === 'admin' ? 'admin' : 'consulta';
+          if (profile.nome) this.userName = profile.nome;
+        }
+      } catch (e) {
+        console.warn('Aviso ao buscar perfil:', e);
+        // Fallback: verificar user_metadata
+        const meta = user.user_metadata || {};
+        if (meta.perfil) this.userRole = meta.perfil.toLowerCase() === 'admin' ? 'admin' : 'consulta';
+        if (meta.nome) this.userName = meta.nome;
+      }
+    }
+
+    this.updateUserBadgeUI();
+    this.applyRolePermissions();
+  },
+
+  async handleLogin() {
+    const emailEl = document.getElementById('auth-email');
+    const passEl = document.getElementById('auth-password');
+    const btnLogin = document.getElementById('btn-auth-login');
+    const errorEl = document.getElementById('auth-error-msg');
+
+    const email = emailEl ? emailEl.value.trim() : '';
+    const password = passEl ? passEl.value.trim() : '';
+
+    if (!email || !password) {
+      if (errorEl) { errorEl.textContent = 'Por favor, preencha o e-mail e a senha.'; errorEl.style.display = 'block'; }
+      return;
+    }
+    if (errorEl) errorEl.style.display = 'none';
+
+    if (!supabaseClient) {
+      if (errorEl) { errorEl.textContent = 'Não foi possível conectar ao Supabase.'; errorEl.style.display = 'block'; }
+      return;
+    }
+
+    const origText = btnLogin ? btnLogin.textContent : 'Entrar';
+    if (btnLogin) { btnLogin.disabled = true; btnLogin.textContent = 'Entrando...'; }
+
+    try {
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) {
+        let msg = error.message;
+        if (msg.toLowerCase().includes('invalid login') || msg.toLowerCase().includes('invalid_grant')) msg = 'E-mail ou senha incorretos.';
+        if (msg.toLowerCase().includes('email not confirmed')) msg = 'E-mail ainda não confirmado. Verifique sua caixa de entrada.';
+        if (errorEl) { errorEl.textContent = msg; errorEl.style.display = 'block'; }
+      } else {
+        const user = data?.session?.user || data?.user;
+        if (user) {
+          await this.setupUserSession(user);
+          this.loadLocalState();
+          await this.loadStateFromSupabase();
+          this.loadUsersState();
+          this.seedDefaultDataIfEmpty();
+          this.setupRealtimeSync();
+          this.restoreLastSyncTime();
+          this.render();
+        } else {
+          if (errorEl) { errorEl.textContent = 'E-mail ou senha incorretos.'; errorEl.style.display = 'block'; }
+        }
+      }
+    } catch (err) {
+      if (errorEl) { errorEl.textContent = 'Erro de conexão: ' + (err.message || ''); errorEl.style.display = 'block'; }
+    } finally {
+      if (btnLogin) { btnLogin.disabled = false; btnLogin.textContent = origText; }
+    }
+  },
+
+  async handleSignup() {
+    const emailEl = document.getElementById('auth-email');
+    const passEl = document.getElementById('auth-password');
+    const btnSignup = document.getElementById('btn-auth-signup');
+    const errorEl = document.getElementById('auth-error-msg');
+    const infoEl = document.getElementById('auth-info-msg');
+
+    const email = emailEl ? emailEl.value.trim() : '';
+    const password = passEl ? passEl.value.trim() : '';
+
+    if (!email || !password) {
+      if (errorEl) { errorEl.textContent = 'Por favor, preencha o e-mail e a senha.'; errorEl.style.display = 'block'; }
+      return;
+    }
+    if (password.length < 6) {
+      if (errorEl) { errorEl.textContent = 'A senha deve ter pelo menos 6 caracteres.'; errorEl.style.display = 'block'; }
+      return;
+    }
+    if (errorEl) errorEl.style.display = 'none';
+    if (infoEl) infoEl.style.display = 'none';
+
+    if (!supabaseClient) {
+      if (errorEl) { errorEl.textContent = 'Não foi possível conectar ao Supabase.'; errorEl.style.display = 'block'; }
+      return;
+    }
+
+    const origText = btnSignup ? btnSignup.textContent : 'Criar conta';
+    if (btnSignup) { btnSignup.disabled = true; btnSignup.textContent = 'Criando conta...'; }
+
+    try {
+      const { data, error } = await supabaseClient.auth.signUp({
+        email, password,
+        options: { data: { perfil: 'CONSULTA', nome: email.split('@')[0] } }
+      });
+      if (error) {
+        if (errorEl) { errorEl.textContent = error.message; errorEl.style.display = 'block'; }
+      } else {
+        const user = data?.session?.user || data?.user;
+        if (user && data?.session) {
+          if (infoEl) { infoEl.textContent = 'Conta criada com sucesso!'; infoEl.style.display = 'block'; }
+          await this.setupUserSession(user);
+          this.loadLocalState();
+          await this.loadStateFromSupabase();
+          this.loadUsersState();
+          this.seedDefaultDataIfEmpty();
+          this.setupRealtimeSync();
+          this.render();
+        } else {
+          if (infoEl) { infoEl.textContent = 'Conta criada! Se a confirmação de e-mail estiver ativa, verifique sua caixa de entrada.'; infoEl.style.display = 'block'; }
+        }
+      }
+    } catch (err) {
+      if (errorEl) { errorEl.textContent = 'Erro: ' + (err.message || ''); errorEl.style.display = 'block'; }
+    } finally {
+      if (btnSignup) { btnSignup.disabled = false; btnSignup.textContent = origText; }
+    }
+  },
+
+  async handleLogout() {
+    if (this.realtimeChannel && supabaseClient) {
+      try { supabaseClient.removeAllChannels(); } catch (_) {}
+    }
+    this.realtimeChannel = null;
+    this.authUserId = null;
+    if (supabaseClient) {
+      try { await supabaseClient.auth.signOut(); } catch (e) { console.warn('Erro no logout:', e); }
+    }
+    this.showAuthOverlay();
+  },
+
+  showAuthOverlay() {
+    const overlay = document.getElementById('cs-auth-overlay');
+    if (overlay) {
+      overlay.style.setProperty('display', 'flex', 'important');
+      overlay.style.setProperty('opacity', '1', 'important');
+      overlay.style.setProperty('pointer-events', 'auto', 'important');
+    }
+    const errorEl = document.getElementById('auth-error-msg');
+    const infoEl = document.getElementById('auth-info-msg');
+    if (errorEl) errorEl.style.display = 'none';
+    if (infoEl) infoEl.style.display = 'none';
+  },
+
+  hideAuthOverlay() {
+    const overlay = document.getElementById('cs-auth-overlay');
+    if (overlay) {
+      overlay.style.setProperty('display', 'none', 'important');
+      overlay.style.setProperty('opacity', '0', 'important');
+      overlay.style.setProperty('pointer-events', 'none', 'important');
+    }
+  },
+
+  // ============================================================
+  // SUPABASE DATABASE - PERSISTÊNCIA CENTRALIZADA
+  // ============================================================
+  async saveStateToSupabase() {
+    if (!supabaseClient) return;
+    _lastSelfSaveTime = Date.now();
+    try {
+      const { error } = await supabaseClient
+        .from('cs_board_state')
+        .upsert({
+          id: 'default',
+          data: this.state,
+          updated_by: this.authUserId || null,
+          updated_at: new Date().toISOString()
+        });
+      if (error) {
+        console.warn('[Supabase Save Error]', error.message);
+      }
+    } catch (err) {
+      console.warn('[Supabase Save Exception]', err);
+    }
+  },
+
+  async loadStateFromSupabase() {
+    if (!supabaseClient) return false;
+    try {
+      const { data, error } = await supabaseClient
+        .from('cs_board_state')
+        .select('data, updated_at')
+        .eq('id', 'default')
+        .maybeSingle();
+
+      if (error) {
+        console.warn('[Supabase Load Error]', error.message);
+        return false;
+      }
+      if (!data || !data.data) {
+        console.log('[Supabase Load] Nenhum registro existente. Usando localStorage.');
+        return false;
+      }
+
+      this.state = data.data;
+      // Garantir que usersList existe no state carregado
+      if (!this.state.usersList) this.state.usersList = [];
+      localStorage.setItem('cs_triage_items', JSON.stringify(this.state.triageItems || []));
+      ['dados', 'operacoes', 'rpa'].forEach(id => {
+        localStorage.setItem(`cs_backlog_${id}`, JSON.stringify(this.state.backlogItems?.[id] || []));
+        localStorage.setItem(`cs_completed_${id}`, JSON.stringify(this.state.completedTasks?.[id] || []));
+        localStorage.setItem(`cs_resources_${id}`, JSON.stringify(this.state.resources?.[id] || []));
+      });
+      console.log('[Supabase Load] Estado compartilhado carregado com sucesso!');
+      return true;
+    } catch (err) {
+      console.warn('[Supabase Load Exception]', err);
+      return false;
+    }
+  },
+
+  // ============================================================
+  // UI DO BADGE NO HEADER
+  // ============================================================
   updateUserBadgeUI() {
     const infoEl = document.getElementById('user-display-info');
     const iconEl = document.getElementById('user-role-icon');
     if (infoEl) {
       if (this.userRole === 'admin') {
-        infoEl.textContent = `Admin: ${this.userEmail.split('@')[0]}`;
+        infoEl.textContent = `Admin: ${this.userName}`;
         infoEl.style.color = '#34d399';
         if (iconEl) iconEl.className = 'fa-solid fa-user-shield text-emerald-400';
       } else {
-        infoEl.textContent = `Consulta: ${this.userEmail.split('@')[0]}`;
+        infoEl.textContent = `Consulta: ${this.userName}`;
         infoEl.style.color = '#38bdf8';
         if (iconEl) iconEl.className = 'fa-solid fa-eye text-sky-400';
       }
@@ -63,64 +332,14 @@ const app = {
   },
 
   toggleLoginModal() {
-    const modal = document.getElementById('modal-login');
-    if (!modal) return;
-    const roleSelect = document.getElementById('login-role');
-    const emailInput = document.getElementById('login-email');
-    if (roleSelect) roleSelect.value = this.userRole;
-    if (emailInput) emailInput.value = this.userEmail;
-    this.onLoginRoleChange();
-    modal.classList.remove('hidden');
-    modal.style.display = 'flex';
-  },
-
-  closeLoginModal() {
-    const modal = document.getElementById('modal-login');
-    if (modal) {
-      modal.classList.add('hidden');
-      modal.style.display = 'none';
-    }
-  },
-
-  onLoginRoleChange() {
-    const roleSelect = document.getElementById('login-role');
-    const pinGroup = document.getElementById('group-login-pin');
-    if (roleSelect && pinGroup) {
-      if (roleSelect.value === 'admin') {
-        pinGroup.style.display = 'block';
-      } else {
-        pinGroup.style.display = 'none';
+    // No novo sistema, o badge abre opção de logout
+    if (this.authUserId) {
+      if (confirm('Deseja sair do sistema?')) {
+        this.handleLogout();
       }
+    } else {
+      this.showAuthOverlay();
     }
-  },
-
-  handleAuthSubmit(e) {
-    if (e && typeof e.preventDefault === 'function') e.preventDefault();
-    const roleSelect = document.getElementById('login-role');
-    const emailInput = document.getElementById('login-email');
-    const pinInput = document.getElementById('login-pin');
-
-    const selectedRole = roleSelect ? roleSelect.value : 'consulta';
-    const emailVal = emailInput ? emailInput.value.trim() : 'usuario@naturapay.net';
-
-    if (selectedRole === 'admin') {
-      const pin = pinInput ? pinInput.value.trim() : '';
-      if (pin !== 'admin123' && pin !== 'admin') {
-        alert('Senha de Administrador incorreta. A senha padrão é admin123');
-        return;
-      }
-    }
-
-    this.userRole = selectedRole;
-    this.userEmail = emailVal || (selectedRole === 'admin' ? 'admin@naturapay.net' : 'consulta@naturapay.net');
-
-    localStorage.setItem('cs_user_role', this.userRole);
-    localStorage.setItem('cs_user_email', this.userEmail);
-
-    this.updateUserBadgeUI();
-    this.closeLoginModal();
-    this.applyRolePermissions();
-    this.render();
   },
 
   applyRolePermissions() {
@@ -370,7 +589,12 @@ const app = {
       console.warn('Erro ao salvar LocalStorage:', e);
     }
 
-    this.broadcastStateChange();
+    // Debounce para salvar no Supabase (evita flood de chamadas)
+    if (_saveDebounceTimer) clearTimeout(_saveDebounceTimer);
+    _saveDebounceTimer = setTimeout(() => {
+      this.saveStateToSupabase();
+    }, 1000);
+
     this.render();
   },
 
@@ -452,34 +676,54 @@ const app = {
     }
   },
 
-  // Supabase Realtime Sync (Multi-User)
+  // Supabase Realtime Sync (Multi-User) — Padrão Painel-OPS
   setupRealtimeSync() {
     if (!supabaseClient) return;
     try {
-      const channel = supabaseClient.channel('controle_squads_realtime_sync');
-      
-      channel
-        .on('broadcast', { event: 'state_updated' }, (payload) => {
-          if (payload && payload.state) {
-            console.log('[Realtime Broadcast] Atualização recebida de outro usuário:', payload.updatedBy);
-            this.state = payload.state;
+      // Limpar canais anteriores
+      try { supabaseClient.removeAllChannels(); } catch (_) {}
+      this.realtimeChannel = null;
+
+      const channel = supabaseClient
+        .channel('cs-board-changes')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'cs_board_state'
+        }, (payload) => {
+          console.log('[Realtime] Evento recebido via WebSocket:', payload.eventType);
+          
+          const payloadData = payload.new || payload.record;
+          if (payloadData && payloadData.data) {
+            // Ignorar atualizações feitas pelo próprio usuário
+            if (payloadData.updated_by && this.authUserId && payloadData.updated_by === this.authUserId) {
+              return;
+            }
+            // Ignorar self-echoes dentro de 3 segundos
+            if (Date.now() - _lastSelfSaveTime < 3000) {
+              return;
+            }
+
+            this.state = payloadData.data;
+            if (!this.state.usersList) this.state.usersList = [];
+
+            // Atualizar localStorage com dados recebidos
             try {
-              localStorage.setItem('cs_triage_items', JSON.stringify(this.state.triageItems));
+              localStorage.setItem('cs_triage_items', JSON.stringify(this.state.triageItems || []));
               ['dados', 'operacoes', 'rpa'].forEach(id => {
-                localStorage.setItem(`cs_backlog_${id}`, JSON.stringify(this.state.backlogItems[id] || []));
-                localStorage.setItem(`cs_completed_${id}`, JSON.stringify(this.state.completedTasks[id] || []));
-                localStorage.setItem(`cs_resources_${id}`, JSON.stringify(this.state.resources[id] || []));
+                localStorage.setItem(`cs_backlog_${id}`, JSON.stringify(this.state.backlogItems?.[id] || []));
+                localStorage.setItem(`cs_completed_${id}`, JSON.stringify(this.state.completedTasks?.[id] || []));
+                localStorage.setItem(`cs_resources_${id}`, JSON.stringify(this.state.resources?.[id] || []));
               });
             } catch (e) {}
+
             this.render();
+            console.log('[Realtime] Painel atualizado em tempo real por outro usuário!');
           }
         })
-        .on('postgres_changes', { event: '*', schema: 'public' }, () => {
-          console.log('[Realtime Postgres] Alteração detectada.');
-          this.loadLocalState();
-          this.render();
-        })
-        .subscribe();
+        .subscribe((status) => {
+          console.log('[Realtime] Status da inscrição:', status);
+        });
 
       this.realtimeChannel = channel;
     } catch (e) {
@@ -487,55 +731,17 @@ const app = {
     }
   },
 
-  broadcastStateChange() {
-    if (this.realtimeChannel) {
-      try {
-        this.realtimeChannel.send({
-          type: 'broadcast',
-          event: 'state_updated',
-          payload: { state: this.state, updatedBy: this.userEmail, timestamp: new Date().toISOString() }
-        });
-      } catch (e) {}
-    }
-  },
-
-  // --- GESTÃO DE ACESSOS E PERFIS SUPABASE ---
+  // --- GESTÃO DE ACESSOS VIA SUPABASE PROFILES ---
   loadUsersState() {
+    // No novo modelo, os usuários são carregados do Supabase na renderUsersTable
+    // Manter fallback local para usersList caso necessário
     try {
       const savedUsers = localStorage.getItem('cs_users_list');
       if (savedUsers) {
         this.state.usersList = JSON.parse(savedUsers);
-      } else {
-        this.state.usersList = [
-          {
-            id: 'usr-1',
-            name: 'Lucas da Silva Machiori',
-            email: 'lucas.machiori@naturapay.net',
-            role: 'admin',
-            status: 'Ativo',
-            lastAccess: 'Hoje'
-          },
-          {
-            id: 'usr-2',
-            name: 'Gabriel Oliveira',
-            email: 'gabriel.oliveira@naturapay.net',
-            role: 'consulta',
-            status: 'Ativo',
-            lastAccess: 'Hoje'
-          },
-          {
-            id: 'usr-3',
-            name: 'Usuário Consulta Default',
-            email: 'consulta@naturapay.net',
-            role: 'consulta',
-            status: 'Ativo',
-            lastAccess: 'Hoje'
-          }
-        ];
-        this.saveUsersState();
       }
     } catch (e) {
-      console.warn('Erro ao carregar lista de usuários:', e);
+      console.warn('Erro ao carregar lista de usuários local:', e);
     }
   },
 
@@ -543,39 +749,46 @@ const app = {
     try {
       localStorage.setItem('cs_users_list', JSON.stringify(this.state.usersList));
     } catch (e) {}
-
-    // Sincronizar com Supabase Database se ativo
-    if (supabaseClient) {
-      try {
-        supabaseClient.from('users_profile').upsert(
-          this.state.usersList.map(u => ({
-            id: u.id,
-            display_name: u.name,
-            email: u.email,
-            role: u.role,
-            status: u.status,
-            updated_at: new Date().toISOString()
-          }))
-        ).then(() => {}).catch(() => {});
-      } catch (e) {}
-    }
-
-    this.broadcastStateChange();
   },
 
-  renderUsersTable() {
+  async renderUsersTable() {
     const tbody = document.getElementById('tbody-users');
     if (!tbody) return;
 
-    const users = this.state.usersList || [];
+    // Buscar usuários da tabela profiles do Supabase
+    let users = [];
+    if (supabaseClient) {
+      try {
+        const { data, error } = await supabaseClient
+          .from('profiles')
+          .select('id, nome, perfil, email')
+          .order('nome', { ascending: true });
+        if (!error && data) {
+          users = data.map(p => ({
+            id: p.id,
+            name: p.nome || p.email || 'Usuário',
+            email: p.email || '',
+            role: p.perfil ? p.perfil.toLowerCase() : 'consulta',
+            status: 'Ativo'
+          }));
+        }
+      } catch (e) {
+        console.warn('Erro ao buscar perfis do Supabase:', e);
+      }
+    }
 
-    // Atualizar estatísticas de usuários
+    // Fallback para dados locais se Supabase não retornou nada
+    if (users.length === 0) {
+      users = this.state.usersList || [];
+    }
+
+    // Atualizar estatísticas
     const totalEl = document.getElementById('stat-user-total');
     const adminsEl = document.getElementById('stat-user-admins');
     const consultasEl = document.getElementById('stat-user-consultas');
 
     const adminCount = users.filter(u => u.role === 'admin').length;
-    const consultaCount = users.filter(u => u.role === 'consulta').length;
+    const consultaCount = users.filter(u => u.role === 'consulta' || u.role === 'CONSULTA').length;
 
     if (totalEl) totalEl.textContent = users.length;
     if (adminsEl) adminsEl.textContent = adminCount;
@@ -586,7 +799,7 @@ const app = {
     const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
     const filteredUsers = users.filter(u => 
-      !term || u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term)
+      !term || (u.name || '').toLowerCase().includes(term) || (u.email || '').toLowerCase().includes(term)
     );
 
     if (filteredUsers.length === 0) {
@@ -632,26 +845,39 @@ const app = {
             <button class="btn btn-secondary text-xs p-1.5 hover:text-purple-300 ${isAdminCurrentUser ? '' : 'hidden'}" onclick="app.openEditUserModal('${user.id}')" title="Editar Usuário">
               <i class="fa-solid fa-pen-to-square"></i>
             </button>
-            <button class="btn btn-secondary text-xs p-1.5 hover:text-rose-400 ${isAdminCurrentUser ? '' : 'hidden'}" onclick="app.deleteUser('${user.id}')" title="Excluir Usuário">
-              <i class="fa-solid fa-trash-can text-rose-400"></i>
-            </button>
           </div>
         </td>
       </tr>
     `).join('');
   },
 
-  changeUserRoleDirectly(userId, newRole) {
-    const user = (this.state.usersList || []).find(u => u.id === userId);
-    if (!user) return;
+  async changeUserRoleDirectly(userId, newRole) {
+    if (this.userRole !== 'admin') {
+      alert('Acesso negado: Perfil ADMIN necessário.');
+      return;
+    }
 
-    user.role = newRole;
-    this.saveUsersState();
+    // Atualizar na tabela profiles do Supabase
+    const perfilValue = newRole === 'admin' ? 'ADMIN' : 'CONSULTA';
+    if (supabaseClient) {
+      try {
+        const { error } = await supabaseClient
+          .from('profiles')
+          .update({ perfil: perfilValue })
+          .eq('id', userId);
+        if (error) {
+          alert('Erro ao atualizar perfil no Supabase: ' + error.message);
+          return;
+        }
+      } catch (e) {
+        alert('Erro de conexão ao atualizar perfil.');
+        return;
+      }
+    }
 
     // Se o usuário alterado for o próprio usuário ativo nesta sessão
-    if (user.email === this.userEmail) {
+    if (userId === this.authUserId) {
       this.userRole = newRole;
-      localStorage.setItem('cs_user_role', newRole);
       this.updateUserBadgeUI();
       this.applyRolePermissions();
     }
@@ -660,34 +886,13 @@ const app = {
   },
 
   openNewUserModal() {
-    const modal = document.getElementById('modal-user-edit');
-    if (!modal) return;
-
-    document.getElementById('user-modal-title').textContent = 'Cadastrar Novo Usuário';
-    document.getElementById('user-modal-id').value = '';
-    document.getElementById('user-modal-name').value = '';
-    document.getElementById('user-modal-email').value = '';
-    document.getElementById('user-modal-role').value = 'consulta';
-
-    modal.classList.remove('hidden');
-    modal.style.display = 'flex';
+    // No modelo Supabase Auth, novos usuários são criados via signup
+    alert('No modelo Supabase Auth, novos usuários devem se cadastrar pela tela de login usando "Criar nova conta".');
   },
 
   openEditUserModal(userId) {
-    const user = (this.state.usersList || []).find(u => u.id === userId);
-    if (!user) return;
-
-    const modal = document.getElementById('modal-user-edit');
-    if (!modal) return;
-
-    document.getElementById('user-modal-title').textContent = 'Editar Usuário';
-    document.getElementById('user-modal-id').value = user.id;
-    document.getElementById('user-modal-name').value = user.name;
-    document.getElementById('user-modal-email').value = user.email;
-    document.getElementById('user-modal-role').value = user.role;
-
-    modal.classList.remove('hidden');
-    modal.style.display = 'flex';
+    // Com Supabase Auth, a edição é feita diretamente pelo select de perfil
+    alert('Use o seletor de perfil na tabela para alterar o nível de acesso do usuário.');
   },
 
   closeUserModal() {
@@ -700,43 +905,13 @@ const app = {
 
   saveUserFromModal(e) {
     if (e && typeof e.preventDefault === 'function') e.preventDefault();
-
-    const idVal = document.getElementById('user-modal-id').value;
-    const nameVal = document.getElementById('user-modal-name').value.trim();
-    const emailVal = document.getElementById('user-modal-email').value.trim();
-    const roleVal = document.getElementById('user-modal-role').value;
-
-    if (!nameVal || !emailVal) return;
-
-    if (idVal) {
-      const existing = this.state.usersList.find(u => u.id === idVal);
-      if (existing) {
-        existing.name = nameVal;
-        existing.email = emailVal;
-        existing.role = roleVal;
-      }
-    } else {
-      const newUser = {
-        id: `usr-${Date.now()}`,
-        name: nameVal,
-        email: emailVal,
-        role: roleVal,
-        status: 'Ativo',
-        lastAccess: 'Agora'
-      };
-      this.state.usersList.push(newUser);
-    }
-
-    this.saveUsersState();
+    // Mantido para compatibilidade — Supabase Auth gerencia os usuários agora
     this.closeUserModal();
     this.renderUsersTable();
   },
 
   deleteUser(userId) {
-    if (!confirm('Tem certeza que deseja excluir este usuário da lista de acessos?')) return;
-    this.state.usersList = (this.state.usersList || []).filter(u => u.id !== userId);
-    this.saveUsersState();
-    this.renderUsersTable();
+    alert('No modelo Supabase Auth, a exclusão de usuários é gerenciada pelo painel do Supabase.');
   },
 
   // Renderizador principal da interface

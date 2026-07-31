@@ -95,10 +95,12 @@
 
       <!-- BADGE DE PERFIL E BOTÕES LIMPAR / SINCRONIZAR -->
       <div class="flex items-center gap-3">
-        <div class="user-profile-badge flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-slate-200 cursor-pointer hover:bg-white/10 transition-colors" id="user-profile-badge" onclick="app.toggleLoginModal()" title="Clique para alternar perfil de acesso">
+        <div class="user-profile-badge flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-slate-200 cursor-default" id="user-profile-badge" title="Usuário autenticado via Supabase">
           <i class="fa-solid fa-user-shield text-emerald-400" id="user-role-icon"></i>
-          <span id="user-display-info" class="font-semibold">Perfil: Consulta</span>
-          <i class="fa-solid fa-chevron-down text-slate-400 text-xs me-1"></i>
+          <span id="user-display-info" class="font-semibold">Carregando...</span>
+          <button onclick="app.handleLogout()" title="Sair do sistema" style="background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; border-radius: 6px; padding: 2px 8px; cursor: pointer; font-size: 11px; display: flex; align-items: center; gap: 4px; transition: all 0.2s; margin-left: 6px;" onmouseover="this.style.background='rgba(244,63,94,0.12)';this.style.color='#f43f5e';this.style.borderColor='rgba(244,63,94,0.3)'" onmouseout="this.style.background='transparent';this.style.color='#94a3b8';this.style.borderColor='rgba(255,255,255,0.1)'">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+          </button>
         </div>
 
         <button class="btn btn-secondary text-xs py-2 px-3 border-rose-500/30 hover:bg-rose-500/20 text-rose-300 admin-only" id="btn-clear-cards" onclick="app.clearAllCards()">
@@ -833,51 +835,47 @@
   </div>
 </div>
 
-<!-- MODAL DE AUTENTICAÇÃO E SELEÇÃO DE PERFIL DE ACESSO -->
-<div class="modal-backdrop hidden" id="modal-login" style="z-index: 9999; backdrop-filter: blur(8px);">
-  <div class="modal-content" style="max-width: 440px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.7); border-radius: 16px; padding: 24px;">
-    <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-lg">
-          <i class="fa-solid fa-user-lock"></i>
-        </div>
-        <div>
-          <h3 class="text-base font-extrabold text-white tracking-tight">Perfil de Acesso & Login</h3>
-          <p class="text-xs text-slate-400">Controle de Squads & Governança Jira</p>
-        </div>
+<!-- AUTH OVERLAY — LOGIN SUPABASE (Padrão Painel-OPS) -->
+<div id="cs-auth-overlay" style="display: flex; position: fixed; inset: 0; z-index: 99999; background: rgba(3,7,18,0.95); backdrop-filter: blur(16px); align-items: center; justify-content: center; transition: opacity 0.3s ease;">
+  <div style="max-width: 420px; width: 100%; padding: 2rem; background: linear-gradient(145deg, rgba(17,24,39,0.9), rgba(10,15,26,0.95)); border: 1px solid rgba(255,255,255,0.12); border-radius: 20px; box-shadow: 0 30px 80px rgba(0,0,0,0.8);">
+    
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <div style="width: 56px; height: 56px; margin: 0 auto 16px; background: rgba(0,230,153,0.15); border: 1px solid rgba(0,230,153,0.3); border-radius: 16px; display: flex; align-items: center; justify-content: center;">
+        <i class="fa-solid fa-shield-halved" style="font-size: 24px; color: #00E699;"></i>
       </div>
-      <button class="text-slate-400 hover:text-white transition-colors" onclick="app.closeLoginModal()">
-        <i class="fa-solid fa-xmark text-lg"></i>
+      <h2 style="font-size: 1.4rem; font-weight: 800; color: #f8fafc; margin-bottom: 4px; letter-spacing: -0.3px;">Controle de Squads</h2>
+      <p style="color: #94a3b8; font-size: 0.85rem;">Governança Jira & Gestão de Demandas</p>
+    </div>
+    
+    <div id="auth-error-msg" style="display: none; background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3); color: #f43f5e; padding: 0.75rem; border-radius: 8px; font-size: 0.82rem; margin-bottom: 1rem; text-align: center;"></div>
+    <div id="auth-info-msg" style="display: none; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 0.75rem; border-radius: 8px; font-size: 0.82rem; margin-bottom: 1rem; text-align: center;"></div>
+    
+    <div style="display: flex; flex-direction: column; gap: 0.9rem;">
+      <div>
+        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; margin-bottom: 6px;">E-mail corporativo</label>
+        <input type="email" id="auth-email" placeholder="usuario@naturapay.net" style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: rgba(15,23,42,0.95); color: #f8fafc; outline: none; font-size: 0.85rem; transition: border-color 0.2s;" onfocus="this.style.borderColor='rgba(0,230,153,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'" />
+      </div>
+      <div>
+        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; margin-bottom: 6px;">Senha</label>
+        <input type="password" id="auth-password" placeholder="Sua senha" style="width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: rgba(15,23,42,0.95); color: #f8fafc; outline: none; font-size: 0.85rem; transition: border-color 0.2s;" onfocus="this.style.borderColor='rgba(0,230,153,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'" onkeydown="if(event.key==='Enter'){event.preventDefault();app.handleLogin();}" />
+      </div>
+      
+      <button id="btn-auth-login" onclick="app.handleLogin()" style="width: 100%; padding: 0.7rem; border: none; border-radius: 10px; background: linear-gradient(135deg, #00E699, #00b377); color: #030712; font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;" onmouseover="this.style.boxShadow='0 0 24px rgba(0,230,153,0.4)'" onmouseout="this.style.boxShadow='none'">
+        <i class="fa-solid fa-right-to-bracket" style="margin-right: 6px;"></i> Entrar
+      </button>
+      
+      <div style="text-align: center; margin: 0.3rem 0;">
+        <span style="color: #64748b; font-size: 0.78rem;">ou</span>
+      </div>
+      
+      <button id="btn-auth-signup" onclick="app.handleSignup()" style="width: 100%; padding: 0.65rem; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; background: transparent; color: #94a3b8; font-weight: 600; font-size: 0.82rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='rgba(0,230,153,0.4)';this.style.color='#34d399'" onmouseout="this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='#94a3b8'">
+        <i class="fa-solid fa-user-plus" style="margin-right: 6px;"></i> Criar nova conta
       </button>
     </div>
 
-    <form onsubmit="app.handleAuthSubmit(event)">
-      <div class="form-group mb-3">
-        <label class="form-label text-xs text-slate-300 font-bold">Selecione o Perfil de Acesso</label>
-        <select class="form-control text-xs py-2.5" id="login-role" onchange="app.onLoginRoleChange()" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;">
-          <option value="consulta" selected>👁️ Consulta (Somente Leitura - Ações e Edições Desativadas)</option>
-          <option value="admin">👨‍💻 Admin (Acesso Total - Criar, Editar, Mover, Sincronizar)</option>
-        </select>
-      </div>
-
-      <div class="form-group mb-3">
-        <label class="form-label text-xs text-slate-300 font-bold">Seu Nome / E-mail</label>
-        <input type="text" class="form-control text-xs py-2.5" id="login-email" placeholder="Ex: usuario@naturapay.net" required style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
-      </div>
-
-      <div class="form-group mb-4" id="group-login-pin" style="display: none;">
-        <label class="form-label text-xs text-slate-300 font-bold">Senha de Administrador (PIN)</label>
-        <input type="password" class="form-control text-xs py-2.5" id="login-pin" placeholder="Digite a senha de admin (padrão: admin123)" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
-        <p class="text-[11px] text-slate-400 mt-1">Senha de administrador padrão: <code class="text-emerald-400">admin123</code></p>
-      </div>
-
-      <div class="flex items-center justify-end gap-2 pt-3 border-t border-white/10">
-        <button type="button" class="btn btn-secondary text-xs px-4 py-2" onclick="app.closeLoginModal()">Cancelar</button>
-        <button type="submit" class="btn btn-primary text-xs px-5 py-2">
-          <i class="fa-solid fa-right-to-bracket me-1.5"></i> Salvar Perfil
-        </button>
-      </div>
-    </form>
+    <p style="text-align: center; margin-top: 1.2rem; font-size: 0.7rem; color: #475569;">
+      Autenticação via <strong style="color: #34d399;">Supabase Auth</strong> · Mesmas credenciais do Painel-OPS
+    </p>
   </div>
 </div>
 
