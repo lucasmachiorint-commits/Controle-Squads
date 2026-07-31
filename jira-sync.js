@@ -139,21 +139,27 @@ const JiraSyncEngine = {
       ];
     }
 
-    // Construir mapa de cards existentes por jiraKey para deduplicação
+    // Construir mapa de cards existentes por jiraKey para deduplicação sem perda de chamados
     const existingMap = new Map();
 
-    state.triageItems.forEach(t => existingMap.set(t.jiraKey, { queue: 'triage', item: t }));
+    const normalizeKey = (k) => (k || '').toString().trim().toUpperCase();
+
+    state.triageItems.forEach(t => {
+      const k = normalizeKey(t.jiraKey || t.gau || t.id);
+      if (k) existingMap.set(k, { queue: 'triage', item: t });
+    });
 
     ['dados', 'operacoes', 'rpa'].forEach(squadId => {
       (state.backlogItems[squadId] || []).forEach(b => {
-        const key = b.gau || b.jiraKey;
-        if (key) existingMap.set(key, { queue: `backlog_${squadId}`, item: b });
+        const k = normalizeKey(b.gau || b.jiraKey || b.id);
+        if (k) existingMap.set(k, { queue: `backlog_${squadId}`, item: b });
       });
 
       (state.completedTasks[squadId] || []).forEach(c => {
-        const match = c.taskTitle ? c.taskTitle.match(/\((GAU-\d+|KAN-\d+|JIRA-\d+)\)/) : null;
-        const key = match ? match[1] : c.jiraKey;
-        if (key) existingMap.set(key, { queue: `completed_${squadId}`, item: c });
+        const match = c.taskTitle ? c.taskTitle.match(/\((GAU-\d+|KAN-\d+|JIRA-\d+)\)/i) : null;
+        const rawK = match ? match[1] : (c.gau || c.jiraKey || c.id);
+        const k = normalizeKey(rawK);
+        if (k) existingMap.set(k, { queue: `completed_${squadId}`, item: c });
       });
     });
 
@@ -171,8 +177,9 @@ const JiraSyncEngine = {
       const catStatusLower = rawCatStatus.toLowerCase();
       const squadLower = rawSquad.toLowerCase();
 
-      // Garantir chave Jira válida (ex: GAU-134)
-      const jiraKey = card.key || card.jiraKey || (card.id && card.id.toString().startsWith('GAU-') ? card.id : `GAU-${100 + idx}`);
+      // Garantir chave Jira válida e normalizada em CAIXA ALTA (ex: GAU-134)
+      const rawJiraKey = card.key || card.jiraKey || (card.id && card.id.toString().startsWith('GAU-') ? card.id : `GAU-${100 + idx}`);
+      const jiraKey = normalizeKey(rawJiraKey);
       const title = card.title || card.summary || card.nome || 'Demanda do Jira';
       const description = card.description || card.descricao || card.notes || 'Sincronizado via Jira API';
       const requester = card.requester || card.reporter || card.solicitante || 'Solicitante Jira';

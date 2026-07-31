@@ -55,17 +55,24 @@ app.get('/api/jira/consultar-cards-jira', async (req, res) => {
     const authHeader = 'Basic ' + Buffer.from(`${email}:${token}`).toString('base64');
     
     let allIssues = [];
+    let startAt = 0;
+    let maxResults = 100;
     let nextPageToken = null;
+    let pageCount = 0;
+    const maxPages = 50; // Limite de segurança de até 5.000 chamados
 
-    // Paginação baseada em nextPageToken (exigida pela API REST v3 do Jira Cloud) sem limite de 100 itens
-    while (true) {
-      const jqlQuery = encodeURIComponent('project = GAU ORDER BY created DESC');
-      let jiraUrl = `https://${domain}/rest/api/3/search/jql?jql=${jqlQuery}&fields=*all&maxResults=100`;
+    const customJQL = process.env.JIRA_JQL || 'project = GAU ORDER BY created DESC';
+    const jqlQuery = encodeURIComponent(customJQL);
+
+    // Paginação híbrida (suporta nextPageToken do Jira Cloud REST v3 e startAt/total tradicional)
+    while (pageCount < maxPages) {
+      pageCount++;
+      let jiraUrl = `https://${domain}/rest/api/3/search/jql?jql=${jqlQuery}&maxResults=${maxResults}&startAt=${startAt}`;
       if (nextPageToken) {
         jiraUrl += `&nextPageToken=${encodeURIComponent(nextPageToken)}`;
       }
 
-      const response = await fetch(jiraUrl, {
+      let response = await fetch(jiraUrl, {
         method: 'GET',
         headers: {
           'Authorization': authHeader,
@@ -73,20 +80,41 @@ app.get('/api/jira/consultar-cards-jira', async (req, res) => {
         }
       });
 
+      let json = null;
       if (!response.ok) {
-        const errText = await response.text();
-        console.error('[Jira API Error]:', response.status, errText);
-        break;
+        // Fallback para o endpoint v3 clássico /rest/api/3/search se o endpoint /jql não responder
+        const fallbackUrl = `https://${domain}/rest/api/3/search?jql=${jqlQuery}&maxResults=${maxResults}&startAt=${startAt}`;
+        const fallbackRes = await fetch(fallbackUrl, {
+          method: 'GET',
+          headers: { 'Authorization': authHeader, 'Accept': 'application/json' }
+        });
+
+        if (!fallbackRes.ok) {
+          const errText = await response.text();
+          console.error('[Jira API Error]:', response.status, errText);
+          break;
+        }
+        json = await fallbackRes.json();
+      } else {
+        json = await response.json();
       }
 
-      const json = await response.json();
       const issues = json.issues || [];
       if (!issues.length) break;
 
       allIssues = allIssues.concat(issues);
-      
-      if (json.isLast || !json.nextPageToken) break;
-      nextPageToken = json.nextPageToken;
+      startAt += issues.length;
+
+      // Verificar condição de parada (nextPageToken ou total de itens atingido)
+      if (json.nextPageToken) {
+        nextPageToken = json.nextPageToken;
+      } else {
+        nextPageToken = null;
+      }
+
+      if (json.isLast || (json.total && startAt >= json.total) || issues.length < maxResults) {
+        break;
+      }
     }
 
     const cards = allIssues.map((issue, idx) => {
