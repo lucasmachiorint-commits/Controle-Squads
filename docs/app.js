@@ -2285,13 +2285,27 @@ const app = {
     if (titleEl) titleEl.textContent = `Em Andamento - ${squadNames[this.activeSquad]}`;
     if (descEl) descEl.textContent = `Acompanhamento de solicitações em andamento na ${squadNames[this.activeSquad]}`;
 
-    // Exibir/Ocultar o Banner da Sprint de 15 Dias (Exclusivo Squad de Dados)
+    // Exibir e personalizar o Banner de Sprint / Quarter conforme a Squad Ativa
     const sprintBanner = document.getElementById('squad-dados-sprint-banner');
+    const bannerTitle = document.getElementById('sprint-banner-title');
+    const bannerSub = document.getElementById('sprint-banner-subtitle');
+    const bannerBadge = document.getElementById('sprint-banner-badge');
+
     if (sprintBanner) {
-      if (this.activeSquad === 'dados') {
-        sprintBanner.classList.remove('hidden');
+      sprintBanner.classList.remove('hidden');
+      if (this.activeSquad === 'operacoes') {
+        if (bannerTitle) bannerTitle.textContent = 'Quarter squad de Operações';
+        if (bannerSub) bannerSub.innerHTML = 'Quarter vigente - 3° Término <span class="text-emerald-400 font-black">30/09</span>';
+        if (bannerBadge) bannerBadge.textContent = '3° Quarter';
+      } else if (this.activeSquad === 'rpa') {
+        if (bannerTitle) bannerTitle.textContent = 'Quarter squad de RPA';
+        if (bannerSub) bannerSub.innerHTML = 'Quarter vigente - 3° Término <span class="text-emerald-400 font-black">30/09</span>';
+        if (bannerBadge) bannerBadge.textContent = '3° Quarter';
       } else {
-        sprintBanner.classList.add('hidden');
+        // Squad de Dados
+        if (bannerTitle) bannerTitle.textContent = 'Sprint Squad de Dados (15 dias)';
+        if (bannerSub) bannerSub.innerHTML = 'Sprint Vigente • Término: <span class="text-emerald-400 font-black">31/07/2026 (Amanhã)</span>';
+        if (bannerBadge) bannerBadge.textContent = '1 dia restante';
       }
     }
 
