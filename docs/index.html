@@ -108,8 +108,11 @@
           <span>Limpar Cards</span>
         </button>
         <button class="btn btn-primary text-xs py-2 px-3.5 admin-only whitespace-nowrap" id="btn-sync-jira" onclick="app.triggerJiraSync()">
-          <i class="fa-solid fa-rotate-right me-1.5" id="icon-spin-jira"></i>
-          <span>🔄 Sincronizar com Jira</span>
+          <i class="fa-solid fa-arrows-rotate me-1.5" id="icon-spin-jira"></i>
+          <span>Sincronizar com Jira</span>
+        </button>
+        <button class="btn btn-secondary text-xs py-2 px-2.5 text-slate-300 admin-only" id="btn-jira-config" onclick="app.openJiraConfigModal()" title="Configurações da API Jira Cloud em Tempo Real">
+          <i class="fa-solid fa-gear"></i>
         </button>
       </div>
 
@@ -1018,9 +1021,64 @@
   </div>
 </div>
 
+<!-- MODAL DE CONFIGURAÇÕES DA API JIRA EM TEMPO REAL -->
+<div class="modal-backdrop hidden" id="modal-jira-config" style="display: none; align-items: center; justify-content: center; z-index: 9999;">
+  <div class="glass-panel" style="width: 100%; max-width: 580px; background: rgba(15, 23, 42, 0.96); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
+    <div class="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold">
+          <i class="fa-solid fa-cloud-arrow-down text-lg"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-extrabold text-white tracking-tight">Conexão API Jira Cloud (Tempo Real)</h3>
+          <p class="text-xs text-slate-400">Endpoint HTTPS do Proxy e Parâmetros de Busca JQL</p>
+        </div>
+      </div>
+      <button class="text-slate-400 hover:text-white transition-colors" onclick="app.closeJiraConfigModal()">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <form onsubmit="app.saveJiraConfigModal(event)">
+      <div class="form-group mb-3">
+        <label class="form-label text-xs text-slate-300 font-bold">URL da API / Servidor Proxy HTTPS</label>
+        <input type="text" class="form-control text-xs py-2.5 font-mono" id="jira-cfg-custom-url" placeholder="https://emana-squads-jira-platform.onrender.com/api/jira/consultar-cards-jira" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
+        <span class="text-[10px] text-slate-400 block mt-1">Insira a URL HTTPS do servidor Proxy ou deixe em branco para usar o endpoint padrão.</span>
+      </div>
+
+      <div class="form-group mb-3">
+        <label class="form-label text-xs text-slate-300 font-bold">Domínio Jira Cloud</label>
+        <input type="text" class="form-control text-xs py-2.5 font-mono" id="jira-cfg-domain" placeholder="naturapay.atlassian.net" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
+      </div>
+
+      <div class="form-group mb-4">
+        <label class="form-label text-xs text-slate-300 font-bold">Filtro JQL de Busca</label>
+        <input type="text" class="form-control text-xs py-2.5 font-mono" id="jira-cfg-jql" placeholder="project = GAU ORDER BY created DESC" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
+      </div>
+
+      <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-700/50 mb-4 text-xs">
+        <span class="font-bold text-slate-300 block mb-1"><i class="fa-solid fa-circle-info text-cyan-400 me-1.5"></i> Status da Conexão em Tempo Real</span>
+        <span class="text-slate-400 block text-[11px]" id="jira-cfg-status-output">Pronto para testar a sincronização.</span>
+      </div>
+
+      <div class="flex items-center justify-between gap-2 pt-3 border-t border-white/10">
+        <button type="button" class="btn btn-secondary text-xs px-3.5 py-2" onclick="app.testJiraConnection()">
+          <i class="fa-solid fa-plug me-1.5 text-cyan-400"></i> Testar Conexão
+        </button>
+        <div class="flex items-center gap-2">
+          <button type="button" class="btn btn-secondary text-xs px-4 py-2" onclick="app.closeJiraConfigModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary text-xs px-5 py-2">
+            <i class="fa-solid fa-floppy-disk me-1.5"></i> Salvar Configuração
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=1.9.0"></script>
-<script src="app.js?v=1.9.0"></script>
+<script src="jira-sync.js?v=3.2.0"></script>
+<script src="app.js?v=3.2.0"></script>
 
 </body>
 </html>

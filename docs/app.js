@@ -1211,6 +1211,60 @@ const app = {
     }
   },
 
+  openJiraConfigModal() {
+    const modal = document.getElementById('modal-jira-config');
+    const inputUrl = document.getElementById('jira-cfg-custom-url');
+    const inputDomain = document.getElementById('jira-cfg-domain');
+    const inputJql = document.getElementById('jira-cfg-jql');
+
+    if (inputUrl) inputUrl.value = localStorage.getItem('cs_jira_custom_url') || '';
+    if (inputDomain) inputDomain.value = localStorage.getItem('cs_jira_domain') || 'naturapay.atlassian.net';
+    if (inputJql) inputJql.value = localStorage.getItem('cs_jira_jql') || 'project = GAU ORDER BY created DESC';
+
+    if (modal) {
+      modal.style.display = 'flex';
+      modal.classList.remove('hidden');
+    }
+  },
+
+  closeJiraConfigModal() {
+    const modal = document.getElementById('modal-jira-config');
+    if (modal) {
+      modal.style.display = 'none';
+      modal.classList.add('hidden');
+    }
+  },
+
+  saveJiraConfigModal(e) {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    const url = document.getElementById('jira-cfg-custom-url')?.value.trim();
+    const domain = document.getElementById('jira-cfg-domain')?.value.trim();
+    const jql = document.getElementById('jira-cfg-jql')?.value.trim();
+
+    if (url) localStorage.setItem('cs_jira_custom_url', url);
+    else localStorage.removeItem('cs_jira_custom_url');
+
+    if (domain) localStorage.setItem('cs_jira_domain', domain);
+    if (jql) localStorage.setItem('cs_jira_jql', jql);
+
+    this.closeJiraConfigModal();
+    this.triggerJiraSync();
+  },
+
+  async testJiraConnection() {
+    const output = document.getElementById('jira-cfg-status-output');
+    if (output) output.textContent = '⏳ Testando conexão com a API do Jira Cloud...';
+
+    const result = await JiraSyncEngine.syncJiraCards(this.state, () => this.saveState());
+    if (output) {
+      if (result.success) {
+        output.innerHTML = `<span class="text-emerald-400 font-bold">✅ Conexão bem-sucedida! ${result.message}</span>`;
+      } else {
+        output.innerHTML = `<span class="text-rose-400 font-bold">❌ Falha na conexão: ${result.message}</span>`;
+      }
+    }
+  },
+
   // Disparar sincronização com o Jira via JiraSyncEngine
   async triggerJiraSync() {
     const btn = document.getElementById('btn-sync-jira');
