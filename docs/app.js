@@ -77,6 +77,9 @@ const app = {
       localStorage.setItem('cs_theme', newTheme);
     } catch (e) {}
     this.updateThemeUI(newTheme);
+    if (this.currentView === 'dashboard') {
+      this.renderDashboardView();
+    }
   },
 
   updateThemeUI(theme) {
@@ -1966,6 +1969,10 @@ const app = {
 
   renderCharts(demands) {
     if (!demands) demands = this.getAllDashboardDemands();
+    const isLight = document.body.classList.contains('light-theme');
+    const labelColor = isLight ? '#475569' : '#94a3b8';
+    const gridColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)';
+    const chartBorder = isLight ? '#ffffff' : '#0f172a';
 
     // 1. Gráfico: Distribuição por Squad (Doughnut compacto com legenda lateral)
     const ctxSquad = document.getElementById('chart-squad-dist')?.getContext('2d');
@@ -1984,7 +1991,7 @@ const app = {
             data: [countDados, countOperac, countRpa],
             backgroundColor: ['#10b981', '#f59e0b', '#f43f5e'],
             borderWidth: 3,
-            borderColor: '#0f172a',
+            borderColor: chartBorder,
             hoverOffset: 6
           }]
         },
@@ -1996,7 +2003,7 @@ const app = {
             legend: {
               position: 'right',
               labels: {
-                color: '#94a3b8',
+                color: labelColor,
                 font: { size: 11, weight: '600' },
                 boxWidth: 10,
                 padding: 12,
@@ -2038,12 +2045,12 @@ const app = {
           },
           scales: {
             x: {
-              ticks: { color: '#94a3b8', font: { size: 10, weight: '600' } },
+              ticks: { color: labelColor, font: { size: 10, weight: '600' } },
               grid: { display: false }
             },
             y: {
-              ticks: { color: '#64748b', font: { size: 10 }, precision: 0 },
-              grid: { color: 'rgba(255,255,255,0.05)' }
+              ticks: { color: labelColor, font: { size: 10 }, precision: 0 },
+              grid: { color: gridColor }
             }
           }
         }
