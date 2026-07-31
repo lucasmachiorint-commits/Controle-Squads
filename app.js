@@ -804,22 +804,16 @@ const app = {
 
   // --- GESTÃO DE ACESSOS VIA SUPABASE PROFILES ---
   loadUsersState() {
-    // No novo modelo, os usuários são carregados do Supabase na renderUsersTable
-    // Manter fallback local para usersList caso necessário
     try {
-      const savedUsers = localStorage.getItem('cs_users_list');
-      if (savedUsers) {
-        this.state.usersList = JSON.parse(savedUsers);
-      }
+      localStorage.removeItem('cs_users_list');
+      this.state.usersList = [];
     } catch (e) {
-      console.warn('Erro ao carregar lista de usuários local:', e);
+      console.warn('Erro ao limpar lista de usuários local:', e);
     }
   },
 
   saveUsersState() {
-    try {
-      localStorage.setItem('cs_users_list', JSON.stringify(this.state.usersList));
-    } catch (e) {}
+    // Persistência exclusiva no Supabase
   },
 
   userStatusFilter: 'ALL',
