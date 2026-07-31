@@ -825,12 +825,24 @@ const app = {
     if (event && typeof event.stopPropagation === 'function') {
       event.stopPropagation();
     }
-    const modal = document.getElementById(modalId);
-    if (modal) {
-      modal.classList.remove('open');
-      modal.classList.remove('active');
-      modal.style.display = 'none';
+    if (modalId && typeof modalId === 'string') {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('open');
+        modal.classList.remove('active');
+      }
+    } else {
+      ['modal-demand-details', 'modal-new-task'].forEach(id => {
+        const modal = document.getElementById(id);
+        if (modal) {
+          modal.style.display = 'none';
+          modal.classList.remove('open');
+          modal.classList.remove('active');
+        }
+      });
     }
+    this.activeDemandItemId = null;
   },
 
   // Ação: Encaminhar card da Triagem para Squad (Demanda entra naturalmente como Backlog)
