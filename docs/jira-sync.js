@@ -134,7 +134,7 @@ const JiraSyncEngine = {
     "title": "TESTE 329-07 LUCAS E JAILTON",
     "status": "Backlog",
     "categoriaStatus": "Itens Pendentes",
-    "squadTarget": "dados",
+    "squadTarget": null,
     "customfield_12475": null,
     "requester": "Lucas da Silva Machiori - Natura",
     "priority": "Média",
@@ -157,7 +157,7 @@ const JiraSyncEngine = {
     "requester": "Lucas da Silva Machiori - Natura",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "28/07/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-134)"
   },
   {
@@ -166,12 +166,12 @@ const JiraSyncEngine = {
     "title": "TESTE 2 LUCAS",
     "status": "Backlog",
     "categoriaStatus": "Itens Pendentes",
-    "squadTarget": "dados",
+    "squadTarget": null,
     "customfield_12475": null,
     "requester": "Lucas da Silva Machiori - Natura",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "28/07/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-133)"
   },
   {
@@ -180,12 +180,12 @@ const JiraSyncEngine = {
     "title": "TESTE AUTOMAÇÃO LUCAS",
     "status": "Backlog",
     "categoriaStatus": "Itens Pendentes",
-    "squadTarget": "dados",
+    "squadTarget": null,
     "customfield_12475": null,
     "requester": "Lucas da Silva Machiori - Natura",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "28/07/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-132)"
   },
   {
@@ -194,12 +194,12 @@ const JiraSyncEngine = {
     "title": "Dados Operações Sustentação - Type Person Legal Base Cadastral - Descasamento Dock x Base Cadastral",
     "status": "Backlog",
     "categoriaStatus": "Itens Pendentes",
-    "squadTarget": "dados",
+    "squadTarget": null,
     "customfield_12475": null,
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "27/07/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-131)"
   },
   {
@@ -208,12 +208,12 @@ const JiraSyncEngine = {
     "title": "Ingestão Dados DataBricks - Novas Tabelas Base Cadastral PJ",
     "status": "Backlog",
     "categoriaStatus": "Itens Pendentes",
-    "squadTarget": "dados",
+    "squadTarget": null,
     "customfield_12475": null,
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "22/07/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-130)"
   },
   {
@@ -231,7 +231,7 @@ const JiraSyncEngine = {
     "requester": "Gabriela Alves Sampaio",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "17/07/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-129)"
   },
   {
@@ -240,12 +240,12 @@ const JiraSyncEngine = {
     "title": "Criar Front no Zord para Consulta de Transações (Integrar Gsurf e Motor de Agenda)",
     "status": "Backlog",
     "categoriaStatus": "Itens Pendentes",
-    "squadTarget": "dados",
+    "squadTarget": null,
     "customfield_12475": null,
     "requester": "Jacqueline Soares",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "17/07/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-128)"
   },
   {
@@ -263,7 +263,7 @@ const JiraSyncEngine = {
     "requester": "Veridiane Servienski Lepinski - Natura&CO",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "15/07/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-127)"
   },
   {
@@ -281,7 +281,7 @@ const JiraSyncEngine = {
     "requester": "Rafael Luiz Soares Silva Lira",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "09/06/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-126)"
   },
   {
@@ -299,7 +299,7 @@ const JiraSyncEngine = {
     "requester": "Rafael Luiz Soares Silva Lira",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "09/06/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-125)"
   },
   {
@@ -317,7 +317,7 @@ const JiraSyncEngine = {
     "requester": "Evandro Paulo Coelho",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "04/06/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-124)"
   },
   {
@@ -335,7 +335,7 @@ const JiraSyncEngine = {
     "requester": "Evandro Paulo Coelho",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "04/06/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-123)"
   },
   {
@@ -353,7 +353,7 @@ const JiraSyncEngine = {
     "requester": "Evandro Paulo Coelho",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "04/06/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-122)"
   },
   {
@@ -371,7 +371,7 @@ const JiraSyncEngine = {
     "requester": "Evandro Paulo Coelho",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "04/06/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-121)"
   },
   {
@@ -389,7 +389,7 @@ const JiraSyncEngine = {
     "requester": "Lucas da Silva Machiori - Natura",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "03/06/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-120)"
   },
   {
@@ -407,7 +407,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "22/05/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-119)"
   },
   {
@@ -425,7 +425,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "21/05/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-118)"
   },
   {
@@ -443,7 +443,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "21/05/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-117)"
   },
   {
@@ -461,7 +461,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "21/05/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-116)"
   },
   {
@@ -479,7 +479,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "11/05/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-115)"
   },
   {
@@ -497,7 +497,7 @@ const JiraSyncEngine = {
     "requester": "Silvana Jaguszewski",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "27/04/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-114)"
   },
   {
@@ -515,7 +515,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "07/04/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-113)"
   },
   {
@@ -533,7 +533,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "07/04/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-112)"
   },
   {
@@ -551,7 +551,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "25/03/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-111)"
   },
   {
@@ -569,7 +569,7 @@ const JiraSyncEngine = {
     "requester": "Willian Marcos Rodrigues - Natura Pay",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "17/03/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-110)"
   },
   {
@@ -587,7 +587,7 @@ const JiraSyncEngine = {
     "requester": "Willian Marcos Rodrigues - Natura Pay",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "17/03/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-109)"
   },
   {
@@ -605,7 +605,7 @@ const JiraSyncEngine = {
     "requester": "Erika Kimie Kitahara",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "05/03/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-108)"
   },
   {
@@ -623,7 +623,7 @@ const JiraSyncEngine = {
     "requester": "Lucas da Silva Machiori - Natura",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "04/03/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-107)"
   },
   {
@@ -641,7 +641,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "03/03/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-106)"
   },
   {
@@ -659,7 +659,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "03/03/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-105)"
   },
   {
@@ -677,7 +677,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "03/03/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-104)"
   },
   {
@@ -695,7 +695,7 @@ const JiraSyncEngine = {
     "requester": "Lucas da Silva Machiori - Natura",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "02/03/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-103)"
   },
   {
@@ -713,7 +713,7 @@ const JiraSyncEngine = {
     "requester": "ADLER CAVALCANTE",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "02/03/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-102)"
   },
   {
@@ -731,7 +731,7 @@ const JiraSyncEngine = {
     "requester": "valdirene batista da silva souza figueredo",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "24/02/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-101)"
   },
   {
@@ -749,7 +749,7 @@ const JiraSyncEngine = {
     "requester": "Lucas da Silva Machiori - Natura",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "23/02/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-100)"
   },
   {
@@ -767,7 +767,7 @@ const JiraSyncEngine = {
     "requester": "Erika Kimie Kitahara",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "20/02/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-99)"
   },
   {
@@ -785,7 +785,7 @@ const JiraSyncEngine = {
     "requester": "Erika Kimie Kitahara",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "20/02/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-98)"
   },
   {
@@ -803,7 +803,7 @@ const JiraSyncEngine = {
     "requester": "Erika Kimie Kitahara",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "20/02/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-97)"
   },
   {
@@ -821,7 +821,7 @@ const JiraSyncEngine = {
     "requester": "Erika Kimie Kitahara",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "20/02/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-96)"
   },
   {
@@ -839,7 +839,7 @@ const JiraSyncEngine = {
     "requester": "Erika Kimie Kitahara",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "20/02/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-95)"
   },
   {
@@ -857,7 +857,7 @@ const JiraSyncEngine = {
     "requester": "Erika Kimie Kitahara",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "20/02/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-94)"
   },
   {
@@ -875,7 +875,7 @@ const JiraSyncEngine = {
     "requester": "Vanessa Felix Belmonte",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "19/02/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-93)"
   },
   {
@@ -893,7 +893,7 @@ const JiraSyncEngine = {
     "requester": "Evandro Paulo Coelho",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "11/02/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-92)"
   },
   {
@@ -911,7 +911,7 @@ const JiraSyncEngine = {
     "requester": "Stefani Brassaroto - Natura & Co.",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "05/02/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-91)"
   },
   {
@@ -929,7 +929,7 @@ const JiraSyncEngine = {
     "requester": "Stefani Brassaroto - Natura & Co.",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "05/02/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-90)"
   },
   {
@@ -947,7 +947,7 @@ const JiraSyncEngine = {
     "requester": "Stefani Brassaroto - Natura & Co.",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "05/02/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-89)"
   },
   {
@@ -965,7 +965,7 @@ const JiraSyncEngine = {
     "requester": "Stefani Brassaroto - Natura & Co.",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "05/02/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-88)"
   },
   {
@@ -983,7 +983,7 @@ const JiraSyncEngine = {
     "requester": "Stefani Brassaroto - Natura & Co.",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "05/02/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-87)"
   },
   {
@@ -1001,7 +1001,7 @@ const JiraSyncEngine = {
     "requester": "Stefani Brassaroto - Natura & Co.",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "05/02/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-86)"
   },
   {
@@ -1019,7 +1019,7 @@ const JiraSyncEngine = {
     "requester": "Stefani Brassaroto - Natura & Co.",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "05/02/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-85)"
   },
   {
@@ -1037,7 +1037,7 @@ const JiraSyncEngine = {
     "requester": "Stefani Brassaroto - Natura & Co.",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "05/02/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-84)"
   },
   {
@@ -1055,7 +1055,7 @@ const JiraSyncEngine = {
     "requester": "Stefani Brassaroto - Natura & Co.",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "05/02/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-83)"
   },
   {
@@ -1073,7 +1073,7 @@ const JiraSyncEngine = {
     "requester": "Victor Hugo Soares de Mello",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "06/01/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-82)"
   },
   {
@@ -1091,7 +1091,7 @@ const JiraSyncEngine = {
     "requester": "Lucas da Silva Machiori - Natura",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "05/01/2026",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-81)"
   },
   {
@@ -1109,7 +1109,7 @@ const JiraSyncEngine = {
     "requester": "Katia Fernanda Barros - Natura",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "30/12/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-80)"
   },
   {
@@ -1127,7 +1127,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "19/12/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-79)"
   },
   {
@@ -1145,7 +1145,7 @@ const JiraSyncEngine = {
     "requester": "Erika Kimie Kitahara",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "12/12/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-78)"
   },
   {
@@ -1163,7 +1163,7 @@ const JiraSyncEngine = {
     "requester": "Hudson Borges de Oliveira - Natura Pay",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "10/12/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-77)"
   },
   {
@@ -1181,7 +1181,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "09/12/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-76)"
   },
   {
@@ -1199,7 +1199,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "09/12/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-75)"
   },
   {
@@ -1217,7 +1217,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "09/12/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-74)"
   },
   {
@@ -1235,7 +1235,7 @@ const JiraSyncEngine = {
     "requester": "Hudson Borges de Oliveira - Natura Pay",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "09/12/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-73)"
   },
   {
@@ -1253,7 +1253,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "04/12/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-72)"
   },
   {
@@ -1271,7 +1271,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "04/12/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-71)"
   },
   {
@@ -1289,7 +1289,7 @@ const JiraSyncEngine = {
     "requester": "Stefani Brassaroto - Natura & Co.",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "01/12/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-70)"
   },
   {
@@ -1307,7 +1307,7 @@ const JiraSyncEngine = {
     "requester": "Stefani Brassaroto - Natura & Co.",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "01/12/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-69)"
   },
   {
@@ -1325,7 +1325,7 @@ const JiraSyncEngine = {
     "requester": "Stefani Brassaroto - Natura & Co.",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "28/11/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-68)"
   },
   {
@@ -1343,7 +1343,7 @@ const JiraSyncEngine = {
     "requester": "Stefani Brassaroto - Natura & Co.",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "28/11/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-67)"
   },
   {
@@ -1361,7 +1361,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "23/10/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-66)"
   },
   {
@@ -1379,7 +1379,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "23/10/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-65)"
   },
   {
@@ -1397,7 +1397,7 @@ const JiraSyncEngine = {
     "requester": "Rafael Luiz Soares Silva Lira",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "16/10/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-64)"
   },
   {
@@ -1415,7 +1415,7 @@ const JiraSyncEngine = {
     "requester": "Hudson Borges de Oliveira - Natura Pay",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "15/10/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-63)"
   },
   {
@@ -1433,7 +1433,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "15/10/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-62)"
   },
   {
@@ -1451,7 +1451,7 @@ const JiraSyncEngine = {
     "requester": "Erika Kimie Kitahara",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "15/10/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-61)"
   },
   {
@@ -1469,7 +1469,7 @@ const JiraSyncEngine = {
     "requester": "Stefani Brassaroto - Natura & Co.",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "10/10/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-60)"
   },
   {
@@ -1487,7 +1487,7 @@ const JiraSyncEngine = {
     "requester": "Valdirene Batista da Silva Souza Figueredo",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "10/10/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-58)"
   },
   {
@@ -1505,7 +1505,7 @@ const JiraSyncEngine = {
     "requester": "Valdirene Batista da Silva Souza Figueredo",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "10/10/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-57)"
   },
   {
@@ -1523,7 +1523,7 @@ const JiraSyncEngine = {
     "requester": "Stefani Brassaroto - Natura & Co.",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "10/10/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-56)"
   },
   {
@@ -1541,7 +1541,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "03/10/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-55)"
   },
   {
@@ -1559,7 +1559,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "03/10/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-54)"
   },
   {
@@ -1577,7 +1577,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "03/10/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-53)"
   },
   {
@@ -1595,7 +1595,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "03/10/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-52)"
   },
   {
@@ -1613,7 +1613,7 @@ const JiraSyncEngine = {
     "requester": "Ana Paula Eugenio De Souza Alves - Natura Pay",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "01/10/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-51)"
   },
   {
@@ -1631,7 +1631,7 @@ const JiraSyncEngine = {
     "requester": "Stefani Brassaroto - Natura & Co.",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "24/09/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-50)"
   },
   {
@@ -1649,7 +1649,7 @@ const JiraSyncEngine = {
     "requester": "Victoria Maria De Moraes Martello",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "23/09/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-49)"
   },
   {
@@ -1667,7 +1667,7 @@ const JiraSyncEngine = {
     "requester": "Willian Marcos Rodrigues - Natura Pay",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "11/09/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-48)"
   },
   {
@@ -1685,7 +1685,7 @@ const JiraSyncEngine = {
     "requester": "Hudson Borges de Oliveira - Natura Pay",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "09/09/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-47)"
   },
   {
@@ -1703,7 +1703,7 @@ const JiraSyncEngine = {
     "requester": "Hudson Borges de Oliveira - Natura Pay",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "09/09/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-46)"
   },
   {
@@ -1721,7 +1721,7 @@ const JiraSyncEngine = {
     "requester": "Victor Hugo Soares de Mello",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "09/09/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-45)"
   },
   {
@@ -1739,7 +1739,7 @@ const JiraSyncEngine = {
     "requester": "Victor Hugo Soares de Mello",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "29/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-44)"
   },
   {
@@ -1757,7 +1757,7 @@ const JiraSyncEngine = {
     "requester": "VANESSA FELIX BELMONTE",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "22/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-41)"
   },
   {
@@ -1775,7 +1775,7 @@ const JiraSyncEngine = {
     "requester": "VANESSA FELIX BELMONTE",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "22/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-40)"
   },
   {
@@ -1793,7 +1793,7 @@ const JiraSyncEngine = {
     "requester": "VANESSA FELIX BELMONTE",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "22/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-39)"
   },
   {
@@ -1811,7 +1811,7 @@ const JiraSyncEngine = {
     "requester": "Ana Carolina Curti Fontana Rampazzo",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "21/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-38)"
   },
   {
@@ -1829,7 +1829,7 @@ const JiraSyncEngine = {
     "requester": "Ana Carolina Curti Fontana Rampazzo",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "21/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-37)"
   },
   {
@@ -1847,7 +1847,7 @@ const JiraSyncEngine = {
     "requester": "Ana Carolina Curti Fontana Rampazzo",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "21/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-36)"
   },
   {
@@ -1865,7 +1865,7 @@ const JiraSyncEngine = {
     "requester": "Ana Carolina Curti Fontana Rampazzo",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "21/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-35)"
   },
   {
@@ -1883,7 +1883,7 @@ const JiraSyncEngine = {
     "requester": "Ana Carolina Curti Fontana Rampazzo",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "21/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-34)"
   },
   {
@@ -1901,7 +1901,7 @@ const JiraSyncEngine = {
     "requester": "Ana Carolina Curti Fontana Rampazzo",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "21/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-33)"
   },
   {
@@ -1919,7 +1919,7 @@ const JiraSyncEngine = {
     "requester": "Ana Carolina Curti Fontana Rampazzo",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "21/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-32)"
   },
   {
@@ -1937,7 +1937,7 @@ const JiraSyncEngine = {
     "requester": "Erika Kimie Kitahara",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "19/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-31)"
   },
   {
@@ -1955,7 +1955,7 @@ const JiraSyncEngine = {
     "requester": "Victor Hugo Soares de Mello",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "19/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-30)"
   },
   {
@@ -1973,7 +1973,7 @@ const JiraSyncEngine = {
     "requester": "Erika Kimie Kitahara",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "18/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-27)"
   },
   {
@@ -1991,7 +1991,7 @@ const JiraSyncEngine = {
     "requester": "Victor Hugo Soares de Mello",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "13/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-26)"
   },
   {
@@ -2009,7 +2009,7 @@ const JiraSyncEngine = {
     "requester": "Victor Hugo Soares de Mello",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "13/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-25)"
   },
   {
@@ -2027,7 +2027,7 @@ const JiraSyncEngine = {
     "requester": "Victor Hugo Soares de Mello",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "13/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-24)"
   },
   {
@@ -2045,7 +2045,7 @@ const JiraSyncEngine = {
     "requester": "Victor Hugo Soares de Mello",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "13/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-23)"
   },
   {
@@ -2063,7 +2063,7 @@ const JiraSyncEngine = {
     "requester": "Victor Hugo Soares de Mello",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "13/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-22)"
   },
   {
@@ -2081,7 +2081,7 @@ const JiraSyncEngine = {
     "requester": "Victor Hugo Soares de Mello",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "13/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-21)"
   },
   {
@@ -2099,7 +2099,7 @@ const JiraSyncEngine = {
     "requester": "Victor Hugo Soares de Mello",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "13/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-20)"
   },
   {
@@ -2117,7 +2117,7 @@ const JiraSyncEngine = {
     "requester": "Victor Hugo Soares de Mello",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "13/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-19)"
   },
   {
@@ -2135,7 +2135,7 @@ const JiraSyncEngine = {
     "requester": "Victor Hugo Soares de Mello",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "13/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-18)"
   },
   {
@@ -2153,7 +2153,7 @@ const JiraSyncEngine = {
     "requester": "Victor Hugo Soares de Mello",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "13/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-17)"
   },
   {
@@ -2171,7 +2171,7 @@ const JiraSyncEngine = {
     "requester": "Victor Hugo Soares de Mello",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "13/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-16)"
   },
   {
@@ -2189,7 +2189,7 @@ const JiraSyncEngine = {
     "requester": "Victor Hugo Soares de Mello",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "13/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-15)"
   },
   {
@@ -2207,7 +2207,7 @@ const JiraSyncEngine = {
     "requester": "Willian Marcos Rodrigues - Natura Pay",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "08/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-14)"
   },
   {
@@ -2225,7 +2225,7 @@ const JiraSyncEngine = {
     "requester": "Stefani Brassaroto - Natura & Co.",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "08/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-12)"
   },
   {
@@ -2243,7 +2243,7 @@ const JiraSyncEngine = {
     "requester": "Bruno Giglio Rocco",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "08/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-11)"
   },
   {
@@ -2261,7 +2261,7 @@ const JiraSyncEngine = {
     "requester": "Victor Hugo Soares de Mello",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "07/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-10)"
   },
   {
@@ -2279,7 +2279,7 @@ const JiraSyncEngine = {
     "requester": "Veridiane Servienski Lepinski - Natura&CO",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "07/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-9)"
   },
   {
@@ -2297,7 +2297,7 @@ const JiraSyncEngine = {
     "requester": "Hudson Borges de Oliveira - Natura Pay",
     "priority": "Média",
     "category": "Geral",
-    "createdDate": "05/08/2025",
+    "createdDate": "29/07/2026",
     "description": "Demanda real importada do espaço GAU (GAU-8)"
   }
 ];
