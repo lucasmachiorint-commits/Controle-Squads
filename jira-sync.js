@@ -208,6 +208,7 @@ const JiraSyncEngine = {
 
       const cfSquad = card.customfield_12475 || card.squad || card.squadTarget || card.fields?.customfield_12475 || card.fields?.customfield_squad;
       let cfStr = '';
+      let hasExplicitSquad = false;
       if (cfSquad) {
         if (typeof cfSquad === 'object') {
           cfStr = (cfSquad.id || cfSquad.value || JSON.stringify(cfSquad)).toString().toLowerCase();
@@ -219,35 +220,26 @@ const JiraSyncEngine = {
       if (cfStr.includes('16005') || cfStr.includes('operac') || cfStr.includes('operaç')) {
         targetSquadId = 'operacoes';
         targetSquadName = 'Squad de Operações';
+        hasExplicitSquad = true;
       } else if (cfStr.includes('16007') || cfStr.includes('rpa')) {
         targetSquadId = 'rpa';
         targetSquadName = 'Squad de RPA';
+        hasExplicitSquad = true;
       } else if (cfStr.includes('16006') || cfStr.includes('dados')) {
         targetSquadId = 'dados';
         targetSquadName = 'Squad de Dados';
+        hasExplicitSquad = true;
       }
 
-      // 2. Mapeamento Estrito conforme regras de Governança
-      // A) Abertos no Jira -> Mesa de Triagem
-      // B) Em Andamento / Atribuídos no Jira -> Aba Backlog da Squad (com status 'Backlog' ou 'Bloqueado')
-      // C) Concluídos no Jira -> Aba Concluídos da Squad
+      // 2. Mapeamento de Fila conforme funcionamento exato da manhã
+      // A) Sem Squad atribuída OU Status em Aberto/Triagem/Pendente -> Mesa de Triagem
+      // B) Com Squad atribuída e em andamento/backlog no Jira -> Aba Backlog da Squad
+      // C) Status Concluído/Done -> Aba Concluídos da Squad
 
       let targetQueue = '';
       let defaultStatus = 'Backlog';
 
       if (
-        statusLower === 'aberto' || 
-        statusLower === 'abertos' || 
-        statusLower === 'triagem' || 
-        statusLower === 'novo' || 
-        statusLower === 'nova' ||
-        statusLower === 'to do' ||
-        statusLower === 'a fazer' ||
-        statusLower.includes('aguardando triagem') ||
-        statusLower.includes('pendente triagem')
-      ) {
-        targetQueue = 'triage';
-      } else if (
         statusLower === 'concluído' ||
         statusLower === 'concluido' ||
         statusLower === 'finalizado' ||
@@ -261,13 +253,13 @@ const JiraSyncEngine = {
         catStatusLower === 'done'
       ) {
         targetQueue = `completed_${targetSquadId}`;
+      } else if (!hasExplicitSquad || statusLower === 'aberto' || statusLower === 'abertos' || statusLower === 'triagem' || statusLower === 'novo' || statusLower === 'nova' || statusLower === 'to do' || statusLower === 'a fazer' || statusLower.includes('aguardando triagem') || statusLower.includes('pendente triagem')) {
+        targetQueue = 'triage';
       } else {
         targetQueue = `backlog_${targetSquadId}`;
-
         if (statusLower.includes('bloquead') || statusLower.includes('impedid') || statusLower.includes('block') || statusLower.includes('hold')) {
           defaultStatus = 'Bloqueado';
         } else {
-          // Cards em andamento ou atribuídos no Jira entram na aba Backlog da Squad com status 'Backlog'
           defaultStatus = 'Backlog';
         }
       }
@@ -408,15 +400,11 @@ const JiraSyncEngine = {
           });
         }
       }
-      // CASO C: TICKET EXISTE NA MESMA FILA (Atualizar status e metadados)
+      // CASO C: TICKET EXISTE NA MESMA FILA (Preservar status alterado pelo usuário na aplicação)
       else {
         const itemObj = existing.item;
         let isModified = false;
         if (itemObj) {
-          if (defaultStatus && itemObj.status !== defaultStatus) {
-            itemObj.status = defaultStatus;
-            isModified = true;
-          }
           if (title && itemObj.title !== title) {
             itemObj.title = title;
             isModified = true;
