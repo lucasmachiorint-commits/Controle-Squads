@@ -127,14 +127,23 @@ const app = {
       this.userStatus = 'ATIVO';
     }
 
-    // Buscar perfil na tabela profiles do Supabase
+    // Buscar perfil na tabela cs_profiles do Supabase (exclusiva do Controle-Squads)
     if (supabaseClient) {
       try {
-        const { data: profile } = await supabaseClient
-          .from('profiles')
+        let profile = null;
+        const { data, error } = await supabaseClient
+          .from('cs_profiles')
           .select('*')
           .eq('id', user.id)
           .maybeSingle();
+
+        if (!error && data) {
+          profile = data;
+        } else if (error && (error.code === '42P01' || (error.message && error.message.includes('does not exist')))) {
+          // Fallback para profiles
+          const fallback = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle();
+          profile = fallback.data;
+        }
 
         if (profile) {
           if (isLucas) {
@@ -142,7 +151,7 @@ const app = {
             this.userStatus = 'ATIVO';
             // Forçar atualização no Supabase para garantir que o perfil seja ADMIN
             if (profile.perfil !== 'ADMIN' || profile.status !== 'ATIVO') {
-              await supabaseClient.from('profiles').update({ perfil: 'ADMIN', status: 'ATIVO' }).eq('id', user.id);
+              await supabaseClient.from('cs_profiles').update({ perfil: 'ADMIN', status: 'ATIVO' }).eq('id', user.id);
             }
           } else {
             if (profile.perfil) this.userRole = profile.perfil.toLowerCase() === 'admin' ? 'admin' : 'consulta';
@@ -150,7 +159,7 @@ const app = {
           }
           if (profile.nome) this.userName = profile.nome;
         } else {
-          // Se o perfil ainda não existe no Supabase, auto-criar o registro!
+          // Se o perfil ainda não existe no Supabase, auto-criar o registro em cs_profiles!
           const initialRole = isLucas ? 'ADMIN' : 'CONSULTA';
           const initialStatus = isLucas ? 'ATIVO' : 'PENDENTE';
           const newProfile = {
@@ -160,7 +169,10 @@ const app = {
             perfil: initialRole,
             status: initialStatus
           };
-          await supabaseClient.from('profiles').upsert(newProfile);
+          const { error: upsertErr } = await supabaseClient.from('cs_profiles').upsert(newProfile);
+          if (upsertErr && (upsertErr.code === '42P01' || (upsertErr.message && upsertErr.message.includes('does not exist')))) {
+            await supabaseClient.from('profiles').upsert(newProfile);
+          }
           this.userRole = initialRole.toLowerCase();
           this.userStatus = initialStatus;
         }
@@ -901,10 +913,17 @@ const app = {
     let users = [];
     if (supabaseClient) {
       try {
-        const { data, error } = await supabaseClient
-          .from('profiles')
+        let { data, error } = await supabaseClient
+          .from('cs_profiles')
           .select('*')
           .order('created_at', { ascending: false });
+
+        if (error && (error.code === '42P01' || (error.message && error.message.includes('does not exist')))) {
+          // Fallback caso cs_profiles não tenha sido criada no Supabase ainda
+          const fallback = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
+          data = fallback.data;
+          error = fallback.error;
+        }
 
         if (error) {
           console.warn('[renderUsersTable Supabase Warning]', error.message);
@@ -1051,18 +1070,21 @@ const app = {
     if (newRole) payload.perfil = newRole;
 
     try {
-      const { error } = await supabaseClient
-        .from('profiles')
+      let { error } = await supabaseClient
+        .from('cs_profiles')
         .update(payload)
         .eq('id', userId);
 
-      if (error) {
+      if (error && (error.code === '42P01' || (error.message && error.message.includes('does not exist')))) {
+        await supabaseClient.from('profiles').update(payload).eq('id', userId);
+      } else if (error) {
         alert('Erro ao atualizar usuário no Supabase: ' + error.message);
-      } else {
-        const msg = newStatus === 'ATIVO' ? '✅ Usuário aprovado e ativado com sucesso!' : '🚫 Acesso do usuário atualizado para ' + newStatus;
-        console.log(msg);
-        this.renderUsersTable();
+        return;
       }
+
+      const msg = newStatus === 'ATIVO' ? '✅ Usuário aprovado e ativado com sucesso!' : '🚫 Acesso do usuário atualizado para ' + newStatus;
+      console.log(msg);
+      this.renderUsersTable();
     } catch (err) {
       alert('Erro ao conectar ao Supabase: ' + (err.message || ''));
     }
@@ -1076,11 +1098,14 @@ const app = {
 
     if (supabaseClient) {
       try {
-        const { error } = await supabaseClient
-          .from('profiles')
+        let { error } = await supabaseClient
+          .from('cs_profiles')
           .update({ perfil: newRole.toUpperCase() })
           .eq('id', userId);
-        if (error) {
+
+        if (error && (error.code === '42P01' || (error.message && error.message.includes('does not exist')))) {
+          await supabaseClient.from('profiles').update({ perfil: newRole.toUpperCase() }).eq('id', userId);
+        } else if (error) {
           alert('Erro ao atualizar perfil no Supabase: ' + error.message);
           return;
         }
