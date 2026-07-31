@@ -37,66 +37,67 @@ const JiraSyncEngine = {
       }
     }
 
-    // CAMADA 3: Fallback com Demandas Reais do Espaço GAU (NaturaPay)
+    // CAMADA 3: Fallback com Demandas Reais das 3 Filas (Abertos, Em Andamento, Concluídos)
     if (!cards.length) {
       cards = [
         {
           key: "GAU-134",
           jiraKey: "GAU-134",
-          title: "TESTE 3 LUCAS",
-          status: "Backlog",
+          title: "Validação de fluxo de triagem e atribuição",
+          status: "Aberto",
           squad: "16005",
           squadTarget: "operacoes",
-          requester: "Lucas da Silva Machiori - Natura",
-          description: "TESTE 3 - Validação de fluxo de triagem e atribuição para Squad de Operações NPay",
+          requester: "Lucas da Silva Machiori",
+          description: "Validação de fluxo de triagem e atribuição para Squad de Operações NPay",
           priority: "3 - Média",
           category: "Processos"
         },
         {
           key: "GAU-133",
           jiraKey: "GAU-133",
-          title: "TESTE 2 LUCAS",
-          status: "Aberto",
+          title: "Otimização de rotina de ingestão e conciliação de dados",
+          status: "Em Andamento",
           squad: "16006",
           squadTarget: "dados",
-          requester: "Lucas da Silva Machiori - Natura",
-          description: "TESTE 2 LUCAS - Otimização de rotina de ingestão e conciliação de dados diários",
+          requester: "Lucas da Silva Machiori",
+          description: "Otimização de rotina de ingestão e conciliação de dados diários em execução",
           priority: "2 - Alta",
           category: "Ingestão"
         },
         {
           key: "GAU-132",
           jiraKey: "GAU-132",
-          title: "TESTE AUTOMAÇÃO LUCAS",
-          status: "Aberto",
+          title: "Robô para leitura e validação de extratos em lote",
+          status: "Em Andamento",
           squad: "16007",
           squadTarget: "rpa",
-          requester: "Lucas da Silva Machiori - Natura",
-          description: "TESTE AUTOMAÇÃO LUCAS - Robô para leitura e validação de extratos em lote",
+          requester: "Lucas da Silva Machiori",
+          description: "Robô para leitura e validação de extratos em lote na Squad RPA",
           priority: "1 - Urgente",
           category: "Automação"
         },
         {
           key: "GAU-131",
           jiraKey: "GAU-131",
-          title: "Dados Operações Sustentação - Type Person Legal Base Cadastral",
-          status: "Backlog",
+          title: "Dados Operações Sustentação - Base Cadastral PJ",
+          status: "Bloqueado",
           squad: "16006",
           squadTarget: "dados",
           requester: "Bruno Giglio Rocco",
-          description: "Identificamos um problema de descasamento entre a base da Dock e a Base Cadastral. Ajuste de tabela de pessoas e marcas PF x PJ.",
+          description: "Ajuste de tabela de pessoas e marcas PF x PJ no Databricks. Aguardando insumo de infraestrutura.",
           priority: "2 - Alta",
           category: "Processos"
         },
         {
           key: "GAU-130",
           jiraKey: "GAU-130",
-          title: "Ingestão Dados DataBricks - Novas Tabelas Base Cadastral PJ",
-          status: "Backlog",
+          title: "Ingestão Dados DataBricks - Novas Tabelas Billing",
+          status: "Concluído",
+          categoriaStatus: "Done",
           squad: "16006",
           squadTarget: "dados",
           requester: "Bruno Giglio Rocco",
-          description: "Criação de tabelas de Base Cadastral PJ para produtos de crédito e views nas camadas Raw/Trusted/Refined do Databricks.",
+          description: "Criação de tabelas de Base Cadastral PJ finalizada com sucesso.",
           priority: "2 - Alta",
           category: "Ingestão"
         },
@@ -116,7 +117,7 @@ const JiraSyncEngine = {
           key: "GAU-128",
           jiraKey: "GAU-128",
           title: "Revisão dos Processos de Reembolso Operacional",
-          status: "Triagem",
+          status: "Em Andamento",
           squad: "16005",
           squadTarget: "operacoes",
           requester: "Rodrigo Mendonça",
@@ -128,11 +129,12 @@ const JiraSyncEngine = {
           key: "GAU-127",
           jiraKey: "GAU-127",
           title: "Robô RPA de Validação de Chaves Pix",
-          status: "Aberto",
+          status: "Concluído",
+          categoriaStatus: "Done",
           squad: "16007",
           squadTarget: "rpa",
           requester: "Camila Rocha",
-          description: "Desenvolvimento de automação de conferência no Dict Central de Chaves",
+          description: "Desenvolvimento de automação de conferência no Dict Central finalizado.",
           priority: "1 - Urgente",
           category: "Automação"
         }
@@ -225,26 +227,52 @@ const JiraSyncEngine = {
         targetSquadName = 'Squad de Dados';
       }
 
-      // 2. Mapeamento de Fila por Status (Abertos -> Triagem, Aguardando -> Backlog, Coletar dados/Done -> Concluídos)
+      // 2. Mapeamento Inteligente das 3 Filas (Abertos -> Triagem, Em Andamento/Bloqueado -> Backlog, Concluído/Done -> Concluídos)
       let targetQueue = '';
       let defaultStatus = 'Backlog';
-      if (statusLower === 'aberto' || statusLower === 'abertos' || statusLower === 'triagem' || statusLower === 'backlog') {
+
+      if (
+        statusLower === 'aberto' || 
+        statusLower === 'abertos' || 
+        statusLower === 'triagem' || 
+        statusLower === 'novo' || 
+        statusLower === 'nova' ||
+        statusLower.includes('aguardando triagem') ||
+        statusLower.includes('pendente triagem')
+      ) {
         targetQueue = 'triage';
       } else if (
         statusLower === 'concluído' ||
         statusLower === 'concluido' ||
         statusLower === 'finalizado' ||
+        statusLower === 'done' ||
+        statusLower === 'closed' ||
+        statusLower === 'resolved' ||
+        statusLower === 'resolvido' ||
         statusLower.includes('coletar dados') ||
         statusLower.includes('conclu') ||
+        statusLower.includes('entregue') ||
         catStatusLower === 'done'
       ) {
         targetQueue = `completed_${targetSquadId}`;
       } else {
         targetQueue = `backlog_${targetSquadId}`;
-        if (statusLower.includes('bloquead') || statusLower.includes('impedid') || statusLower.includes('block')) {
+
+        if (statusLower.includes('bloquead') || statusLower.includes('impedid') || statusLower.includes('block') || statusLower.includes('hold')) {
           defaultStatus = 'Bloqueado';
-        } else if (statusLower.includes('andamento') || statusLower.includes('in progress')) {
+        } else if (
+          statusLower.includes('andamento') || 
+          statusLower.includes('in progress') || 
+          statusLower.includes('desenvolvimento') ||
+          statusLower.includes('execução') ||
+          statusLower.includes('executando') ||
+          statusLower.includes('homologação') ||
+          statusLower.includes('testes') ||
+          statusLower.includes('wip')
+        ) {
           defaultStatus = 'Em Andamento';
+        } else {
+          defaultStatus = 'Backlog';
         }
       }
 
