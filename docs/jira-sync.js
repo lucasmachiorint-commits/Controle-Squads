@@ -407,14 +407,34 @@ const JiraSyncEngine = {
             priority: card.priority || '2 - Alta',
             category: card.category || 'Processos',
             treatmentOrder: idx + 1,
-            status: 'Backlog',
-            progress: 0
+            status: defaultStatus,
+            progress: defaultStatus === 'Em Andamento' ? 50 : 0
           });
         }
       }
-      // CASO C: TICKET EXISTE NA MESMA FILA (Atualizar apenas metadados)
+      // CASO C: TICKET EXISTE NA MESMA FILA (Atualizar status e metadados)
       else {
-        countUnchanged++;
+        const itemObj = existing.item;
+        let isModified = false;
+        if (itemObj) {
+          if (defaultStatus && itemObj.status !== defaultStatus) {
+            itemObj.status = defaultStatus;
+            isModified = true;
+          }
+          if (title && itemObj.title !== title) {
+            itemObj.title = title;
+            isModified = true;
+          }
+          if (requester && (itemObj.requester !== requester && itemObj.requesterName !== requester)) {
+            itemObj.requester = requester;
+            itemObj.requesterName = requester;
+            isModified = true;
+          }
+          if (isModified) countUpdated++;
+          else countUnchanged++;
+        } else {
+          countUnchanged++;
+        }
       }
     });
 

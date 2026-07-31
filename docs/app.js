@@ -1258,6 +1258,9 @@ const app = {
       toast.classList.remove('hidden');
       setTimeout(() => toast.classList.add('hidden'), 6000);
     }
+
+    // Re-renderizar a interface inteira imediatamente para atualizar cards em andamento, triagem e concluídos
+    this.render();
   },
 
   triageFilter: 'pending',
