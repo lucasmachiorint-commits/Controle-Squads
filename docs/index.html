@@ -582,41 +582,29 @@
         </div>
       </div>
 
-      <!-- 3 CARDS DE RESUMO (BORDER COLORIDA & GLOW COMPATÍVEL COM MESA DE TRIAGEM) -->
+      <!-- 3 CARDS DE RESUMO (FORMATO MINI-METRIC IGUAL À MESA DE TRIAGEM: SEM ÍCONE, SEM SUBTEXTO) -->
       <div class="access-widgets-grid">
         <!-- 1. TOTAL DE USUÁRIOS -->
-        <div class="glass-card p-4 flex items-center gap-4 access-widget-total">
-          <div class="w-12 h-12 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/40 flex items-center justify-center text-xl shrink-0">
-            <i class="fa-solid fa-users"></i>
-          </div>
+        <div class="mini-metric-card metric-box-blue">
           <div>
-            <div class="text-[11px] text-sky-400 font-bold uppercase tracking-wider">TOTAL DE USUÁRIOS</div>
-            <div class="text-2xl font-extrabold text-white leading-none my-1" id="stat-user-total">0</div>
-            <div class="text-[11px] text-slate-400">Contas cadastradas</div>
+            <span class="mini-metric-lbl text-sky-400">TOTAL DE USUÁRIOS</span>
+            <div class="mini-metric-val text-white" id="stat-user-total">0</div>
           </div>
         </div>
 
         <!-- 2. ADMINS -->
-        <div class="glass-card p-4 flex items-center gap-4 access-widget-admins">
-          <div class="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center text-xl shrink-0">
-            <i class="fa-solid fa-user-shield"></i>
-          </div>
+        <div class="mini-metric-card metric-box-amber">
           <div>
-            <div class="text-[11px] text-amber-400 font-bold uppercase tracking-wider">ADMINS</div>
-            <div class="text-2xl font-extrabold text-white leading-none my-1" id="stat-user-admins">0</div>
-            <div class="text-[11px] text-slate-400">Acesso total</div>
+            <span class="mini-metric-lbl text-amber-400">ADMINS</span>
+            <div class="mini-metric-val text-white" id="stat-user-admins">0</div>
           </div>
         </div>
 
         <!-- 3. CONSULTA -->
-        <div class="glass-card p-4 flex items-center gap-4 access-widget-consultas">
-          <div class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center text-xl shrink-0">
-            <i class="fa-solid fa-user-magnifying-glass"></i>
-          </div>
+        <div class="mini-metric-card metric-box-emerald">
           <div>
-            <div class="text-[11px] text-emerald-400 font-bold uppercase tracking-wider">CONSULTA</div>
-            <div class="text-2xl font-extrabold text-white leading-none my-1" id="stat-user-consultas">0</div>
-            <div class="text-[11px] text-slate-400">Somente leitura</div>
+            <span class="mini-metric-lbl text-emerald-400">CONSULTA</span>
+            <div class="mini-metric-val text-white" id="stat-user-consultas">0</div>
           </div>
         </div>
       </div>
