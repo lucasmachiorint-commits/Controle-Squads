@@ -938,17 +938,14 @@ const app = {
     // Atualizar widgets de contadores
     const totalEl = document.getElementById('stat-user-total');
     const adminsEl = document.getElementById('stat-user-admins');
-    const operadoresEl = document.getElementById('stat-user-operadores');
     const consultasEl = document.getElementById('stat-user-consultas');
 
     const totalCount = users.length;
     const adminCount = users.filter(u => u.role === 'ADMIN').length;
-    const operadorCount = users.filter(u => u.role === 'OPERADOR').length;
     const consultaCount = users.filter(u => u.role === 'CONSULTA').length;
 
     if (totalEl) totalEl.textContent = totalCount;
     if (adminsEl) adminsEl.textContent = adminCount;
-    if (operadoresEl) operadoresEl.textContent = operadorCount;
     if (consultasEl) consultasEl.textContent = consultaCount;
 
     if (users.length === 0) {
@@ -1028,7 +1025,6 @@ const app = {
                     ${isAdminCurrentUser ? '' : 'disabled="true"'}
                     style="background: rgba(15,23,42,0.9); color:#fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; max-width: 130px;">
               <option value="ADMIN" ${user.role === 'ADMIN' ? 'selected' : ''}>Admin</option>
-              <option value="OPERADOR" ${user.role === 'OPERADOR' ? 'selected' : ''}>Operador</option>
               <option value="CONSULTA" ${user.role === 'CONSULTA' ? 'selected' : ''}>Consulta</option>
             </select>
           </td>
