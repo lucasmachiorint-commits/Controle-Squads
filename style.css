@@ -1075,14 +1075,67 @@ body {
   gap: 4px;
 }
 
-/* User profile badge no header */
-.user-profile-badge {
+/* User profile badge / chip no header */
+.user-chip-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 6px 12px;
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: all 0.2s ease;
 }
 
-.user-profile-badge:hover {
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 12px rgba(99, 102, 241, 0.15);
+.user-chip-container:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+.user-chip-icon {
+  font-size: 16px;
+  color: #00E699;
+}
+
+.user-chip-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f8fafc;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.2px;
+}
+
+.btn-user-logout {
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(244, 63, 94, 0.12) !important;
+  border: 1px solid rgba(244, 63, 94, 0.35) !important;
+  color: #f43f5e !important;
+  border-radius: 8px !important;
+  padding: 4px 10px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  font-family: 'Outfit', sans-serif !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  outline: none !important;
+  margin-left: 4px !important;
+  line-height: 1 !important;
+}
+
+.btn-user-logout:hover {
+  background: rgba(244, 63, 94, 0.25) !important;
+  border-color: rgba(244, 63, 94, 0.6) !important;
+  color: #fda4af !important;
+  box-shadow: 0 0 12px rgba(244, 63, 94, 0.35) !important;
 }
 
 /* Badges de Status de Aprovação */

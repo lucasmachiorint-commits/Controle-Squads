@@ -108,10 +108,10 @@
 
       <!-- 3. EXTREMA DIREITA: USUÁRIO ADMIN & BOTÃO SAIR -->
       <div class="header-right-user flex items-center justify-end">
-        <div class="user-profile-badge inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-white/10 text-xs text-slate-200 shrink-0 whitespace-nowrap shadow-sm" id="user-profile-badge" title="Usuário autenticado via Supabase">
-          <i class="fa-solid fa-user-shield text-emerald-400 text-sm" id="user-role-icon"></i>
-          <span id="user-display-info" class="font-semibold text-slate-200">Carregando...</span>
-          <button onclick="app.handleLogout()" title="Sair do sistema" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-white/10 hover:border-rose-500/30 text-[11px] font-semibold transition-all cursor-pointer ms-1">
+        <div class="user-chip-container" id="user-profile-badge" title="Usuário autenticado via Supabase">
+          <i class="fa-solid fa-circle-user user-chip-icon" id="user-role-icon"></i>
+          <span id="user-display-info" class="user-chip-name">Carregando...</span>
+          <button type="button" onclick="app.handleLogout()" title="Sair do sistema" class="btn-user-logout">
             <i class="fa-solid fa-arrow-right-from-bracket"></i>
             <span>Sair</span>
           </button>
