@@ -81,13 +81,10 @@ const app = {
 
   updateThemeUI(theme) {
     const icon = document.getElementById('theme-toggle-icon');
-    const text = document.getElementById('theme-toggle-text');
     if (theme === 'light') {
-      if (icon) icon.className = 'fa-solid fa-moon text-indigo-400';
-      if (text) text.textContent = 'Modo Escuro';
+      if (icon) icon.className = 'fa-solid fa-moon text-indigo-400 text-lg';
     } else {
-      if (icon) icon.className = 'fa-solid fa-sun text-amber-400';
-      if (text) text.textContent = 'Modo Claro';
+      if (icon) icon.className = 'fa-solid fa-sun text-amber-400 text-lg';
     }
   },
 
