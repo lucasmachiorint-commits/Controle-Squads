@@ -28,7 +28,29 @@ const app = {
     this.seedDefaultDataIfEmpty();
     this.setupRealtimeSync();
     this.restoreLastSyncTime();
+    this.setupKeyboardShortcuts();
     this.render();
+  },
+
+  setupKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+      // Tecla Escape (Esc): fechar qualquer modal ativo
+      if (e.key === 'Escape') {
+        this.closeModal();
+      }
+
+      // Tecla '/' para focar na busca da visão ativa se não estiver digitando em um input
+      if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        let searchInput = null;
+        if (this.activeView === 'triagem') searchInput = document.getElementById('search-triage');
+        else if (this.activeView === 'board') searchInput = document.getElementById('search-board');
+        else if (this.activeView === 'backlog') searchInput = document.getElementById('search-backlog');
+        else if (this.activeView === 'concluidos') searchInput = document.getElementById('search-concluidos');
+
+        if (searchInput) searchInput.focus();
+      }
+    });
   },
 
   restoreLastSyncTime() {
