@@ -699,10 +699,16 @@
           <h3 class="text-base font-bold text-white tracking-tight flex items-center gap-2">
             <i class="fa-solid fa-shield-halved text-emerald-400"></i> Gestão de Perfis de Acesso
           </h3>
-          <button class="btn btn-secondary text-xs py-2 px-3.5 flex items-center gap-1.5" onclick="app.renderUsersTable()" title="Atualizar lista">
-            <i class="fa-solid fa-rotate-right text-purple-400"></i>
-            <span>Atualizar</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-primary text-xs py-2 px-3.5 flex items-center gap-1.5" onclick="app.openNewUserModal()" title="Cadastrar ou convidar novo usuário">
+              <i class="fa-solid fa-user-plus"></i>
+              <span>Novo Acesso / Convidar</span>
+            </button>
+            <button class="btn btn-secondary text-xs py-2 px-3.5 flex items-center gap-1.5" onclick="app.renderUsersTable()" title="Atualizar lista">
+              <i class="fa-solid fa-rotate-right text-purple-400"></i>
+              <span>Atualizar</span>
+            </button>
+          </div>
         </div>
 
         <div class="table-responsive">
@@ -1077,8 +1083,8 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=4.0.0"></script>
-<script src="app.js?v=4.0.0"></script>
+<script src="jira-sync.js?v=4.1.0"></script>
+<script src="app.js?v=4.1.0"></script>
 
 </body>
 </html>

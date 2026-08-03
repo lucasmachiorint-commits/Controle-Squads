@@ -136,10 +136,14 @@ const app = {
         const { data, error } = await supabaseClient
           .from('cs_profiles')
           .select('*')
-          .eq('id', user.id)
+          .or(`id.eq.${user.id},email.ilike.${user.email.toLowerCase()}`)
           .maybeSingle();
 
         if (!error && data) {
+          // Se a conta foi vinculada pelo e-mail com id temporário, atualizar o ID real
+          if (data.id !== user.id) {
+            try { await supabaseClient.from('cs_profiles').update({ id: user.id }).eq('email', user.email.toLowerCase()); } catch (_) {}
+          }
           if (isLucas) {
             this.userRole = 'admin';
             this.userStatus = 'ATIVO';
@@ -1119,12 +1123,21 @@ const app = {
   },
 
   openNewUserModal() {
-    // No modelo Supabase Auth, novos usuários são criados via signup
-    alert('No modelo Supabase Auth, novos usuários devem se cadastrar pela tela de login usando "Criar nova conta".');
+    const modal = document.getElementById('modal-user-edit');
+    if (modal) {
+      const nameEl = document.getElementById('user-modal-name');
+      const emailEl = document.getElementById('user-modal-email');
+      const roleEl = document.getElementById('user-modal-role');
+      if (nameEl) nameEl.value = '';
+      if (emailEl) emailEl.value = '';
+      if (roleEl) roleEl.value = 'consulta';
+
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+    }
   },
 
   openEditUserModal(userId) {
-    // Com Supabase Auth, a edição é feita diretamente pelo select de perfil
     alert('Use o seletor de perfil na tabela para alterar o nível de acesso do usuário.');
   },
 
@@ -1136,11 +1149,53 @@ const app = {
     }
   },
 
-  saveUserFromModal(e) {
+  async saveUserFromModal(e) {
     if (e && typeof e.preventDefault === 'function') e.preventDefault();
-    // Mantido para compatibilidade — Supabase Auth gerencia os usuários agora
-    this.closeUserModal();
-    this.renderUsersTable();
+
+    const nameEl = document.getElementById('user-modal-name');
+    const emailEl = document.getElementById('user-modal-email');
+    const roleEl = document.getElementById('user-modal-role');
+
+    const name = nameEl ? nameEl.value.trim() : '';
+    const email = emailEl ? emailEl.value.trim().toLowerCase() : '';
+    const role = roleEl ? roleEl.value.toUpperCase() : 'CONSULTA';
+
+    if (!email) {
+      alert('Por favor, informe o e-mail do usuário.');
+      return;
+    }
+
+    if (!supabaseClient) {
+      alert('Supabase não conectado.');
+      return;
+    }
+
+    try {
+      const payload = {
+        id: crypto.randomUUID(),
+        nome: name || email.split('@')[0],
+        email: email,
+        perfil: role,
+        status: 'PENDENTE',
+        created_at: new Date().toISOString()
+      };
+
+      const { error } = await supabaseClient.from('cs_profiles').upsert(payload, { onConflict: 'email' });
+      if (error) {
+        const { data: existing } = await supabaseClient.from('cs_profiles').select('id').eq('email', email).maybeSingle();
+        if (existing) {
+          await supabaseClient.from('cs_profiles').update({ nome: name, perfil: role, status: 'PENDENTE' }).eq('email', email);
+        } else {
+          await supabaseClient.from('cs_profiles').insert(payload);
+        }
+      }
+
+      this.closeUserModal();
+      await this.renderUsersTable();
+      alert(`✅ Acesso para ${email} cadastrado com sucesso com status PENDENTE! Você pode aprová-lo na tabela.`);
+    } catch (err) {
+      alert('Erro ao salvar usuário: ' + (err.message || err));
+    }
   },
 
   deleteUser(userId) {
