@@ -937,6 +937,13 @@ const app = {
     let users = [];
     if (supabaseClient) {
       try {
+        // Sincronizar auth.users → cs_profiles via função RPC (garante que todos cadastros apareçam)
+        try {
+          await supabaseClient.rpc('sync_auth_to_cs_profiles');
+        } catch (rpcErr) {
+          console.warn('[RPC sync_auth_to_cs_profiles]', rpcErr?.message || rpcErr);
+        }
+
         let { data, error } = await supabaseClient
           .from('cs_profiles')
           .select('*')
