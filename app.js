@@ -916,6 +916,9 @@ const app = {
     const tbody = document.getElementById('tbody-users');
     if (!tbody) return;
 
+    const btnRefreshIcon = document.querySelector('button[onclick="app.renderUsersTable()"] i');
+    if (btnRefreshIcon) btnRefreshIcon.classList.add('fa-spin');
+
     let users = [];
     if (supabaseClient) {
       try {
@@ -927,6 +930,9 @@ const app = {
 
         if (error) {
           console.warn('[renderUsersTable cs_profiles Error]', error.message);
+          if (error.message && (error.message.includes('schema cache') || error.code === '42P01')) {
+            alert('Aviso Supabase: A tabela cs_profiles não foi encontrada na API do Supabase. Certifique-se de executar o script SQL no SQL Editor do Supabase.');
+          }
         } else if (data) {
           console.log('[renderUsersTable] Total de perfis em cs_profiles:', data.length);
           users = data.map(p => ({
@@ -940,6 +946,8 @@ const app = {
         }
       } catch (e) {
         console.warn('Erro ao buscar perfis do Supabase:', e);
+      } finally {
+        if (btnRefreshIcon) btnRefreshIcon.classList.remove('fa-spin');
       }
     }
 
@@ -1133,7 +1141,10 @@ const app = {
       if (roleEl) roleEl.value = 'consulta';
 
       modal.classList.remove('hidden');
+      modal.classList.add('open', 'active');
       modal.style.display = 'flex';
+      modal.style.opacity = '1';
+      modal.style.pointerEvents = 'auto';
     }
   },
 
@@ -1144,8 +1155,11 @@ const app = {
   closeUserModal() {
     const modal = document.getElementById('modal-user-edit');
     if (modal) {
+      modal.classList.remove('open', 'active');
       modal.classList.add('hidden');
       modal.style.display = 'none';
+      modal.style.opacity = '0';
+      modal.style.pointerEvents = 'none';
     }
   },
 
@@ -1180,13 +1194,13 @@ const app = {
         created_at: new Date().toISOString()
       };
 
-      const { error } = await supabaseClient.from('cs_profiles').upsert(payload, { onConflict: 'email' });
+      const { error } = await supabaseClient.from('cs_profiles').insert(payload);
       if (error) {
-        const { data: existing } = await supabaseClient.from('cs_profiles').select('id').eq('email', email).maybeSingle();
-        if (existing) {
-          await supabaseClient.from('cs_profiles').update({ nome: name, perfil: role, status: 'PENDENTE' }).eq('email', email);
-        } else {
-          await supabaseClient.from('cs_profiles').insert(payload);
+        // Se a constraint de id/email falhou (usuario ja cadastrado), tentar update
+        const { error: updErr } = await supabaseClient.from('cs_profiles').update({ nome: name, perfil: role, status: 'PENDENTE' }).eq('email', email);
+        if (updErr) {
+          alert('Erro ao cadastrar usuário no Supabase: ' + updErr.message);
+          return;
         }
       }
 
