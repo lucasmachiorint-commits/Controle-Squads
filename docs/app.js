@@ -130,11 +130,11 @@ const app = {
       this.userStatus = 'ATIVO';
     }
 
-    // Buscar perfil na tabela cs_profiles do Supabase (exclusiva do Controle-Squads)
+    // Buscar perfil na tabela profiles do Supabase
     if (supabaseClient) {
       try {
-        const { data, error } = await supabaseClient
-          .from('cs_profiles')
+        let { data, error } = await supabaseClient
+          .from('profiles')
           .select('*')
           .or(`id.eq.${user.id},email.ilike.${user.email.toLowerCase()}`)
           .maybeSingle();
@@ -142,13 +142,13 @@ const app = {
         if (!error && data) {
           // Se a conta foi vinculada pelo e-mail com id temporário, atualizar o ID real
           if (data.id !== user.id) {
-            try { await supabaseClient.from('cs_profiles').update({ id: user.id }).eq('email', user.email.toLowerCase()); } catch (_) {}
+            try { await supabaseClient.from('profiles').update({ id: user.id }).eq('email', user.email.toLowerCase()); } catch (_) {}
           }
           if (isLucas) {
             this.userRole = 'admin';
             this.userStatus = 'ATIVO';
             if (data.perfil !== 'ADMIN' || data.status !== 'ATIVO') {
-              await supabaseClient.from('cs_profiles').update({ perfil: 'ADMIN', status: 'ATIVO' }).eq('id', user.id);
+              await supabaseClient.from('profiles').update({ perfil: 'ADMIN', status: 'ATIVO' }).eq('id', user.id);
             }
           } else {
             if (data.perfil) this.userRole = data.perfil.toLowerCase() === 'admin' ? 'admin' : 'consulta';
@@ -156,7 +156,7 @@ const app = {
           }
           if (data.nome) this.userName = data.nome;
         } else {
-          // Se o perfil ainda não existe em cs_profiles, auto-criar o registro!
+          // Se o perfil ainda não existe em profiles, auto-criar o registro com status PENDENTE!
           const initialRole = isLucas ? 'ADMIN' : 'CONSULTA';
           const initialStatus = isLucas ? 'ATIVO' : 'PENDENTE';
           const newProfile = {
@@ -167,9 +167,9 @@ const app = {
             status: initialStatus
           };
           
-          const { error: upsertErr } = await supabaseClient.from('cs_profiles').upsert(newProfile);
+          const { error: upsertErr } = await supabaseClient.from('profiles').upsert(newProfile);
           if (upsertErr) {
-            console.warn('[setupUserSession cs_profiles upsert error]', upsertErr.message);
+            console.warn('[setupUserSession profiles upsert error]', upsertErr.message);
           }
           this.userRole = initialRole.toLowerCase();
           this.userStatus = initialStatus;
@@ -340,21 +340,17 @@ const app = {
       } else {
         const user = data?.session?.user || data?.user;
         if (user) {
-          // Inserir explicitamente na tabela cs_profiles com status PENDENTE
+          // Inserir explicitamente na tabela profiles com status PENDENTE
           try {
             const profilePayload = {
               id: user.id,
               nome: user.user_metadata?.nome || email.split('@')[0],
-              email: email,
+              email: email.toLowerCase(),
               perfil: 'CONSULTA',
               status: 'PENDENTE'
             };
-            const { error: csErr } = await supabaseClient.from('cs_profiles').upsert(profilePayload);
-            if (csErr) {
-              console.warn('[Signup cs_profiles warning, trying profiles]', csErr.message);
-              const { error: pErr } = await supabaseClient.from('profiles').upsert(profilePayload);
-              if (pErr) console.warn('[Signup profiles warning]', pErr.message);
-            }
+            const { error: pErr } = await supabaseClient.from('profiles').upsert(profilePayload);
+            if (pErr) console.warn('[Signup profiles warning]', pErr.message);
           } catch (pErr) {
             console.warn('[Signup profile upsert error]', pErr);
           }
@@ -948,14 +944,14 @@ const app = {
     if (supabaseClient) {
       try {
         let { data, error } = await supabaseClient
-          .from('cs_profiles')
+          .from('profiles')
           .select('*')
           .order('created_at', { ascending: false });
 
         if (error) {
-          console.warn('[renderUsersTable cs_profiles Error]', error.message);
+          console.warn('[renderUsersTable profiles Error]', error.message);
         } else if (data && data.length > 0) {
-          console.log('[renderUsersTable] Total de perfis em cs_profiles:', data.length);
+          console.log('[renderUsersTable] Total de perfis em profiles:', data.length);
           data.forEach(p => {
             if (p && p.email) {
               usersMap.set(p.email.toLowerCase(), {
@@ -1117,7 +1113,7 @@ const app = {
     if (supabaseClient) {
       try {
         await supabaseClient
-          .from('cs_profiles')
+          .from('profiles')
           .update(payload)
           .or(`id.eq.${userId},email.eq.${userId.toLowerCase()}`);
       } catch (err) {
@@ -1139,7 +1135,7 @@ const app = {
     if (supabaseClient) {
       try {
         let { error } = await supabaseClient
-          .from('cs_profiles')
+          .from('profiles')
           .update({ perfil: newRole.toUpperCase() })
           .eq('id', userId);
 
@@ -1240,9 +1236,9 @@ const app = {
           created_at: new Date().toISOString()
         };
 
-        const { error } = await supabaseClient.from('cs_profiles').insert(payload);
+        const { error } = await supabaseClient.from('profiles').insert(payload);
         if (error) {
-          await supabaseClient.from('cs_profiles').update({ nome: name, perfil: role, status: 'PENDENTE' }).eq('email', email);
+          await supabaseClient.from('profiles').update({ nome: name, perfil: role, status: 'PENDENTE' }).eq('email', email);
         }
       } catch (err) {
         console.warn('Aviso Supabase saveUserFromModal:', err);
