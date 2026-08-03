@@ -134,31 +134,24 @@ const app = {
     if (supabaseClient) {
       try {
         let profile = null;
-        // Tentar buscar perfil em profiles (tabela principal)
+        // Tentar buscar perfil na tabela dedicada cs_profiles (isolada do Painel-OPS)
         const { data, error } = await supabaseClient
-          .from('profiles')
+          .from('cs_profiles')
           .select('*')
           .eq('id', user.id)
           .maybeSingle();
 
         if (!error && data) {
           profile = data;
-        } else {
-          // Fallback para cs_profiles se existir
-          try {
-            const fallback = await supabaseClient.from('cs_profiles').select('*').eq('id', user.id).maybeSingle();
-            if (fallback && !fallback.error && fallback.data) {
-              profile = fallback.data;
-            }
-          } catch (_) {}
         }
+        // Se cs_profiles falhou (tabela não existe), NÃO buscamos em profiles para manter isolamento
 
         if (profile) {
           if (isLucas) {
             this.userRole = 'admin';
             this.userStatus = 'ATIVO';
             if (profile.perfil !== 'ADMIN' || profile.status !== 'ATIVO') {
-              await supabaseClient.from('profiles').update({ perfil: 'ADMIN', status: 'ATIVO' }).eq('id', user.id);
+              await supabaseClient.from('cs_profiles').update({ perfil: 'ADMIN', status: 'ATIVO' }).eq('id', user.id);
             }
           } else {
             if (profile.perfil) this.userRole = profile.perfil.toLowerCase() === 'admin' ? 'admin' : 'consulta';
@@ -166,7 +159,7 @@ const app = {
           }
           if (profile.nome) this.userName = profile.nome;
         } else {
-          // Perfil não existe, criar em profiles
+          // Perfil não existe em cs_profiles → criar com status PENDENTE
           const initialRole = isLucas ? 'ADMIN' : 'CONSULTA';
           const initialStatus = isLucas ? 'ATIVO' : 'PENDENTE';
           const newProfile = {
@@ -176,9 +169,9 @@ const app = {
             perfil: initialRole,
             status: initialStatus
           };
-          const { error: upsertErr } = await supabaseClient.from('profiles').upsert(newProfile);
+          const { error: upsertErr } = await supabaseClient.from('cs_profiles').upsert(newProfile);
           if (upsertErr) {
-            console.warn('[setupUserSession upsert profiles error]', upsertErr.message);
+            console.warn('[setupUserSession cs_profiles upsert error]', upsertErr.message);
           }
           this.userRole = initialRole.toLowerCase();
           this.userStatus = initialStatus;
@@ -358,9 +351,9 @@ const app = {
               perfil: 'CONSULTA',
               status: 'PENDENTE'
             };
-            const { error: profErr } = await supabaseClient.from('profiles').upsert(profilePayload);
-            if (profErr) {
-              console.warn('[Signup profiles upsert warning]', profErr.message);
+            const { error: csErr } = await supabaseClient.from('cs_profiles').upsert(profilePayload);
+            if (csErr) {
+              console.warn('[Signup cs_profiles upsert warning]', csErr.message);
             }
           } catch (pErr) {
             console.warn('[Signup profile upsert error]', pErr);
@@ -926,32 +919,14 @@ const app = {
     let users = [];
     if (supabaseClient) {
       try {
-        // RPC sync (opcional, funciona se cs_profiles existir)
-        try {
-          const { error: rpcError } = await supabaseClient.rpc('sync_auth_to_cs_profiles');
-          if (rpcError) console.warn('[RPC sync]', rpcError.message);
-        } catch (_) {}
-
-        // Buscar perfis da tabela profiles (tabela principal)
+        // Buscar perfis da tabela isolada cs_profiles (Controle-Squads)
         let { data, error } = await supabaseClient
-          .from('profiles')
+          .from('cs_profiles')
           .select('*')
           .order('created_at', { ascending: false });
 
-        if (error) {
-          console.warn('[renderUsersTable profiles error]', error.message);
-          // Tentar cs_profiles como fallback
-          try {
-            const fallback = await supabaseClient.from('cs_profiles').select('*').order('created_at', { ascending: false });
-            if (!fallback.error && fallback.data) {
-              data = fallback.data;
-              error = null;
-            }
-          } catch (_) {}
-        }
-
         if (!error && data) {
-          console.log('[renderUsersTable] Total de perfis encontrados:', data.length);
+          console.log('[renderUsersTable] Total de perfis em Controle-Squads:', data.length);
           users = data.map(p => ({
             id: p.id,
             name: p.nome || (p.email ? p.email.split('@')[0] : 'Usuário'),
@@ -961,7 +936,7 @@ const app = {
             createdAt: p.created_at ? new Date(p.created_at).toLocaleDateString('pt-BR') : '--'
           }));
         } else if (error) {
-          console.warn('[renderUsersTable Supabase Warning]', error.message);
+          console.warn('[renderUsersTable cs_profiles Warning]', error.message);
         }
       } catch (e) {
         console.warn('Erro ao buscar perfis do Supabase:', e);
@@ -1097,12 +1072,12 @@ const app = {
 
     try {
       let { error } = await supabaseClient
-        .from('profiles')
+        .from('cs_profiles')
         .update(payload)
         .eq('id', userId);
 
       if (error) {
-        console.warn('[updateUserStatus profiles error]', error.message);
+        console.warn('[updateUserStatus cs_profiles error]', error.message);
         alert('Erro ao atualizar usuário no Supabase: ' + error.message);
         return;
       }
@@ -1124,7 +1099,7 @@ const app = {
     if (supabaseClient) {
       try {
         let { error } = await supabaseClient
-          .from('profiles')
+          .from('cs_profiles')
           .update({ perfil: newRole.toUpperCase() })
           .eq('id', userId);
 
