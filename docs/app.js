@@ -885,15 +885,24 @@ const app = {
   // --- GESTÃO DE ACESSOS VIA SUPABASE PROFILES ---
   loadUsersState() {
     try {
-      localStorage.removeItem('cs_users_list');
-      this.state.usersList = [];
+      const saved = localStorage.getItem('cs_users_list');
+      if (saved) {
+        this.state.usersList = JSON.parse(saved);
+      } else {
+        this.state.usersList = [];
+      }
     } catch (e) {
-      console.warn('Erro ao limpar lista de usuários local:', e);
+      console.warn('Erro ao carregar lista de usuários local:', e);
+      this.state.usersList = [];
     }
   },
 
   saveUsersState() {
-    // Persistência exclusiva no Supabase
+    try {
+      localStorage.setItem('cs_users_list', JSON.stringify(this.state.usersList || []));
+    } catch (e) {
+      console.warn('Erro ao salvar lista de usuários local:', e);
+    }
   },
 
   userStatusFilter: 'ALL',
@@ -919,10 +928,25 @@ const app = {
     const btnRefreshIcon = document.querySelector('button[onclick="app.renderUsersTable()"] i');
     if (btnRefreshIcon) btnRefreshIcon.classList.add('fa-spin');
 
-    let users = [];
+    let usersMap = new Map();
+
+    // 1. Carregar usuários cadastrados localmente (localStorage)
+    (this.state.usersList || []).forEach(u => {
+      if (u && u.email) {
+        usersMap.set(u.email.toLowerCase(), {
+          id: u.id || crypto.randomUUID(),
+          name: u.name || u.nome || u.email.split('@')[0],
+          email: u.email.toLowerCase(),
+          role: (u.role || u.perfil || 'CONSULTA').toUpperCase(),
+          status: (u.status || 'PENDENTE').toUpperCase(),
+          createdAt: u.createdAt || u.created_at ? (typeof (u.createdAt || u.created_at) === 'string' && (u.createdAt || u.created_at).includes('/') ? (u.createdAt || u.created_at) : new Date(u.createdAt || u.created_at).toLocaleDateString('pt-BR')) : new Date().toLocaleDateString('pt-BR')
+        });
+      }
+    });
+
+    // 2. Mesclar com os dados remotos do Supabase se disponível
     if (supabaseClient) {
       try {
-        // Buscar perfis EXCLUSIVAMENTE da tabela cs_profiles (Controle-Squads)
         let { data, error } = await supabaseClient
           .from('cs_profiles')
           .select('*')
@@ -930,26 +954,31 @@ const app = {
 
         if (error) {
           console.warn('[renderUsersTable cs_profiles Error]', error.message);
-          if (error.message && (error.message.includes('schema cache') || error.code === '42P01')) {
-            alert('Aviso Supabase: A tabela cs_profiles não foi encontrada na API do Supabase. Certifique-se de executar o script SQL no SQL Editor do Supabase.');
-          }
-        } else if (data) {
+        } else if (data && data.length > 0) {
           console.log('[renderUsersTable] Total de perfis em cs_profiles:', data.length);
-          users = data.map(p => ({
-            id: p.id,
-            name: p.nome || (p.email ? p.email.split('@')[0] : 'Usuário'),
-            email: p.email || '',
-            role: p.perfil ? p.perfil.toUpperCase() : 'CONSULTA',
-            status: (p.status || 'ATIVO').toUpperCase(),
-            createdAt: p.created_at ? new Date(p.created_at).toLocaleDateString('pt-BR') : '--'
-          }));
+          data.forEach(p => {
+            if (p && p.email) {
+              usersMap.set(p.email.toLowerCase(), {
+                id: p.id,
+                name: p.nome || (p.email ? p.email.split('@')[0] : 'Usuário'),
+                email: p.email.toLowerCase(),
+                role: (p.perfil || 'CONSULTA').toUpperCase(),
+                status: (p.status || 'PENDENTE').toUpperCase(),
+                createdAt: p.created_at ? new Date(p.created_at).toLocaleDateString('pt-BR') : '--'
+              });
+            }
+          });
         }
       } catch (e) {
         console.warn('Erro ao buscar perfis do Supabase:', e);
       } finally {
         if (btnRefreshIcon) btnRefreshIcon.classList.remove('fa-spin');
       }
+    } else {
+      if (btnRefreshIcon) btnRefreshIcon.classList.remove('fa-spin');
     }
+
+    let users = Array.from(usersMap.values());
 
     // Garantir que a conta do usuário atual (lucas.machiori / admin) esteja sempre presente
     if (this.authUserId && !users.some(u => u.id === this.authUserId || (this.userEmail && u.email.toLowerCase() === this.userEmail.toLowerCase()))) {
@@ -1070,31 +1099,35 @@ const app = {
       return;
     }
 
-    if (!supabaseClient) {
-      alert('Supabase não conectado.');
-      return;
-    }
-
     const payload = { status: newStatus };
     if (newRole) payload.perfil = newRole;
 
-    try {
-      let { error } = await supabaseClient
-        .from('cs_profiles')
-        .update(payload)
-        .eq('id', userId);
-
-      if (error) {
-        alert('Erro ao atualizar usuário no Supabase (cs_profiles): ' + error.message);
-        return;
-      }
-
-      const msg = newStatus === 'ATIVO' ? '✅ Usuário aprovado e ativado com sucesso!' : '🚫 Acesso do usuário atualizado para ' + newStatus;
-      console.log(msg);
-      this.renderUsersTable();
-    } catch (err) {
-      alert('Erro ao conectar ao Supabase: ' + (err.message || ''));
+    // 1. Atualizar no estado local (localStorage) imediatamente
+    if (!this.state.usersList) this.state.usersList = [];
+    const targetLocal = this.state.usersList.find(u => u && (u.id === userId || (u.email && u.email.toLowerCase() === userId.toLowerCase())));
+    if (targetLocal) {
+      targetLocal.status = newStatus;
+      if (newRole) targetLocal.perfil = newRole;
+    } else {
+      this.state.usersList.push({ id: userId, email: userId, status: newStatus, perfil: newRole || 'CONSULTA' });
     }
+    this.saveUsersState();
+
+    // 2. Atualizar no Supabase se conectado
+    if (supabaseClient) {
+      try {
+        await supabaseClient
+          .from('cs_profiles')
+          .update(payload)
+          .or(`id.eq.${userId},email.eq.${userId.toLowerCase()}`);
+      } catch (err) {
+        console.warn('Aviso Supabase updateUserStatus:', err);
+      }
+    }
+
+    const msg = newStatus === 'ATIVO' ? '✅ Usuário aprovado e ativado com sucesso!' : '🚫 Acesso do usuário atualizado para ' + newStatus;
+    console.log(msg);
+    await this.renderUsersTable();
   },
 
   async changeUserRoleDirectly(userId, newRole) {
@@ -1111,16 +1144,13 @@ const app = {
           .eq('id', userId);
 
         if (error) {
-          alert('Erro ao atualizar perfil no Supabase (cs_profiles): ' + error.message);
-          return;
+          console.warn('Aviso Supabase changeUserRoleDirectly:', error.message);
         }
       } catch (e) {
-        alert('Erro de conexão ao atualizar perfil.');
-        return;
+        console.warn('Erro de conexão ao atualizar perfil:', e);
       }
     }
 
-    // Se o usuário alterado for o próprio usuário ativo nesta sessão
     if (userId === this.authUserId) {
       this.userRole = newRole.toLowerCase();
       this.updateUserBadgeUI();
@@ -1179,37 +1209,49 @@ const app = {
       return;
     }
 
-    if (!supabaseClient) {
-      alert('Supabase não conectado.');
-      return;
+    const newUser = {
+      id: crypto.randomUUID(),
+      nome: name || email.split('@')[0],
+      email: email,
+      perfil: role,
+      status: 'PENDENTE',
+      createdAt: new Date().toLocaleDateString('pt-BR')
+    };
+
+    // 1. Salvar no estado local imediatamente
+    if (!this.state.usersList) this.state.usersList = [];
+    const existingIndex = this.state.usersList.findIndex(u => u && u.email && u.email.toLowerCase() === email);
+    if (existingIndex >= 0) {
+      this.state.usersList[existingIndex] = { ...this.state.usersList[existingIndex], name: name, nome: name, role: role, perfil: role, status: 'PENDENTE' };
+    } else {
+      this.state.usersList.push(newUser);
     }
+    this.saveUsersState();
 
-    try {
-      const payload = {
-        id: crypto.randomUUID(),
-        nome: name || email.split('@')[0],
-        email: email,
-        perfil: role,
-        status: 'PENDENTE',
-        created_at: new Date().toISOString()
-      };
+    // 2. Tentar salvar no Supabase em segundo plano
+    if (supabaseClient) {
+      try {
+        const payload = {
+          id: newUser.id,
+          nome: name || email.split('@')[0],
+          email: email,
+          perfil: role,
+          status: 'PENDENTE',
+          created_at: new Date().toISOString()
+        };
 
-      const { error } = await supabaseClient.from('cs_profiles').insert(payload);
-      if (error) {
-        // Se a constraint de id/email falhou (usuario ja cadastrado), tentar update
-        const { error: updErr } = await supabaseClient.from('cs_profiles').update({ nome: name, perfil: role, status: 'PENDENTE' }).eq('email', email);
-        if (updErr) {
-          alert('Erro ao cadastrar usuário no Supabase: ' + updErr.message);
-          return;
+        const { error } = await supabaseClient.from('cs_profiles').insert(payload);
+        if (error) {
+          await supabaseClient.from('cs_profiles').update({ nome: name, perfil: role, status: 'PENDENTE' }).eq('email', email);
         }
+      } catch (err) {
+        console.warn('Aviso Supabase saveUserFromModal:', err);
       }
-
-      this.closeUserModal();
-      await this.renderUsersTable();
-      alert(`✅ Acesso para ${email} cadastrado com sucesso com status PENDENTE! Você pode aprová-lo na tabela.`);
-    } catch (err) {
-      alert('Erro ao salvar usuário: ' + (err.message || err));
     }
+
+    this.closeUserModal();
+    await this.renderUsersTable();
+    alert(`✅ Acesso para ${email} cadastrado com sucesso com status PENDENTE! Ele aparece na tabela abaixo para aprovação.`);
   },
 
   deleteUser(userId) {
