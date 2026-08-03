@@ -142,10 +142,24 @@ const app = {
 
         if (!error && data) {
           profile = data;
-        } else if (error && (error.code === '42P01' || (error.message && error.message.includes('does not exist')))) {
-          // Fallback para profiles
+        } else {
+          // Fallback para tabela profiles (legada)
           const fallback = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle();
-          profile = fallback.data;
+          if (fallback && fallback.data) {
+            profile = fallback.data;
+            // Sincronizar o perfil legado em cs_profiles
+            try {
+              await supabaseClient.from('cs_profiles').upsert({
+                id: profile.id,
+                nome: profile.nome || (profile.email ? profile.email.split('@')[0] : 'Usuário'),
+                email: profile.email || user.email,
+                perfil: profile.perfil || 'CONSULTA',
+                status: profile.status || 'PENDENTE'
+              });
+            } catch (syncErr) {
+              console.warn('[Sync profile to cs_profiles warning]', syncErr);
+            }
+          }
         }
 
         if (profile) {
@@ -167,7 +181,7 @@ const app = {
           const initialStatus = isLucas ? 'ATIVO' : 'PENDENTE';
           const newProfile = {
             id: user.id,
-            nome: user.user_metadata?.nome || (user.email ? user.email.split('@')[0] : 'Lucas Machiori'),
+            nome: user.user_metadata?.nome || (user.email ? user.email.split('@')[0] : 'Usuário'),
             email: user.email,
             perfil: initialRole,
             status: initialStatus
@@ -345,16 +359,23 @@ const app = {
       } else {
         const user = data?.session?.user || data?.user;
         if (user) {
-          // Inserir explicitamente na tabela profiles com status PENDENTE
+          // Inserir explicitamente na tabela cs_profiles com status PENDENTE
           try {
-            await supabaseClient.from('profiles').upsert({
+            const profilePayload = {
               id: user.id,
-              nome: email.split('@')[0],
+              nome: user.user_metadata?.nome || email.split('@')[0],
               email: email,
               perfil: 'CONSULTA',
               status: 'PENDENTE'
-            });
-          } catch (_) {}
+            };
+            const { error: csErr } = await supabaseClient.from('cs_profiles').upsert(profilePayload);
+            if (csErr) {
+              console.warn('[Signup cs_profiles warning]', csErr.message);
+              await supabaseClient.from('profiles').upsert(profilePayload);
+            }
+          } catch (pErr) {
+            console.warn('[Signup profile upsert error]', pErr);
+          }
 
           await this.setupUserSession(user);
         } else {
@@ -926,6 +947,28 @@ const app = {
           const fallback = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
           data = fallback.data;
           error = fallback.error;
+        } else {
+          // Verificar se existem perfis na tabela profiles legada que ainda não estão em cs_profiles
+          try {
+            const fallback = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
+            if (fallback.data && fallback.data.length > 0) {
+              data = data || [];
+              const existingIds = new Set(data.map(p => p.id));
+              for (const legacyProfile of fallback.data) {
+                if (!existingIds.has(legacyProfile.id)) {
+                  data.push(legacyProfile);
+                  // Copiar perfil legado para cs_profiles
+                  await supabaseClient.from('cs_profiles').upsert({
+                    id: legacyProfile.id,
+                    nome: legacyProfile.nome || (legacyProfile.email ? legacyProfile.email.split('@')[0] : 'Usuário'),
+                    email: legacyProfile.email,
+                    perfil: legacyProfile.perfil || 'CONSULTA',
+                    status: legacyProfile.status || 'PENDENTE'
+                  });
+                }
+              }
+            }
+          } catch (_) {}
         }
 
         if (error) {
@@ -1078,6 +1121,9 @@ const app = {
         .update(payload)
         .eq('id', userId);
 
+      // Atualizar também na tabela profiles legada para consistência
+      try { await supabaseClient.from('profiles').update(payload).eq('id', userId); } catch (_) {}
+
       if (error && (error.code === '42P01' || (error.message && error.message.includes('does not exist')))) {
         await supabaseClient.from('profiles').update(payload).eq('id', userId);
       } else if (error) {
@@ -1105,6 +1151,8 @@ const app = {
           .from('cs_profiles')
           .update({ perfil: newRole.toUpperCase() })
           .eq('id', userId);
+
+        try { await supabaseClient.from('profiles').update({ perfil: newRole.toUpperCase() }).eq('id', userId); } catch (_) {}
 
         if (error && (error.code === '42P01' || (error.message && error.message.includes('does not exist')))) {
           await supabaseClient.from('profiles').update({ perfil: newRole.toUpperCase() }).eq('id', userId);
