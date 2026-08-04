@@ -5,10 +5,13 @@ const JIRA_DOMAIN = process.env.JIRA_DOMAIN || 'naturapay.atlassian.net';
 const JIRA_EMAIL = process.env.JIRA_EMAIL;
 const JIRA_TOKEN = process.env.JIRA_TOKEN;
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://maguyzjhldcgpcvkvkqe.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY;
+let SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
+if (process.env.SUPABASE_SERVICE_KEY && process.env.SUPABASE_SERVICE_KEY.startsWith('eyJ')) {
+  SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
+}
 
 if (!JIRA_EMAIL || !JIRA_TOKEN || !SUPABASE_KEY) {
-  console.error("ERRO: Faltam variáveis de ambiente (JIRA_EMAIL, JIRA_TOKEN ou SUPABASE_SERVICE_KEY).");
+  console.error("ERRO: Faltam variáveis de ambiente (JIRA_EMAIL, JIRA_TOKEN ou SUPABASE_ANON_KEY).");
   process.exit(1);
 }
 
