@@ -130,25 +130,37 @@ const app = {
       this.userStatus = 'ATIVO';
     }
 
-    // Buscar perfil na tabela cs_profiles do Supabase
+    // Buscar perfil na tabela cs_profiles (com fallback automatico para profiles)
     if (supabaseClient) {
       try {
+        let activeTable = 'cs_profiles';
         let { data, error } = await supabaseClient
           .from('cs_profiles')
           .select('*')
           .or(`id.eq.${user.id},email.ilike.${user.email.toLowerCase()}`)
           .maybeSingle();
 
+        if (error) {
+          activeTable = 'profiles';
+          const res = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .or(`id.eq.${user.id},email.ilike.${user.email.toLowerCase()}`)
+            .maybeSingle();
+          data = res.data;
+          error = res.error;
+        }
+
         if (!error && data) {
           // Se a conta foi vinculada pelo e-mail com id temporário, atualizar o ID real
           if (data.id !== user.id) {
-            try { await supabaseClient.from('cs_profiles').update({ id: user.id }).eq('email', user.email.toLowerCase()); } catch (_) {}
+            try { await supabaseClient.from(activeTable).update({ id: user.id }).eq('email', user.email.toLowerCase()); } catch (_) {}
           }
           if (isLucas) {
             this.userRole = 'admin';
             this.userStatus = 'ATIVO';
             if (data.perfil !== 'ADMIN' || data.status !== 'ATIVO') {
-              await supabaseClient.from('cs_profiles').update({ perfil: 'ADMIN', status: 'ATIVO' }).eq('id', user.id);
+              await supabaseClient.from(activeTable).update({ perfil: 'ADMIN', status: 'ATIVO' }).eq('id', user.id);
             }
           } else {
             if (data.perfil) this.userRole = data.perfil.toLowerCase() === 'admin' ? 'admin' : 'consulta';
@@ -156,7 +168,7 @@ const app = {
           }
           if (data.nome) this.userName = data.nome;
         } else {
-          // Se o perfil ainda não existe em cs_profiles, auto-criar o registro com status PENDENTE!
+          // Se o perfil ainda não existe, auto-criar o registro com status PENDENTE!
           const initialRole = isLucas ? 'ADMIN' : 'CONSULTA';
           const initialStatus = isLucas ? 'ATIVO' : 'PENDENTE';
           const newProfile = {
@@ -164,12 +176,13 @@ const app = {
             nome: user.user_metadata?.nome || (user.email ? user.email.split('@')[0] : 'Usuário'),
             email: user.email,
             perfil: initialRole,
-            status: initialStatus
+            status: initialStatus,
+            app_id: 'controle-squads'
           };
           
-          const { error: upsertErr } = await supabaseClient.from('cs_profiles').upsert(newProfile);
+          let { error: upsertErr } = await supabaseClient.from('cs_profiles').upsert(newProfile);
           if (upsertErr) {
-            console.warn('[setupUserSession cs_profiles upsert error]', upsertErr.message);
+            await supabaseClient.from('profiles').upsert(newProfile);
           }
           this.userRole = initialRole.toLowerCase();
           this.userStatus = initialStatus;
@@ -988,9 +1001,15 @@ const app = {
           .order('created_at', { ascending: false });
 
         if (error) {
-          console.warn('[renderUsersTable cs_profiles Error]', error.message);
-        } else if (data && data.length > 0) {
-          console.log('[renderUsersTable] Total de perfis em cs_profiles:', data.length);
+          const res = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .order('created_at', { ascending: false });
+          data = res.data;
+          error = res.error;
+        }
+
+        if (!error && data && data.length > 0) {
           data.forEach(p => {
             if (p && p.email) {
               usersMap.set(p.email.toLowerCase(), {
@@ -1148,16 +1167,14 @@ const app = {
     }
     this.saveUsersState();
 
-    // 2. Atualizar no Supabase se conectado
+    // 2. Atualizar no Supabase (em cs_profiles e profiles simultaneamente para garantia total)
     if (supabaseClient) {
       try {
-        await supabaseClient
-          .from('cs_profiles')
-          .update(payload)
-          .or(`id.eq.${userId},email.eq.${userId.toLowerCase()}`);
-      } catch (err) {
-        console.warn('Aviso Supabase updateUserStatus:', err);
-      }
+        await supabaseClient.from('cs_profiles').update(payload).or(`id.eq.${userId},email.eq.${userId.toLowerCase()}`);
+      } catch (_) {}
+      try {
+        await supabaseClient.from('profiles').update(payload).or(`id.eq.${userId},email.eq.${userId.toLowerCase()}`);
+      } catch (_) {}
     }
 
     const msg = newStatus === 'ATIVO' ? '✅ Usuário aprovado e ativado com sucesso!' : '🚫 Acesso do usuário atualizado para ' + newStatus;
@@ -1173,17 +1190,11 @@ const app = {
 
     if (supabaseClient) {
       try {
-        let { error } = await supabaseClient
-          .from('cs_profiles')
-          .update({ perfil: newRole.toUpperCase() })
-          .eq('id', userId);
-
-        if (error) {
-          console.warn('Aviso Supabase changeUserRoleDirectly:', error.message);
-        }
-      } catch (e) {
-        console.warn('Erro de conexão ao atualizar perfil:', e);
-      }
+        await supabaseClient.from('cs_profiles').update({ perfil: newRole.toUpperCase() }).eq('id', userId);
+      } catch (_) {}
+      try {
+        await supabaseClient.from('profiles').update({ perfil: newRole.toUpperCase() }).eq('id', userId);
+      } catch (_) {}
     }
 
     if (userId === this.authUserId) {
@@ -1263,25 +1274,27 @@ const app = {
     }
     this.saveUsersState();
 
-    // 2. Tentar salvar no Supabase em segundo plano
+    // 2. Salvar em segundo plano no Supabase (escrita dupla para garantia total)
     if (supabaseClient) {
-      try {
-        const payload = {
-          id: newUser.id,
-          nome: name || email.split('@')[0],
-          email: email,
-          perfil: role,
-          status: 'PENDENTE',
-          created_at: new Date().toISOString()
-        };
+      const payload = {
+        id: newUser.id,
+        nome: name || email.split('@')[0],
+        email: email,
+        perfil: role,
+        status: 'PENDENTE',
+        app_id: 'controle-squads',
+        created_at: new Date().toISOString()
+      };
 
+      try {
         const { error } = await supabaseClient.from('cs_profiles').insert(payload);
-        if (error) {
-          await supabaseClient.from('cs_profiles').update({ nome: name, perfil: role, status: 'PENDENTE' }).eq('email', email);
-        }
-      } catch (err) {
-        console.warn('Aviso Supabase saveUserFromModal:', err);
-      }
+        if (error) await supabaseClient.from('cs_profiles').update({ nome: name, perfil: role, status: 'PENDENTE' }).eq('email', email);
+      } catch (_) {}
+
+      try {
+        const { error } = await supabaseClient.from('profiles').insert(payload);
+        if (error) await supabaseClient.from('profiles').update({ nome: name, perfil: role, status: 'PENDENTE' }).eq('email', email);
+      } catch (_) {}
     }
 
     this.closeUserModal();
