@@ -37,10 +37,26 @@ const app = {
     usersList: []
   },
 
+  ensureStateSanity() {
+    if (!this.state) this.state = {};
+    if (!Array.isArray(this.state.triageItems)) this.state.triageItems = [];
+    if (!this.state.backlogItems || typeof this.state.backlogItems !== 'object') this.state.backlogItems = {};
+    if (!this.state.completedTasks || typeof this.state.completedTasks !== 'object') this.state.completedTasks = {};
+    if (!this.state.resources || typeof this.state.resources !== 'object') this.state.resources = {};
+    ['dados', 'operacoes', 'rpa'].forEach(id => {
+      if (!Array.isArray(this.state.backlogItems[id])) this.state.backlogItems[id] = [];
+      if (!Array.isArray(this.state.completedTasks[id])) this.state.completedTasks[id] = [];
+      if (!Array.isArray(this.state.resources[id])) this.state.resources[id] = [];
+    });
+    if (!Array.isArray(this.state.dpoLogs)) this.state.dpoLogs = [];
+    if (!Array.isArray(this.state.usersList)) this.state.usersList = [];
+  },
+
   // ============================================================
   // INICIALIZAÇÃO
   // ============================================================
   async init() {
+    this.ensureStateSanity();
     this.loadTheme();
     const hasSession = await this.checkSession();
     if (!hasSession) {
@@ -49,6 +65,7 @@ const app = {
     }
     this.loadLocalState();
     await this.loadStateFromSupabase();
+    this.ensureStateSanity();
     this.loadUsersState();
     this.seedDefaultDataIfEmpty();
     this.setupRealtimeSync();
@@ -784,6 +801,7 @@ const app = {
 
   // Sincronizar automaticamente os cards do Jira se o estado estiver vazio
   seedDefaultDataIfEmpty() {
+    this.ensureStateSanity();
     if (!this.state.triageItems || this.state.triageItems.length === 0) {
       if (typeof JiraSyncEngine?.syncJiraCards === 'function') {
         JiraSyncEngine.syncJiraCards(this.state, () => this.saveState());
@@ -1320,7 +1338,8 @@ const app = {
 
   // Badges da Sidebar
   renderBadgeCounts() {
-    const pendingCount = this.state.triageItems.filter(i => i.status === 'Pendente').length;
+    this.ensureStateSanity();
+    const pendingCount = (this.state.triageItems || []).filter(i => i && i.status === 'Pendente').length;
     const badgeEl = document.getElementById('badge-triage-count');
     if (badgeEl) badgeEl.textContent = pendingCount;
   },

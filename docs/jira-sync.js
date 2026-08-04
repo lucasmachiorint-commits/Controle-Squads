@@ -1,10 +1,19 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    Controle de Squads & Governan├ºa Jira - Jira Sync & Routing Engine Universal
    ========================================================================== */
 
 const JiraSyncEngine = {
   // Sincronizar cards do Jira com deduplica├º├úo inteligente e roteamento de status
   async syncJiraCards(state, saveStateCallback) {
+    if (!state) state = {};
+    if (!Array.isArray(state.triageItems)) state.triageItems = [];
+    if (!state.backlogItems || typeof state.backlogItems !== 'object') state.backlogItems = {};
+    if (!state.completedTasks || typeof state.completedTasks !== 'object') state.completedTasks = {};
+    ['dados', 'operacoes', 'rpa'].forEach(squadId => {
+      if (!Array.isArray(state.backlogItems[squadId])) state.backlogItems[squadId] = [];
+      if (!Array.isArray(state.completedTasks[squadId])) state.completedTasks[squadId] = [];
+    });
+
     let cards = [];
 
     // CAMADA 1: Tentar consultar Proxy Local (se rodando em localhost:3000)
@@ -2308,7 +2317,7 @@ const JiraSyncEngine = {
 
     const normalizeKey = (k) => (k || '').toString().trim().toUpperCase();
 
-    state.triageItems.forEach(t => {
+    (state.triageItems || []).forEach(t => {
       const k = normalizeKey(t.jiraKey || t.gau || t.id);
       if (k) existingMap.set(k, { queue: 'triage', item: t });
     });
