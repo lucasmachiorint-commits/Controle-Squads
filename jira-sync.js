@@ -1,9 +1,9 @@
 /* ==========================================================================
-   Controle de Squads & Governan├ºa Jira - Jira Sync & Routing Engine Universal
+   Controle de Squads & Governança Jira - Jira Sync & Routing Engine Universal
    ========================================================================== */
 
 const JiraSyncEngine = {
-  // Sincronizar cards do Jira com deduplica├º├úo inteligente e roteamento de status
+  // Sincronizar cards do Jira com deduplicação inteligente e roteamento de status
   async syncJiraCards(state, saveStateCallback) {
     if (!state) state = {};
     if (!Array.isArray(state.triageItems)) state.triageItems = [];
@@ -27,7 +27,7 @@ const JiraSyncEngine = {
         }
       }
     } catch (e) {
-      console.warn('Proxy local n├úo acess├¡vel.');
+      console.warn('Proxy local não acessível.');
     }
 
     // CAMADA 2: Consulta via arquivo estático de cache (GitHub Actions Automático)
@@ -46,12 +46,48 @@ const JiraSyncEngine = {
         console.warn('Falha ao carregar jira-data.json:', err);
       }
     }
-    // Construir mapa de cards existentes por jiraKey para deduplica├º├úo sem perda de chamados
-    const existingMap = new Map();
+
+    if (!cards.length) {
+      return {
+        success: false,
+        message: 'Nenhum card retornado do Jira ou arquivo de cache indisponível.'
+      };
+    }
 
     const normalizeKey = (k) => (k || '').toString().trim().toUpperCase();
 
-    (state.triageItems || []).forEach(t => {
+    // Mapear conjunto de todas as chaves válidas vindas do Jira nesta sincronização
+    const validJiraKeys = new Set();
+    cards.forEach((card, idx) => {
+      const rawJiraKey = card.key || card.jiraKey || (card.id && card.id.toString().startsWith('GAU-') ? card.id : `GAU-${100 + idx}`);
+      const jiraKey = normalizeKey(rawJiraKey);
+      if (jiraKey) validJiraKeys.add(jiraKey);
+    });
+
+    // 1. PURGA DE CARDS EXCLUÍDOS/DELETADOS DO JIRA
+    // Se o card tem chave GAU/Jira mas NÃO veio na resposta atual do Jira, remove da aplicação
+    state.triageItems = state.triageItems.filter(item => {
+      const k = normalizeKey(item.jiraKey || item.gau || item.id);
+      return !k || !k.startsWith('GAU-') || validJiraKeys.has(k);
+    });
+
+    ['dados', 'operacoes', 'rpa'].forEach(squadId => {
+      state.backlogItems[squadId] = (state.backlogItems[squadId] || []).filter(item => {
+        const k = normalizeKey(item.gau || item.jiraKey || item.id);
+        return !k || !k.startsWith('GAU-') || validJiraKeys.has(k);
+      });
+
+      state.completedTasks[squadId] = (state.completedTasks[squadId] || []).filter(item => {
+        const match = item.taskTitle ? item.taskTitle.match(/\((GAU-\d+|KAN-\d+|JIRA-\d+)\)/i) : null;
+        const rawK = match ? match[1] : (item.gau || item.jiraKey || item.id);
+        const k = normalizeKey(rawK);
+        return !k || !k.startsWith('GAU-') || validJiraKeys.has(k);
+      });
+    });
+
+    // Mapear posição atual dos cards existentes no estado para roteamento
+    const existingMap = new Map();
+    state.triageItems.forEach(t => {
       const k = normalizeKey(t.jiraKey || t.gau || t.id);
       if (k) existingMap.set(k, { queue: 'triage', item: t });
     });
@@ -74,6 +110,7 @@ const JiraSyncEngine = {
     let countUpdated = 0;
     let countToCompleted = 0;
     let countUnchanged = 0;
+    let countCancelled = 0;
 
     cards.forEach((card, idx) => {
       const rawStatus = (card.status || card.fields?.status?.name || '').toString().trim();
@@ -82,14 +119,12 @@ const JiraSyncEngine = {
       const statusLower = rawStatus.toLowerCase();
       const catStatusLower = rawCatStatus.toLowerCase();
 
-      // Garantir chave Jira v├ílida e normalizada em CAIXA ALTA (ex: GAU-134)
       const rawJiraKey = card.key || card.jiraKey || (card.id && card.id.toString().startsWith('GAU-') ? card.id : `GAU-${100 + idx}`);
       const jiraKey = normalizeKey(rawJiraKey);
       const title = card.title || card.summary || card.nome || 'Demanda do Jira';
       const description = card.description || card.descricao || card.notes || 'Sincronizado via Jira API';
       const requester = card.requester || card.reporter || card.solicitante || 'Solicitante Jira';
 
-      // Extra├º├úo da Data de Cria├º├úo do card Jira
       const rawCreated = card.created || card.fields?.created || card.createdDate || card.date;
       let createdDate = new Date().toLocaleDateString('pt-BR');
       if (rawCreated) {
@@ -105,7 +140,7 @@ const JiraSyncEngine = {
         }
       }
 
-      // 1. Mapeamento de Squad (16005 -> Opera├º├Áes, 16006 -> Dados, 16007 -> RPA)
+      // Mapeamento de Squad (16005 -> Operações, 16006 -> Dados, 16007 -> RPA)
       let targetSquadId = card.squadTarget || 'dados';
       let targetSquadName = 'Squad de Dados';
 
@@ -120,9 +155,9 @@ const JiraSyncEngine = {
         }
       }
 
-      if (cfStr.includes('16005') || cfStr.includes('operac') || cfStr.includes('opera├º')) {
+      if (cfStr.includes('16005') || cfStr.includes('operac') || cfStr.includes('operações')) {
         targetSquadId = 'operacoes';
-        targetSquadName = 'Squad de Opera├º├Áes';
+        targetSquadName = 'Squad de Operações';
         hasExplicitSquad = true;
       } else if (cfStr.includes('16007') || cfStr.includes('rpa')) {
         targetSquadId = 'rpa';
@@ -134,16 +169,49 @@ const JiraSyncEngine = {
         hasExplicitSquad = true;
       }
 
-      // 2. Mapeamento de Fila conforme funcionamento exato da manh├ú
-      // A) Sem Squad atribu├¡da OU Status em Aberto/Triagem/Pendente -> Mesa de Triagem
-      // B) Com Squad atribu├¡da e em andamento/backlog no Jira -> Aba Backlog da Squad
-      // C) Status Conclu├¡do/Done -> Aba Conclu├¡dos da Squad
+      // VERIFICAÇÃO DE STATUS CANCELADO / REJEITADO / DESCONTINUADO
+      const isCancelledStatus = 
+        statusLower.includes('cancelad') ||
+        statusLower.includes('canceled') ||
+        statusLower.includes('descontinuad') ||
+        statusLower.includes('rejeitad') ||
+        statusLower.includes('inválid') ||
+        statusLower.includes('invalid') ||
+        statusLower.includes('duplicad') ||
+        statusLower.includes('wont do') ||
+        statusLower.includes('won\'t do') ||
+        statusLower.includes('declined') ||
+        statusLower.includes('discarded') ||
+        statusLower.includes('obsoleto');
 
+      const existing = existingMap.get(jiraKey);
+
+      // CASO 1: CARD FOI CANCELADO NO JIRA
+      if (isCancelledStatus) {
+        countCancelled++;
+        if (existing) {
+          // Remover da fila onde estiver
+          const oldLoc = existing.queue;
+          if (oldLoc === 'triage') {
+            state.triageItems = state.triageItems.filter(t => t.jiraKey !== jiraKey);
+          } else if (oldLoc.startsWith('backlog_')) {
+            const sId = oldLoc.replace('backlog_', '');
+            state.backlogItems[sId] = (state.backlogItems[sId] || []).filter(b => (b.gau || b.jiraKey) !== jiraKey);
+          } else if (oldLoc.startsWith('completed_')) {
+            const sId = oldLoc.replace('completed_', '');
+            state.completedTasks[sId] = (state.completedTasks[sId] || []).filter(c => !c.taskTitle.includes(jiraKey) && c.jiraKey !== jiraKey && c.gau !== jiraKey);
+          }
+          existingMap.delete(jiraKey);
+        }
+        return; // Não adiciona aos quadros ativos
+      }
+
+      // Mapeamento de Fila de Destino
       let targetQueue = '';
       let defaultStatus = 'Backlog';
 
       if (
-        statusLower === 'conclu├¡do' ||
+        statusLower === 'concluído' ||
         statusLower === 'concluido' ||
         statusLower === 'finalizado' ||
         statusLower === 'done' ||
@@ -166,8 +234,6 @@ const JiraSyncEngine = {
           defaultStatus = 'Backlog';
         }
       }
-
-      const existing = existingMap.get(jiraKey);
 
       // CASO A: TICKET NOVO
       if (!existing) {
@@ -207,7 +273,7 @@ const JiraSyncEngine = {
             dueDate: card.dueDate || new Date().toISOString().split('T')[0],
             createdDate,
             completionDate: new Date().toLocaleDateString('pt-BR'),
-            gains: 'Conclu├¡do via sincroniza├º├úo com Jira',
+            gains: 'Concluído via sincronização com Jira',
             requesterArea: requester
           });
         } else {
@@ -245,7 +311,7 @@ const JiraSyncEngine = {
           state.backlogItems[sId] = (state.backlogItems[sId] || []).filter(b => (b.gau || b.jiraKey) !== jiraKey);
         } else if (oldLoc.startsWith('completed_')) {
           const sId = oldLoc.replace('completed_', '');
-          state.completedTasks[sId] = (state.completedTasks[sId] || []).filter(c => !c.taskTitle.includes(jiraKey));
+          state.completedTasks[sId] = (state.completedTasks[sId] || []).filter(c => !c.taskTitle.includes(jiraKey) && c.jiraKey !== jiraKey && c.gau !== jiraKey);
         }
 
         // Inserir na nova fila
@@ -281,7 +347,7 @@ const JiraSyncEngine = {
             dueDate: card.dueDate || new Date().toISOString().split('T')[0],
             createdDate,
             completionDate: new Date().toLocaleDateString('pt-BR'),
-            gains: 'Conclu├¡do via sincroniza├º├úo com Jira',
+            gains: 'Concluído via sincronização com Jira',
             requesterArea: requester
           });
         } else {
@@ -303,7 +369,7 @@ const JiraSyncEngine = {
           });
         }
       }
-      // CASO C: TICKET EXISTE NA MESMA FILA (Preservar status alterado pelo usu├írio na aplica├º├úo)
+      // CASO C: TICKET EXISTE NA MESMA FILA (Atualizar dados preservando estado do usuário)
       else {
         const itemObj = existing.item;
         let isModified = false;
@@ -326,7 +392,7 @@ const JiraSyncEngine = {
     });
 
     // Salvar estado e atualizar interface
-    saveStateCallback();
+    if (typeof saveStateCallback === 'function') saveStateCallback();
 
     const nowTime = new Date().toLocaleTimeString('pt-BR');
     return {
@@ -336,7 +402,8 @@ const JiraSyncEngine = {
       countUpdated,
       countToCompleted,
       countUnchanged,
-      message: `Ô£à Sincroniza├º├úo Jira conclu├¡da ├ás ${nowTime}: ${countNew} novos criados | ${countUpdated} atualizados | ${countToCompleted} conclu├¡dos | ${countUnchanged} inalterados.`
+      countCancelled,
+      message: `✅ Sincronização Jira concluída às ${nowTime}: ${countNew} novos | ${countUpdated} atualizados | ${countToCompleted} concluídos | ${countCancelled} cancelados/expurgados.`
     };
   }
 };
