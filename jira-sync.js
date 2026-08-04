@@ -30,32 +30,20 @@ const JiraSyncEngine = {
       console.warn('Proxy local n├úo acess├¡vel.');
     }
 
-    // CAMADA 2: Consulta via Cache no Supabase (GitHub Actions Automático)
+    // CAMADA 2: Consulta via arquivo estático de cache (GitHub Actions Automático)
     if (!cards.length) {
       try {
-        console.log('Buscando cards no Supabase Cache...');
-        const supaUrl = 'https://maguyzjhldcgpcvkvkqe.supabase.co';
-        const supaKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hZ3V5empobGRjZ3Bjdmt2a3FlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2NTU0MDMsImV4cCI6MjEwMDIzMTQwM30.Ow9xruE1qAFTX3mqELERxrY3CRBOdV_n4MoXXhtt3Y8';
-        
-        const res = await fetch(`${supaUrl}/rest/v1/board_state?id=eq.jira_cache&select=data`, {
-          headers: {
-            'apikey': supaKey,
-            'Authorization': `Bearer ${supaKey}`,
-            'Accept': 'application/json'
-          }
-        });
-        
+        console.log('Buscando dados sincronizados em jira-data.json...');
+        const res = await fetch(`./jira-data.json?v=${Date.now()}`);
         if (res.ok) {
           const json = await res.json();
-          if (json && json.length > 0 && json[0].data && Array.isArray(json[0].data.cards)) {
-            cards = json[0].data.cards;
-            console.log(`Supabase Cache retornou ${cards.length} cards.`);
+          if (Array.isArray(json.cards) && json.cards.length > 0) {
+            cards = json.cards;
+            console.log(`Cache de dados do Jira carregado com ${cards.length} cards.`);
           }
-        } else {
-          console.warn('Erro na resposta do Supabase:', res.status);
         }
       } catch (err) {
-        console.warn('Falha na consulta ao cache do Jira no Supabase:', err);
+        console.warn('Falha ao carregar jira-data.json:', err);
       }
     }
     // Construir mapa de cards existentes por jiraKey para deduplica├º├úo sem perda de chamados

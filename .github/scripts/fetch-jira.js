@@ -1,17 +1,11 @@
 const fs = require('fs');
 
-// Configurações e Secrets
 const JIRA_DOMAIN = process.env.JIRA_DOMAIN || 'naturapay.atlassian.net';
 const JIRA_EMAIL = process.env.JIRA_EMAIL;
 const JIRA_TOKEN = process.env.JIRA_TOKEN;
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://maguyzjhldcgpcvkvkqe.supabase.co';
-let SUPABASE_KEY = process.env.SUPABASE_ANON_KEY;
-if (process.env.SUPABASE_SERVICE_KEY && process.env.SUPABASE_SERVICE_KEY.startsWith('eyJ')) {
-  SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
-}
 
-if (!JIRA_EMAIL || !JIRA_TOKEN || !SUPABASE_KEY) {
-  console.error("ERRO: Faltam variáveis de ambiente (JIRA_EMAIL, JIRA_TOKEN ou SUPABASE_ANON_KEY).");
+if (!JIRA_EMAIL || !JIRA_TOKEN) {
+  console.error("ERRO: Faltam variáveis de ambiente (JIRA_EMAIL ou JIRA_TOKEN).");
   process.exit(1);
 }
 
@@ -19,7 +13,7 @@ const authHeader = 'Basic ' + Buffer.from(`${JIRA_EMAIL}:${JIRA_TOKEN}`).toStrin
 const jqlQuery = encodeURIComponent('project = GAU ORDER BY created DESC');
 const maxResults = 100;
 
-async function fetchJiraAndSyncToSupabase() {
+async function fetchJiraAndSaveJson() {
   let allIssues = [];
   let startAt = 0;
   let nextPageToken = null;
@@ -74,7 +68,6 @@ async function fetchJiraAndSyncToSupabase() {
 
   console.log(`Total final: ${allIssues.length} cards extraídos. Transformando...`);
 
-  // Transformando no formato consumido pelo frontend
   const cards = allIssues.map((issue, idx) => {
     const fields = issue.fields || {};
     const statusName = fields.status?.name || 'Aberto';
@@ -114,40 +107,14 @@ async function fetchJiraAndSyncToSupabase() {
     };
   });
 
-  console.log("Enviando cache de cards para o Supabase (id = 'jira_cache')...");
-  
   const payload = {
-    id: 'jira_cache',
-    data: { cards: cards },
-    updated_at: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    totalCards: cards.length,
+    cards: cards
   };
 
-  const supaUrl = `${SUPABASE_URL}/rest/v1/board_state?on_conflict=id`;
-  
-  try {
-    const sRes = await fetch(supaUrl, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates'
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (sRes.ok) {
-      console.log(`SUCESSO! ${cards.length} cards cacheados no Supabase.`);
-    } else {
-      console.error(`Falha no Supabase: ${sRes.status} - ${sRes.statusText}`);
-      const sText = await sRes.text();
-      console.error(sText);
-      process.exit(1);
-    }
-  } catch (e) {
-    console.error(`Erro ao conectar no Supabase:`, e.message);
-    process.exit(1);
-  }
+  fs.writeFileSync('jira-data.json', JSON.stringify(payload, null, 2), 'utf8');
+  console.log(`✅ SUCESSO! ${cards.length} cards gravados com sucesso em jira-data.json.`);
 }
 
-fetchJiraAndSyncToSupabase();
+fetchJiraAndSaveJson();
