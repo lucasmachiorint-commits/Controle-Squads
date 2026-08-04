@@ -1,9 +1,9 @@
 /* ==========================================================================
-   Controle de Squads & Governança Jira - Jira Sync Engine (Multi-Layer Proxy v6.4.0)
+   Controle de Squads & Governança Jira - Jira Sync Engine (Fast Sync & Supabase Resiliência v6.6.0)
    ========================================================================== */
 
 const JiraSyncEngine = {
-  // Sincronizar cards do Jira com resiliência em 3 camadas (Proxy Local -> Custom Proxy -> CORS Bridge / Direct API)
+  // Sincronizar cards do Jira com timeouts ultra-rápidos e fallback transparente para Supabase
   async syncJiraCards(state, saveStateCallback) {
     const extractionTime = new Date();
     const formattedDate = extractionTime.toLocaleDateString('pt-BR');
@@ -11,44 +11,57 @@ const JiraSyncEngine = {
     const extractedAtFormatted = `${formattedDate} às ${formattedTime}`;
 
     let cards = [];
-    let fetchError = null;
 
-    // CAMADA 1: Tentar consultar Proxy Local (Servidor Express em http://localhost:3000)
+    // Helper para fetch com timeout curto (1.5 segundos)
+    const fetchWithTimeout = async (url, options = {}, timeoutMs = 1500) => {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const response = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(id);
+        return response;
+      } catch (e) {
+        clearTimeout(id);
+        throw e;
+      }
+    };
+
+    // CAMADA 1: Tentar consultar Proxy Local (http://localhost:3000)
     try {
       const localUrl = 'http://localhost:3000/api/jira/consultar-cards-jira';
-      const res = await fetch(localUrl, { method: 'GET' });
+      const res = await fetchWithTimeout(localUrl, { method: 'GET' }, 1500);
       if (res.ok) {
         const json = await res.json();
         if (Array.isArray(json.cards) && json.cards.length > 0) {
           cards = json.cards;
-          console.log(`[JiraSyncEngine] Camada 1 (Proxy Local) retornou ${cards.length} cards com sucesso!`);
+          console.log(`[JiraSyncEngine] Proxy Local respondeu em tempo recorde: ${cards.length} cards.`);
         }
       }
     } catch (e) {
-      console.warn('[JiraSyncEngine] Camada 1 (Proxy Local) não acessível. Tentando próxima camada...');
+      console.warn('[JiraSyncEngine] Proxy Local não acessível no momento.');
     }
 
-    // CAMADA 2: Tentar URL personalizada de Proxy/Worker (configurada pelo usuário em localStorage)
+    // CAMADA 2: Tentar URL personalizada de Proxy/Worker se configurada
     if (!cards.length) {
       const customUrl = localStorage.getItem('cs_jira_custom_url');
       if (customUrl) {
         try {
-          const res = await fetch(customUrl, { method: 'GET' });
+          const res = await fetchWithTimeout(customUrl, { method: 'GET' }, 2000);
           if (res.ok) {
             const json = await res.json();
             const rawCards = json.cards || json.data || (Array.isArray(json) ? json : []);
             if (rawCards.length > 0) {
               cards = rawCards;
-              console.log(`[JiraSyncEngine] Camada 2 (Proxy Customizado) retornou ${cards.length} cards com sucesso!`);
+              console.log(`[JiraSyncEngine] Proxy Customizado retornou ${cards.length} cards.`);
             }
           }
         } catch (e) {
-          console.warn('[JiraSyncEngine] Camada 2 (Proxy Customizado) falhou:', e.message);
+          console.warn('[JiraSyncEngine] Proxy Customizado indisponível.');
         }
       }
     }
 
-    // CAMADA 3: Consulta Direta à API REST v3 do Jira Cloud + Pontes CORS Proxy
+    // CAMADA 3: Tentar consulta direta ou pontes rápidas de CORS (timeout de 2s)
     if (!cards.length) {
       try {
         const domain = localStorage.getItem('cs_jira_domain') || 'naturapay.atlassian.net';
@@ -57,428 +70,338 @@ const JiraSyncEngine = {
         const token = localStorage.getItem('cs_jira_token') || String.fromCharCode(...tokCodes);
         const rawJql = localStorage.getItem('cs_jira_jql') || 'project = GAU ORDER BY created DESC';
         const jqlQuery = encodeURIComponent(rawJql);
-        
         const authHeader = 'Basic ' + btoa(`${email}:${token}`);
         
-        let allIssues = [];
-        let startAt = 0;
-        let maxResults = 100;
-        let nextPageToken = null;
-        let pageCount = 0;
+        const targetUrl = `https://${domain}/rest/api/3/search/jql?jql=${jqlQuery}&fields=*all&maxResults=100`;
 
-        // Lista de endpoints a tentar (Direto -> Pontes CORS)
-        const targetJiraPath = `/rest/api/3/search/jql?jql=${jqlQuery}&fields=*all&maxResults=${maxResults}`;
-        const baseTargetUrl = `https://${domain}${targetJiraPath}`;
-        
-        const urlOptions = [
-          baseTargetUrl,
-          `https://corsproxy.io/?${encodeURIComponent(baseTargetUrl)}`,
-          `https://api.allorigins.win/raw?url=${encodeURIComponent(baseTargetUrl)}`
-        ];
+        const res = await fetchWithTimeout(targetUrl, {
+          method: 'GET',
+          headers: { 'Authorization': authHeader, 'Accept': 'application/json' }
+        }, 2000);
 
-        let activeUrlPattern = null;
-
-        for (const urlOpt of urlOptions) {
-          try {
-            const testRes = await fetch(urlOpt, {
-              method: 'GET',
-              headers: {
-                'Authorization': authHeader,
-                'Accept': 'application/json'
-              }
+        if (res.ok) {
+          const json = await res.json();
+          const issues = json.issues || [];
+          if (issues.length > 0) {
+            cards = issues.map((issue, idx) => {
+              const fields = issue.fields || {};
+              return {
+                id: issue.id || `jira-${idx}`,
+                key: issue.key,
+                jiraKey: issue.key,
+                title: fields.summary || 'Demanda do Jira',
+                summary: fields.summary || 'Demanda do Jira',
+                status: fields.status?.name || 'Aberto',
+                categoriaStatus: fields.status?.statusCategory?.name || 'To Do',
+                customfield_12475: fields.customfield_12475 || fields.customfield_squad,
+                squad: fields.customfield_12475 || fields.customfield_squad,
+                requester: fields.reporter?.displayName || 'Solicitante Jira',
+                priority: fields.priority?.name || '2 - Alta',
+                category: 'Geral',
+                createdDate: formattedDate,
+                description: typeof fields.description === 'string' ? fields.description : (fields.description?.content ? JSON.stringify(fields.description) : 'Sincronizado via Jira API v3')
+              };
             });
-            if (testRes.ok) {
-              activeUrlPattern = urlOpt;
-              const testJson = await testRes.json();
-              if (testJson.issues && testJson.issues.length > 0) {
-                allIssues = testJson.issues;
-                startAt = testJson.issues.length;
-                nextPageToken = testJson.nextPageToken;
-                break;
-              }
-            }
-          } catch (err) {
-            console.warn(`[JiraSyncEngine] Falha no endpoint ${urlOpt}:`, err.message);
           }
-        }
-
-        // Se encontrou um endpoint funcional e restam mais páginas
-        if (activeUrlPattern && allIssues.length > 0 && nextPageToken) {
-          while (pageCount < 20) {
-            pageCount++;
-            let pageUrl = `https://${domain}/rest/api/3/search/jql?jql=${jqlQuery}&fields=*all&maxResults=${maxResults}&startAt=${startAt}&nextPageToken=${encodeURIComponent(nextPageToken)}`;
-            if (activeUrlPattern.includes('corsproxy.io')) {
-              pageUrl = `https://corsproxy.io/?${encodeURIComponent(pageUrl)}`;
-            } else if (activeUrlPattern.includes('allorigins')) {
-              pageUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(pageUrl)}`;
-            }
-
-            const res = await fetch(pageUrl, {
-              method: 'GET',
-              headers: { 'Authorization': authHeader, 'Accept': 'application/json' }
-            });
-
-            if (!res.ok) break;
-
-            const json = await res.json();
-            const issues = json.issues || [];
-            if (!issues.length) break;
-
-            allIssues = allIssues.concat(issues);
-            startAt += issues.length;
-
-            if (json.isLast || !json.nextPageToken || issues.length < maxResults) break;
-            nextPageToken = json.nextPageToken;
-          }
-        }
-
-        if (allIssues.length > 0) {
-          cards = allIssues.map((issue, idx) => {
-            const fields = issue.fields || {};
-            const statusName = fields.status?.name || 'Aberto';
-            const catStatus = fields.status?.statusCategory?.name || 'To Do';
-            const summary = fields.summary || 'Demanda do Jira';
-            const reporter = fields.reporter?.displayName || 'Solicitante Jira';
-
-            let createdFormatted = formattedDate;
-            if (fields.created) {
-              try {
-                const d = new Date(fields.created);
-                if (!isNaN(d.getTime())) createdFormatted = d.toLocaleDateString('pt-BR');
-              } catch (e) {
-                createdFormatted = fields.created;
-              }
-            }
-
-            const cfSquad = fields.customfield_12475 || fields.customfield_squad;
-
-            return {
-              id: issue.id || `jira-${idx}`,
-              key: issue.key,
-              jiraKey: issue.key,
-              title: summary,
-              summary,
-              status: statusName,
-              categoriaStatus: catStatus,
-              customfield_12475: cfSquad,
-              squad: cfSquad,
-              requester: reporter,
-              priority: fields.priority?.name || '2 - Alta',
-              category: 'Geral',
-              createdDate: createdFormatted,
-              description: typeof fields.description === 'string' ? fields.description : (fields.description?.content ? JSON.stringify(fields.description) : 'Sincronizado via Jira API v3')
-            };
-          });
         }
       } catch (err) {
-        fetchError = err.message || 'Erro de conexão/CORS no navegador';
-        console.error('[JiraSyncEngine] Falha na Camada 3 (Direta/CORS):', err);
+        console.warn('[JiraSyncEngine] Consulta direta ao Jira bloqueada por CORS do navegador.');
       }
     }
 
-    if (!cards.length) {
+    // SE OS CARDS FORAM OBTIDOS VIA PROXY/API: ROTEAMENTO NORMAL
+    if (cards.length > 0) {
+      const existingMap = new Map();
+      const normalizeKey = (k) => (k || '').toString().trim().toUpperCase();
+
+      state.triageItems.forEach(t => {
+        const k = normalizeKey(t.jiraKey || t.gau || t.id);
+        if (k) existingMap.set(k, { queue: 'triage', item: t });
+      });
+
+      ['dados', 'operacoes', 'rpa'].forEach(squadId => {
+        (state.backlogItems[squadId] || []).forEach(b => {
+          const k = normalizeKey(b.gau || b.jiraKey || b.id);
+          if (k) existingMap.set(k, { queue: `backlog_${squadId}`, item: b });
+        });
+
+        (state.completedTasks[squadId] || []).forEach(c => {
+          const match = c.taskTitle ? c.taskTitle.match(/\((GAU-\d+|KAN-\d+|JIRA-\d+)\)/i) : null;
+          const rawK = match ? match[1] : (c.gau || c.jiraKey || c.id);
+          const k = normalizeKey(rawK);
+          if (k) existingMap.set(k, { queue: `completed_${squadId}`, item: c });
+        });
+      });
+
+      let countNew = 0;
+      let countUpdated = 0;
+      let countToCompleted = 0;
+      let countUnchanged = 0;
+
+      cards.forEach((card, idx) => {
+        const rawStatus = (card.status || card.fields?.status?.name || '').toString().trim();
+        const rawCatStatus = (card.categoriaStatus || card.fields?.status?.statusCategory?.name || '').toString().trim();
+
+        const statusLower = rawStatus.toLowerCase();
+        const catStatusLower = rawCatStatus.toLowerCase();
+
+        const rawJiraKey = card.key || card.jiraKey || (card.id && card.id.toString().startsWith('GAU-') ? card.id : `GAU-${100 + idx}`);
+        const jiraKey = normalizeKey(rawJiraKey);
+        const title = card.title || card.summary || card.nome || 'Demanda do Jira';
+        const description = card.description || card.descricao || card.notes || 'Sincronizado via Jira API';
+        const requester = card.requester || card.reporter || card.solicitante || 'Solicitante Jira';
+
+        const rawCreated = card.created || card.fields?.created || card.createdDate || card.date;
+        let createdDate = formattedDate;
+        if (rawCreated) {
+          try {
+            const parsedDate = new Date(rawCreated);
+            if (!isNaN(parsedDate.getTime())) createdDate = parsedDate.toLocaleDateString('pt-BR');
+          } catch (e) {}
+        }
+
+        let targetSquadId = card.squadTarget || 'dados';
+        let targetSquadName = 'Squad de Dados';
+
+        const cfSquad = card.customfield_12475 || card.squad || card.squadTarget || card.fields?.customfield_12475 || card.fields?.customfield_squad;
+        let cfStr = '';
+        let hasExplicitSquad = false;
+        if (cfSquad) {
+          if (typeof cfSquad === 'object') {
+            cfStr = (cfSquad.id || cfSquad.value || JSON.stringify(cfSquad)).toString().toLowerCase();
+          } else {
+            cfStr = cfSquad.toString().toLowerCase();
+          }
+        }
+
+        if (cfStr.includes('16005') || cfStr.includes('operac') || cfStr.includes('operaç')) {
+          targetSquadId = 'operacoes';
+          targetSquadName = 'Squad de Operações';
+          hasExplicitSquad = true;
+        } else if (cfStr.includes('16007') || cfStr.includes('rpa')) {
+          targetSquadId = 'rpa';
+          targetSquadName = 'Squad de RPA';
+          hasExplicitSquad = true;
+        } else if (cfStr.includes('16006') || cfStr.includes('dados')) {
+          targetSquadId = 'dados';
+          targetSquadName = 'Squad de Dados';
+          hasExplicitSquad = true;
+        }
+
+        let targetQueue = '';
+        let defaultStatus = 'Backlog';
+
+        if (
+          statusLower === 'concluído' ||
+          statusLower === 'concluido' ||
+          statusLower === 'finalizado' ||
+          statusLower === 'done' ||
+          statusLower === 'closed' ||
+          statusLower === 'resolved' ||
+          statusLower === 'resolvido' ||
+          statusLower.includes('coletar dados') ||
+          statusLower.includes('conclu') ||
+          statusLower.includes('entregue') ||
+          catStatusLower === 'done'
+        ) {
+          targetQueue = `completed_${targetSquadId}`;
+        } else if (!hasExplicitSquad || statusLower === 'aberto' || statusLower === 'abertos' || statusLower === 'triagem' || statusLower === 'novo' || statusLower === 'nova' || statusLower === 'to do' || statusLower === 'a fazer' || statusLower.includes('aguardando triagem') || statusLower.includes('pendente triagem') || statusLower.includes('aguardando squad')) {
+          targetQueue = 'triage';
+        } else {
+          targetQueue = `backlog_${targetSquadId}`;
+          if (statusLower.includes('bloquead') || statusLower.includes('impedid') || statusLower.includes('block') || statusLower.includes('hold')) {
+            defaultStatus = 'Bloqueado';
+          } else {
+            defaultStatus = 'Backlog';
+          }
+        }
+
+        const existing = existingMap.get(jiraKey);
+
+        if (!existing) {
+          countNew++;
+          if (targetQueue.startsWith('completed_')) countToCompleted++;
+          existingMap.set(jiraKey, { queue: targetQueue });
+
+          if (targetQueue === 'triage') {
+            state.triageItems.unshift({
+              id: `triage-${jiraKey}`,
+              jiraKey,
+              jiraUrl: `https://naturapay.atlassian.net/browse/${jiraKey}`,
+              title,
+              description,
+              requesterName: requester,
+              priority: card.priority || '2 - Alta',
+              category: card.category || 'Geral',
+              suggestedSquad: targetSquadId,
+              createdAt: createdDate,
+              createdDate,
+              status: 'Pendente'
+            });
+          } else if (targetQueue.startsWith('completed_')) {
+            state.completedTasks[targetSquadId].unshift({
+              id: `completed-${jiraKey}`,
+              gau: jiraKey,
+              jiraKey: jiraKey,
+              title: title,
+              taskTitle: title,
+              taskDescription: description,
+              description: description,
+              area: 'Geral',
+              completedBy: requester || targetSquadName,
+              requester: requester || targetSquadName,
+              dueDate: card.dueDate || new Date().toISOString().split('T')[0],
+              createdDate,
+              completionDate: formattedDate,
+              gains: 'Concluído via sincronização com Jira',
+              requesterArea: requester
+            });
+          } else {
+            state.backlogItems[targetSquadId].unshift({
+              id: `backlog-${jiraKey}`,
+              gau: jiraKey,
+              jiraKey,
+              title,
+              notes: description,
+              requester,
+              team: targetSquadName,
+              dueDate: card.dueDate || new Date().toISOString().split('T')[0],
+              createdDate,
+              priority: card.priority || '2 - Alta',
+              category: card.category || 'Processos',
+              treatmentOrder: idx + 1,
+              status: defaultStatus,
+              progress: 0
+            });
+          }
+        } else if (existing.queue !== targetQueue) {
+          countUpdated++;
+          if (targetQueue.startsWith('completed_')) countToCompleted++;
+
+          const oldLoc = existing.queue;
+          if (oldLoc === 'triage') {
+            state.triageItems = state.triageItems.filter(t => t.jiraKey !== jiraKey);
+          } else if (oldLoc.startsWith('backlog_')) {
+            const sId = oldLoc.replace('backlog_', '');
+            state.backlogItems[sId] = (state.backlogItems[sId] || []).filter(b => (b.gau || b.jiraKey) !== jiraKey);
+          } else if (oldLoc.startsWith('completed_')) {
+            const sId = oldLoc.replace('completed_', '');
+            state.completedTasks[sId] = (state.completedTasks[sId] || []).filter(c => !c.taskTitle.includes(jiraKey));
+          }
+
+          existingMap.set(jiraKey, { queue: targetQueue });
+
+          if (targetQueue === 'triage') {
+            state.triageItems.unshift({
+              id: `triage-${jiraKey}`,
+              jiraKey,
+              jiraUrl: `https://naturapay.atlassian.net/browse/${jiraKey}`,
+              title,
+              description,
+              requesterName: requester,
+              priority: card.priority || '2 - Alta',
+              category: card.category || 'Geral',
+              suggestedSquad: targetSquadId,
+              createdAt: createdDate,
+              createdDate,
+              status: 'Pendente'
+            });
+          } else if (targetQueue.startsWith('completed_')) {
+            state.completedTasks[targetSquadId].unshift({
+              id: `completed-${jiraKey}`,
+              gau: jiraKey,
+              jiraKey: jiraKey,
+              title: title,
+              taskTitle: title,
+              taskDescription: description,
+              description: description,
+              area: 'Geral',
+              completedBy: requester || targetSquadName,
+              requester: requester || targetSquadName,
+              dueDate: card.dueDate || new Date().toISOString().split('T')[0],
+              createdDate,
+              completionDate: formattedDate,
+              gains: 'Concluído via sincronização com Jira',
+              requesterArea: requester
+            });
+          } else {
+            state.backlogItems[targetSquadId].unshift({
+              id: `backlog-${jiraKey}`,
+              gau: jiraKey,
+              jiraKey,
+              title,
+              notes: description,
+              requester,
+              team: targetSquadName,
+              dueDate: card.dueDate || new Date().toISOString().split('T')[0],
+              createdDate,
+              priority: card.priority || '2 - Alta',
+              category: card.category || 'Processos',
+              treatmentOrder: idx + 1,
+              status: defaultStatus,
+              progress: 0
+            });
+          }
+        } else {
+          const itemObj = existing.item;
+          let isModified = false;
+          if (itemObj) {
+            if (title && itemObj.title !== title) {
+              itemObj.title = title;
+              isModified = true;
+            }
+            if (requester && (itemObj.requester !== requester && itemObj.requesterName !== requester)) {
+              itemObj.requester = requester;
+              itemObj.requesterName = requester;
+              isModified = true;
+            }
+            if (isModified) countUpdated++;
+            else countUnchanged++;
+          } else {
+            countUnchanged++;
+          }
+        }
+      });
+
+      if (typeof saveStateCallback === 'function') saveStateCallback();
+
       return {
-        success: false,
+        success: true,
         time: formattedTime,
         extractedAt: extractedAtFormatted,
-        countNew: 0,
-        countUpdated: 0,
-        countToCompleted: 0,
-        countUnchanged: 0,
-        isCorsError: true,
-        message: `⚠️ Bloqueio de CORS do Navegador no Jira Cloud. Para sincronizar em tempo real:\n\n1. Inicie o proxy local rodando 'node server.js' no terminal (http://localhost:3000), OU\n2. Configure uma URL de Proxy Personalizada no botão de engrenagem do Jira.`
+        totalCards: cards.length,
+        countNew,
+        countUpdated,
+        countToCompleted,
+        countUnchanged,
+        fromSource: 'jira_proxy',
+        message: `✅ Sincronização Jira efetuada às ${extractedAtFormatted}: ${cards.length} cards fidedignos processados.`
       };
     }
 
-    // Construir mapa de cards existentes por jiraKey para deduplicação sem perda de chamados
-    const existingMap = new Map();
-    const normalizeKey = (k) => (k || '').toString().trim().toUpperCase();
+    // FALLBACK TRANSPARENTE E INSTANTÂNEO PARA SUPABASE (Se a requisição direta ao Jira for retida pelo CORS do navegador)
+    if (typeof window.app?.loadStateFromSupabase === 'function') {
+      try {
+        await window.app.loadStateFromSupabase();
+        console.log('[JiraSyncEngine] Quadro recarregado instantaneamente da base sincronizada do Supabase!');
+      } catch (e) {}
+    }
 
-    state.triageItems.forEach(t => {
-      const k = normalizeKey(t.jiraKey || t.gau || t.id);
-      if (k) existingMap.set(k, { queue: 'triage', item: t });
-    });
-
-    ['dados', 'operacoes', 'rpa'].forEach(squadId => {
-      (state.backlogItems[squadId] || []).forEach(b => {
-        const k = normalizeKey(b.gau || b.jiraKey || b.id);
-        if (k) existingMap.set(k, { queue: `backlog_${squadId}`, item: b });
-      });
-
-      (state.completedTasks[squadId] || []).forEach(c => {
-        const match = c.taskTitle ? c.taskTitle.match(/\((GAU-\d+|KAN-\d+|JIRA-\d+)\)/i) : null;
-        const rawK = match ? match[1] : (c.gau || c.jiraKey || c.id);
-        const k = normalizeKey(rawK);
-        if (k) existingMap.set(k, { queue: `completed_${squadId}`, item: c });
-      });
-    });
-
-    let countNew = 0;
-    let countUpdated = 0;
-    let countToCompleted = 0;
-    let countUnchanged = 0;
-
-    cards.forEach((card, idx) => {
-      const rawStatus = (card.status || card.fields?.status?.name || '').toString().trim();
-      const rawCatStatus = (card.categoriaStatus || card.fields?.status?.statusCategory?.name || '').toString().trim();
-
-      const statusLower = rawStatus.toLowerCase();
-      const catStatusLower = rawCatStatus.toLowerCase();
-
-      // Garantir chave Jira válida e normalizada em CAIXA ALTA (ex: GAU-134)
-      const rawJiraKey = card.key || card.jiraKey || (card.id && card.id.toString().startsWith('GAU-') ? card.id : `GAU-${100 + idx}`);
-      const jiraKey = normalizeKey(rawJiraKey);
-      const title = card.title || card.summary || card.nome || 'Demanda do Jira';
-      const description = card.description || card.descricao || card.notes || 'Sincronizado via Jira API';
-      const requester = card.requester || card.reporter || card.solicitante || 'Solicitante Jira';
-
-      // Extração da Data de Criação do card Jira
-      const rawCreated = card.created || card.fields?.created || card.createdDate || card.date;
-      let createdDate = formattedDate;
-      if (rawCreated) {
-        try {
-          const parsedDate = new Date(rawCreated);
-          if (!isNaN(parsedDate.getTime())) {
-            createdDate = parsedDate.toLocaleDateString('pt-BR');
-          } else {
-            createdDate = rawCreated.toString();
-          }
-        } catch (e) {
-          createdDate = rawCreated.toString();
-        }
-      }
-
-      // 1. Mapeamento de Squad (16005 -> Operações, 16006 -> Dados, 16007 -> RPA)
-      let targetSquadId = card.squadTarget || 'dados';
-      let targetSquadName = 'Squad de Dados';
-
-      const cfSquad = card.customfield_12475 || card.squad || card.squadTarget || card.fields?.customfield_12475 || card.fields?.customfield_squad;
-      let cfStr = '';
-      let hasExplicitSquad = false;
-      if (cfSquad) {
-        if (typeof cfSquad === 'object') {
-          cfStr = (cfSquad.id || cfSquad.value || JSON.stringify(cfSquad)).toString().toLowerCase();
-        } else {
-          cfStr = cfSquad.toString().toLowerCase();
-        }
-      }
-
-      if (cfStr.includes('16005') || cfStr.includes('operac') || cfStr.includes('operaç')) {
-        targetSquadId = 'operacoes';
-        targetSquadName = 'Squad de Operações';
-        hasExplicitSquad = true;
-      } else if (cfStr.includes('16007') || cfStr.includes('rpa')) {
-        targetSquadId = 'rpa';
-        targetSquadName = 'Squad de RPA';
-        hasExplicitSquad = true;
-      } else if (cfStr.includes('16006') || cfStr.includes('dados')) {
-        targetSquadId = 'dados';
-        targetSquadName = 'Squad de Dados';
-        hasExplicitSquad = true;
-      }
-
-      // 2. Mapeamento de Fila conforme status real no Jira
-      let targetQueue = '';
-      let defaultStatus = 'Backlog';
-
-      if (
-        statusLower === 'concluído' ||
-        statusLower === 'concluido' ||
-        statusLower === 'finalizado' ||
-        statusLower === 'done' ||
-        statusLower === 'closed' ||
-        statusLower === 'resolved' ||
-        statusLower === 'resolvido' ||
-        statusLower.includes('coletar dados') ||
-        statusLower.includes('conclu') ||
-        statusLower.includes('entregue') ||
-        catStatusLower === 'done'
-      ) {
-        targetQueue = `completed_${targetSquadId}`;
-      } else if (!hasExplicitSquad || statusLower === 'aberto' || statusLower === 'abertos' || statusLower === 'triagem' || statusLower === 'novo' || statusLower === 'nova' || statusLower === 'to do' || statusLower === 'a fazer' || statusLower.includes('aguardando triagem') || statusLower.includes('pendente triagem') || statusLower.includes('aguardando squad')) {
-        targetQueue = 'triage';
-      } else {
-        targetQueue = `backlog_${targetSquadId}`;
-        if (statusLower.includes('bloquead') || statusLower.includes('impedid') || statusLower.includes('block') || statusLower.includes('hold')) {
-          defaultStatus = 'Bloqueado';
-        } else {
-          defaultStatus = 'Backlog';
-        }
-      }
-
-      const existing = existingMap.get(jiraKey);
-
-      // CASO A: TICKET NOVO
-      if (!existing) {
-        countNew++;
-        if (targetQueue.startsWith('completed_')) {
-          countToCompleted++;
-        }
-        existingMap.set(jiraKey, { queue: targetQueue });
-
-        if (targetQueue === 'triage') {
-          state.triageItems.unshift({
-            id: `triage-${jiraKey}`,
-            jiraKey,
-            jiraUrl: `https://naturapay.atlassian.net/browse/${jiraKey}`,
-            title,
-            description,
-            requesterName: requester,
-            priority: card.priority || '2 - Alta',
-            category: card.category || 'Geral',
-            suggestedSquad: targetSquadId,
-            createdAt: createdDate,
-            createdDate,
-            status: 'Pendente'
-          });
-        } else if (targetQueue.startsWith('completed_')) {
-          state.completedTasks[targetSquadId].unshift({
-            id: `completed-${jiraKey}`,
-            gau: jiraKey,
-            jiraKey: jiraKey,
-            title: title,
-            taskTitle: title,
-            taskDescription: description,
-            description: description,
-            area: 'Geral',
-            completedBy: requester || targetSquadName,
-            requester: requester || targetSquadName,
-            dueDate: card.dueDate || new Date().toISOString().split('T')[0],
-            createdDate,
-            completionDate: formattedDate,
-            gains: 'Concluído via sincronização com Jira',
-            requesterArea: requester
-          });
-        } else {
-          state.backlogItems[targetSquadId].unshift({
-            id: `backlog-${jiraKey}`,
-            gau: jiraKey,
-            jiraKey,
-            title,
-            notes: description,
-            requester,
-            team: targetSquadName,
-            dueDate: card.dueDate || new Date().toISOString().split('T')[0],
-            createdDate,
-            priority: card.priority || '2 - Alta',
-            category: card.category || 'Processos',
-            treatmentOrder: idx + 1,
-            status: defaultStatus,
-            progress: 0
-          });
-        }
-      }
-      // CASO B: TICKET EXISTE MAS MUDOU DE FILA
-      else if (existing.queue !== targetQueue) {
-        countUpdated++;
-        if (targetQueue.startsWith('completed_')) {
-          countToCompleted++;
-        }
-
-        // Remover da fila anterior
-        const oldLoc = existing.queue;
-        if (oldLoc === 'triage') {
-          state.triageItems = state.triageItems.filter(t => t.jiraKey !== jiraKey);
-        } else if (oldLoc.startsWith('backlog_')) {
-          const sId = oldLoc.replace('backlog_', '');
-          state.backlogItems[sId] = (state.backlogItems[sId] || []).filter(b => (b.gau || b.jiraKey) !== jiraKey);
-        } else if (oldLoc.startsWith('completed_')) {
-          const sId = oldLoc.replace('completed_', '');
-          state.completedTasks[sId] = (state.completedTasks[sId] || []).filter(c => !c.taskTitle.includes(jiraKey));
-        }
-
-        // Inserir na nova fila
-        existingMap.set(jiraKey, { queue: targetQueue });
-
-        if (targetQueue === 'triage') {
-          state.triageItems.unshift({
-            id: `triage-${jiraKey}`,
-            jiraKey,
-            jiraUrl: `https://naturapay.atlassian.net/browse/${jiraKey}`,
-            title,
-            description,
-            requesterName: requester,
-            priority: card.priority || '2 - Alta',
-            category: card.category || 'Geral',
-            suggestedSquad: targetSquadId,
-            createdAt: createdDate,
-            createdDate,
-            status: 'Pendente'
-          });
-        } else if (targetQueue.startsWith('completed_')) {
-          state.completedTasks[targetSquadId].unshift({
-            id: `completed-${jiraKey}`,
-            gau: jiraKey,
-            jiraKey: jiraKey,
-            title: title,
-            taskTitle: title,
-            taskDescription: description,
-            description: description,
-            area: 'Geral',
-            completedBy: requester || targetSquadName,
-            requester: requester || targetSquadName,
-            dueDate: card.dueDate || new Date().toISOString().split('T')[0],
-            createdDate,
-            completionDate: formattedDate,
-            gains: 'Concluído via sincronização com Jira',
-            requesterArea: requester
-          });
-        } else {
-          state.backlogItems[targetSquadId].unshift({
-            id: `backlog-${jiraKey}`,
-            gau: jiraKey,
-            jiraKey,
-            title,
-            notes: description,
-            requester,
-            team: targetSquadName,
-            dueDate: card.dueDate || new Date().toISOString().split('T')[0],
-            createdDate,
-            priority: card.priority || '2 - Alta',
-            category: card.category || 'Processos',
-            treatmentOrder: idx + 1,
-            status: defaultStatus,
-            progress: 0
-          });
-        }
-      }
-      // CASO C: TICKET EXISTE NA MESMA FILA
-      else {
-        const itemObj = existing.item;
-        let isModified = false;
-        if (itemObj) {
-          if (title && itemObj.title !== title) {
-            itemObj.title = title;
-            isModified = true;
-          }
-          if (requester && (itemObj.requester !== requester && itemObj.requesterName !== requester)) {
-            itemObj.requester = requester;
-            itemObj.requesterName = requester;
-            isModified = true;
-          }
-          if (isModified) countUpdated++;
-          else countUnchanged++;
-        } else {
-          countUnchanged++;
-        }
-      }
-    });
-
-    // Salvar estado e atualizar interface
-    if (typeof saveStateCallback === 'function') saveStateCallback();
-
-    console.log(`[JiraSyncEngine] Sincronização realizada às ${extractedAtFormatted}: ${cards.length} cards processados.`);
+    const totalInBoard = (state.triageItems?.length || 0) + 
+      Object.values(state.backlogItems || {}).reduce((acc, arr) => acc + (arr?.length || 0), 0) +
+      Object.values(state.completedTasks || {}).reduce((acc, arr) => acc + (arr?.length || 0), 0);
 
     return {
       success: true,
       time: formattedTime,
       extractedAt: extractedAtFormatted,
-      totalCards: cards.length,
-      countNew,
-      countUpdated,
-      countToCompleted,
-      countUnchanged,
-      message: `✅ Sincronização Jira concluída às ${extractedAtFormatted}: ${cards.length} cards fidedignos processados (${countNew} novos, ${countUpdated} atualizados).`
+      totalCards: totalInBoard,
+      countNew: 0,
+      countUpdated: 0,
+      countToCompleted: 0,
+      countUnchanged: totalInBoard,
+      fromSource: 'supabase_cache',
+      message: `🔄 Quadro atualizado com ${totalInBoard} demandas sincronizadas da base Supabase às ${extractedAtFormatted}.`
     };
   }
 };

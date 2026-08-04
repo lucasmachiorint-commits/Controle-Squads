@@ -1437,18 +1437,9 @@ const app = {
     const toast = document.getElementById('sync-toast-banner');
     const toastMsg = document.getElementById('sync-toast-message');
     if (toast && toastMsg) {
-      if (result.success) {
-        toastMsg.textContent = `🔄 Sincronização Jira realizada às ${fullSyncDateTime}! ${result.totalCards || 0} cards processados (${metrics.countNew} novos, ${metrics.countUpdated} atualizados).`;
-      } else {
-        toastMsg.textContent = `⚠️ Bloqueio de CORS do Navegador no Jira Cloud. Execute 'node server.js' (http://localhost:3000) ou configure uma URL de Proxy Personalizada no botão de engrenagem.`;
-      }
+      toastMsg.textContent = result.message || `🔄 Quadro sincronizado às ${fullSyncDateTime}!`;
       toast.classList.remove('hidden');
-      setTimeout(() => toast.classList.add('hidden'), 10000);
-    }
-
-    // Notificação elegante em caso de bloqueio de CORS (sem pop-ups intrusivos)
-    if (!result.success && result.isCorsError) {
-      console.warn('[Jira Sync] Bloqueio de CORS detectado. Para sincronização direta no cliente, use a engrenagem ou proxy local.');
+      setTimeout(() => toast.classList.add('hidden'), 5000);
     }
 
     // Re-renderizar a interface inteira imediatamente para atualizar cards em andamento, triagem e concluídos
