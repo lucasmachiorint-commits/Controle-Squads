@@ -119,7 +119,7 @@ async function fetchJiraAndSyncToSupabase() {
     updated_at: new Date().toISOString()
   };
 
-  const supaUrl = `${SUPABASE_URL}/rest/v1/cs_board_state?on_conflict=id`;
+  const supaUrl = `${SUPABASE_URL}/rest/v1/board_state?on_conflict=id`;
   
   try {
     const sRes = await fetch(supaUrl, {

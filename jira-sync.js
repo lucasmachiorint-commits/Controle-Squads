@@ -37,7 +37,7 @@ const JiraSyncEngine = {
         const supaUrl = 'https://maguyzjhldcgpcvkvkqe.supabase.co';
         const supaKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hZ3V5empobGRjZ3Bjdmt2a3FlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2NTU0MDMsImV4cCI6MjEwMDIzMTQwM30.Ow9xruE1qAFTX3mqELERxrY3CRBOdV_n4MoXXhtt3Y8';
         
-        const res = await fetch(`${supaUrl}/rest/v1/cs_board_state?id=eq.jira_cache&select=data`, {
+        const res = await fetch(`${supaUrl}/rest/v1/board_state?id=eq.jira_cache&select=data`, {
           headers: {
             'apikey': supaKey,
             'Authorization': `Bearer ${supaKey}`,
