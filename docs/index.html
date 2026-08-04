@@ -21,6 +21,9 @@
     
     <!-- SheetJS (Excel Upload/Export) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <!-- html2pdf.js (PDF Export) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <!-- Custom Theme Stylesheet -->
     <link rel="stylesheet" href="style.css?v=1.9.0">
@@ -260,6 +263,11 @@
               Visão geral e executiva de throughput, capacidade operacional e demandas em alerta nas Squads de Dados, Operações e RPA.
             </p>
           </div>
+          <div class="flex items-center gap-2">
+            <button type="button" class="btn btn-secondary btn-export" onclick="app.exportPDF()">
+              <i class="fa-solid fa-file-pdf" style="color:#ef4444; margin-right:6px;"></i> Exportar PDF
+            </button>
+          </div>
         </div>
       </div>
 
@@ -365,14 +373,6 @@
           <div class="metric-icon bg-emerald-500/20 text-emerald-400"><i class="fa-solid fa-circle-check"></i></div>
         </div>
 
-        <!-- 5. Lead Time Médio -->
-        <div class="glass-panel metric-card" style="margin-bottom: 0 !important;">
-          <div>
-            <div class="metric-val text-purple-400" id="dash-lead-time">0d</div>
-            <div class="metric-lbl">Lead Time Médio</div>
-          </div>
-          <div class="metric-icon bg-purple-500/20 text-purple-400"><i class="fa-solid fa-clock-rotate-left"></i></div>
-        </div>
       </div>
 
       <!-- PAINEL 3: MATRIZ DE 4 GRÁFICOS INTERATIVOS (GRID 2x2) -->
@@ -488,9 +488,14 @@
             <h2 style="font-size:20px; font-weight:800; color:#fff; margin:0;" id="board-squad-title">Em Andamento</h2>
             <p style="font-size:12px; color:#94a3b8; margin:4px 0 0 0;" id="board-squad-desc">Acompanhamento e monitoramento de demandas em andamento</p>
           </div>
-          <button type="button" class="btn btn-secondary btn-export" onclick="app.exportExcel()">
-            <i class="fa-solid fa-file-excel" style="color:#34d399; margin-right:6px;"></i> Exportar Excel
-          </button>
+          <div class="flex items-center gap-2">
+            <button type="button" class="btn btn-secondary btn-export" onclick="app.exportExcel()">
+              <i class="fa-solid fa-file-excel" style="color:#34d399; margin-right:6px;"></i> Exportar Excel
+            </button>
+            <button type="button" class="btn btn-secondary btn-export" onclick="app.exportPDF()">
+              <i class="fa-solid fa-file-pdf" style="color:#ef4444; margin-right:6px;"></i> Exportar PDF
+            </button>
+          </div>
         </div>
 
         <div class="search-box" style="width:100%; margin-bottom:24px;">
@@ -538,9 +543,14 @@
             <h2 style="font-size:20px; font-weight:800; color:#fff; margin:0;" id="backlog-squad-title">Backlog</h2>
             <p style="font-size:12px; color:#94a3b8; margin:4px 0 0 0;">Listagem de solicitações aguardando início de tratamento na squad</p>
           </div>
-          <button type="button" class="btn btn-secondary btn-export" onclick="app.exportExcel()">
-            <i class="fa-solid fa-file-excel" style="color:#34d399; margin-right:6px;"></i> Exportar Excel
-          </button>
+          <div class="flex items-center gap-2">
+            <button type="button" class="btn btn-secondary btn-export" onclick="app.exportExcel()">
+              <i class="fa-solid fa-file-excel" style="color:#34d399; margin-right:6px;"></i> Exportar Excel
+            </button>
+            <button type="button" class="btn btn-secondary btn-export" onclick="app.exportPDF()">
+              <i class="fa-solid fa-file-pdf" style="color:#ef4444; margin-right:6px;"></i> Exportar PDF
+            </button>
+          </div>
         </div>
 
         <div class="search-box" style="width:100%; margin-bottom:24px;">
@@ -588,9 +598,14 @@
             <h2 style="font-size:20px; font-weight:800; color:#fff; margin:0;" id="concluidos-squad-title">Concluídos</h2>
             <p style="font-size:12px; color:#94a3b8; margin:4px 0 0 0;"><span class="badge badge-medium" id="completed-count-badge">0 entregas</span></p>
           </div>
-          <button type="button" class="btn btn-secondary btn-export" onclick="app.exportExcel()">
-            <i class="fa-solid fa-file-excel" style="color:#34d399; margin-right:6px;"></i> Exportar Excel
-          </button>
+          <div class="flex items-center gap-2">
+            <button type="button" class="btn btn-secondary btn-export" onclick="app.exportExcel()">
+              <i class="fa-solid fa-file-excel" style="color:#34d399; margin-right:6px;"></i> Exportar Excel
+            </button>
+            <button type="button" class="btn btn-secondary btn-export" onclick="app.exportPDF()">
+              <i class="fa-solid fa-file-pdf" style="color:#ef4444; margin-right:6px;"></i> Exportar PDF
+            </button>
+          </div>
         </div>
 
         <div class="search-box" style="width:100%; margin-bottom:24px;">
@@ -707,6 +722,10 @@
             <button class="btn btn-secondary text-xs py-2 px-3.5 flex items-center gap-1.5" onclick="app.renderUsersTable()" title="Atualizar lista">
               <i class="fa-solid fa-rotate-right text-purple-400"></i>
               <span>Atualizar</span>
+            </button>
+            <button type="button" class="btn btn-secondary text-xs py-2 px-3.5 flex items-center gap-1.5" onclick="app.exportPDF()" title="Exportar visão em PDF">
+              <i class="fa-solid fa-file-pdf text-rose-400"></i>
+              <span>Exportar PDF</span>
             </button>
           </div>
         </div>
@@ -1083,8 +1102,8 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=5.0.0"></script>
-<script src="app.js?v=5.0.0"></script>
+<script src="jira-sync.js?v=6.0.0"></script>
+<script src="app.js?v=6.0.0"></script>
 
 </body>
 </html>

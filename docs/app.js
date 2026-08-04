@@ -130,11 +130,11 @@ const app = {
       this.userStatus = 'ATIVO';
     }
 
-    // Buscar perfil na tabela profiles do Supabase
+    // Buscar perfil na tabela cs_profiles do Supabase
     if (supabaseClient) {
       try {
         let { data, error } = await supabaseClient
-          .from('profiles')
+          .from('cs_profiles')
           .select('*')
           .or(`id.eq.${user.id},email.ilike.${user.email.toLowerCase()}`)
           .maybeSingle();
@@ -142,13 +142,13 @@ const app = {
         if (!error && data) {
           // Se a conta foi vinculada pelo e-mail com id temporário, atualizar o ID real
           if (data.id !== user.id) {
-            try { await supabaseClient.from('profiles').update({ id: user.id }).eq('email', user.email.toLowerCase()); } catch (_) {}
+            try { await supabaseClient.from('cs_profiles').update({ id: user.id }).eq('email', user.email.toLowerCase()); } catch (_) {}
           }
           if (isLucas) {
             this.userRole = 'admin';
             this.userStatus = 'ATIVO';
             if (data.perfil !== 'ADMIN' || data.status !== 'ATIVO') {
-              await supabaseClient.from('profiles').update({ perfil: 'ADMIN', status: 'ATIVO' }).eq('id', user.id);
+              await supabaseClient.from('cs_profiles').update({ perfil: 'ADMIN', status: 'ATIVO' }).eq('id', user.id);
             }
           } else {
             if (data.perfil) this.userRole = data.perfil.toLowerCase() === 'admin' ? 'admin' : 'consulta';
@@ -156,7 +156,7 @@ const app = {
           }
           if (data.nome) this.userName = data.nome;
         } else {
-          // Se o perfil ainda não existe em profiles, auto-criar o registro com status PENDENTE!
+          // Se o perfil ainda não existe em cs_profiles, auto-criar o registro com status PENDENTE!
           const initialRole = isLucas ? 'ADMIN' : 'CONSULTA';
           const initialStatus = isLucas ? 'ATIVO' : 'PENDENTE';
           const newProfile = {
@@ -167,9 +167,9 @@ const app = {
             status: initialStatus
           };
           
-          const { error: upsertErr } = await supabaseClient.from('profiles').upsert(newProfile);
+          const { error: upsertErr } = await supabaseClient.from('cs_profiles').upsert(newProfile);
           if (upsertErr) {
-            console.warn('[setupUserSession profiles upsert error]', upsertErr.message);
+            console.warn('[setupUserSession cs_profiles upsert error]', upsertErr.message);
           }
           this.userRole = initialRole.toLowerCase();
           this.userStatus = initialStatus;
@@ -340,7 +340,7 @@ const app = {
       } else {
         const user = data?.session?.user || data?.user;
         if (user) {
-          // Inserir explicitamente na tabela profiles com status PENDENTE
+          // Inserir explicitamente na tabela cs_profiles com status PENDENTE
           try {
             const profilePayload = {
               id: user.id,
@@ -349,10 +349,10 @@ const app = {
               perfil: 'CONSULTA',
               status: 'PENDENTE'
             };
-            const { error: pErr } = await supabaseClient.from('profiles').upsert(profilePayload);
-            if (pErr) console.warn('[Signup profiles warning]', pErr.message);
+            const { error: pErr } = await supabaseClient.from('cs_profiles').upsert(profilePayload);
+            if (pErr) console.warn('[Signup cs_profiles warning]', pErr.message);
           } catch (pErr) {
-            console.warn('[Signup profile upsert error]', pErr);
+            console.warn('[Signup cs_profile upsert error]', pErr);
           }
 
           await this.setupUserSession(user);
@@ -541,16 +541,30 @@ const app = {
       }
     });
 
-    // 4. Inputs de reordenação numérica do Backlog
-    document.querySelectorAll('.treatment-order-input').forEach(input => {
+    // 5. Selects inline de status nas tabelas
+    document.querySelectorAll('.status-select-dropdown, .order-input-field').forEach(el => {
       if (isAdmin) {
-        input.removeAttribute('disabled');
-        input.style.opacity = '1';
-        input.style.pointerEvents = 'auto';
+        el.removeAttribute('disabled');
+        el.style.opacity = '1';
+        el.style.pointerEvents = 'auto';
       } else {
-        input.setAttribute('disabled', 'true');
-        input.style.opacity = '0.6';
-        input.style.pointerEvents = 'none';
+        el.setAttribute('disabled', 'true');
+        el.style.opacity = '0.6';
+        el.style.pointerEvents = 'none';
+      }
+    });
+
+    // 6. Botões de ação do Jira e gerenciamento
+    const jiraAdminBtns = ['#btn-sync-jira', '#btn-jira-config', '#btn-new-access', '.btn-triage-action'];
+    document.querySelectorAll(jiraAdminBtns.join(', ')).forEach(btn => {
+      if (isAdmin) {
+        btn.removeAttribute('disabled');
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = 'auto';
+      } else {
+        btn.setAttribute('disabled', 'true');
+        btn.style.opacity = '0.4';
+        btn.style.pointerEvents = 'none';
       }
     });
   },
@@ -823,7 +837,7 @@ const app = {
     }
   },
 
-  // Supabase Realtime Sync (Multi-User) — Padrão Painel-OPS
+  // Supabase Realtime Sync (Multi-User & Multi-Entity) — Padrão Realtime
   setupRealtimeSync() {
     if (!supabaseClient) return;
     try {
@@ -831,22 +845,21 @@ const app = {
       try { supabaseClient.removeAllChannels(); } catch (_) {}
       this.realtimeChannel = null;
 
+      // Canal Realtime escutando cs_board_state e cs_profiles
       const channel = supabaseClient
-        .channel('cs-board-changes')
+        .channel('cs-realtime-changes')
         .on('postgres_changes', {
           event: '*',
           schema: 'public',
           table: 'cs_board_state'
         }, (payload) => {
-          console.log('[Realtime] Evento recebido via WebSocket:', payload.eventType);
+          console.log('[Realtime Board] Evento recebido via WebSocket:', payload.eventType);
           
           const payloadData = payload.new || payload.record;
           if (payloadData && payloadData.data) {
-            // Ignorar atualizações feitas pelo próprio usuário
             if (payloadData.updated_by && this.authUserId && payloadData.updated_by === this.authUserId) {
               return;
             }
-            // Ignorar self-echoes dentro de 3 segundos
             if (Date.now() - _lastSelfSaveTime < 3000) {
               return;
             }
@@ -854,7 +867,6 @@ const app = {
             this.state = payloadData.data;
             if (!this.state.usersList) this.state.usersList = [];
 
-            // Atualizar localStorage com dados recebidos
             try {
               localStorage.setItem('cs_triage_items', JSON.stringify(this.state.triageItems || []));
               ['dados', 'operacoes', 'rpa'].forEach(id => {
@@ -865,7 +877,34 @@ const app = {
             } catch (e) {}
 
             this.render();
-            console.log('[Realtime] Painel atualizado em tempo real por outro usuário!');
+            console.log('[Realtime Board] Painel atualizado em tempo real por outro usuário!');
+          }
+        })
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'cs_profiles'
+        }, async (payload) => {
+          console.log('[Realtime Profiles] Alteração em perfis detectada:', payload.eventType);
+          const changedProfile = payload.new || payload.record;
+          if (changedProfile) {
+            if (this.authUserId && (changedProfile.id === this.authUserId || (this.userEmail && changedProfile.email.toLowerCase() === this.userEmail.toLowerCase()))) {
+              if (changedProfile.status) this.userStatus = changedProfile.status.toUpperCase();
+              if (changedProfile.perfil) this.userRole = changedProfile.perfil.toLowerCase() === 'admin' ? 'admin' : 'consulta';
+              this.updateUserBadgeUI();
+              this.applyRolePermissions();
+
+              if (this.userStatus === 'ATIVO') {
+                this.hideAuthOverlay();
+              } else if (this.userStatus === 'PENDENTE') {
+                this.showPendingApprovalOverlay();
+              } else if (this.userStatus === 'BLOQUEADO') {
+                this.showBlockedOverlay();
+              }
+            }
+            if (this.activeView === 'gestao-acessos') {
+              await this.renderUsersTable();
+            }
           }
         })
         .subscribe((status) => {
@@ -944,14 +983,14 @@ const app = {
     if (supabaseClient) {
       try {
         let { data, error } = await supabaseClient
-          .from('profiles')
+          .from('cs_profiles')
           .select('*')
           .order('created_at', { ascending: false });
 
         if (error) {
-          console.warn('[renderUsersTable profiles Error]', error.message);
+          console.warn('[renderUsersTable cs_profiles Error]', error.message);
         } else if (data && data.length > 0) {
-          console.log('[renderUsersTable] Total de perfis em profiles:', data.length);
+          console.log('[renderUsersTable] Total de perfis em cs_profiles:', data.length);
           data.forEach(p => {
             if (p && p.email) {
               usersMap.set(p.email.toLowerCase(), {
@@ -1113,7 +1152,7 @@ const app = {
     if (supabaseClient) {
       try {
         await supabaseClient
-          .from('profiles')
+          .from('cs_profiles')
           .update(payload)
           .or(`id.eq.${userId},email.eq.${userId.toLowerCase()}`);
       } catch (err) {
@@ -1135,7 +1174,7 @@ const app = {
     if (supabaseClient) {
       try {
         let { error } = await supabaseClient
-          .from('profiles')
+          .from('cs_profiles')
           .update({ perfil: newRole.toUpperCase() })
           .eq('id', userId);
 
@@ -1236,9 +1275,9 @@ const app = {
           created_at: new Date().toISOString()
         };
 
-        const { error } = await supabaseClient.from('profiles').insert(payload);
+        const { error } = await supabaseClient.from('cs_profiles').insert(payload);
         if (error) {
-          await supabaseClient.from('profiles').update({ nome: name, perfil: role, status: 'PENDENTE' }).eq('email', email);
+          await supabaseClient.from('cs_profiles').update({ nome: name, perfil: role, status: 'PENDENTE' }).eq('email', email);
         }
       } catch (err) {
         console.warn('Aviso Supabase saveUserFromModal:', err);
@@ -1766,9 +1805,7 @@ const app = {
     if (gainsTextarea) item.gains = gainsTextarea.value;
 
     this.saveState();
-    if (this.activeView === 'concluidos') {
-      this.renderCompletedView();
-    }
+    this.render();
   },
 
   // Adicionar entrada na linha do tempo com auto-save no localStorage
@@ -1887,8 +1924,10 @@ const app = {
 
     // Sincronização Bidirecional com o Jira Cloud
     if (item.jiraKey && item.jiraKey.startsWith('GAU-')) {
+      const customUrl = localStorage.getItem('cs_jira_custom_url');
+      const targetEndpoint = customUrl || 'http://localhost:3000/api/jira/encaminhar-squad-jira';
       try {
-        const res = await fetch('http://localhost:3000/api/jira/encaminhar-squad-jira', {
+        const res = await fetch(targetEndpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ jiraKey: item.jiraKey, squadId: targetSquadId })
@@ -1902,14 +1941,19 @@ const app = {
             setTimeout(() => toast.classList.add('hidden'), 5000);
           }
         }
-      } catch (e) {
-        console.warn('Backend local não acessível para sincronizar com Jira Cloud em tempo real.', e);
+      } catch (err) {
+        console.warn('Sincronização remota Jira em segundo plano (operação mantida localmente):', err);
       }
     }
   },
 
   // Ação: Alterar status da demanda (Backlog <-> Em Andamento <-> Concluído)
   changeDemandStatus(itemId, newStatus) {
+    if (this.userRole !== 'admin') {
+      alert('Acesso negado: Perfil ADMIN necessário para alterar o status da demanda.');
+      this.render();
+      return;
+    }
     const squadItems = this.state.backlogItems[this.activeSquad] || [];
     const item = squadItems.find(i => i.id === itemId || i.gau === itemId || i.jiraKey === itemId);
     if (!item) return;
@@ -2109,32 +2153,17 @@ const app = {
     
     const completionRate = totalDemands > 0 ? Math.round((completedCount / totalDemands) * 100) : 0;
 
-    let totalLeadTimeDays = 0;
-    let leadTimeCount = 0;
-    demands.forEach(d => {
-      const created = this.parseItemDate(d.createdDate || d.date || d.createdAt);
-      const completed = d.completionDate ? this.parseItemDate(d.completionDate) : new Date();
-      if (created && completed && completed >= created) {
-        const diffDays = Math.ceil((completed.getTime() - created.getTime()) / (1000 * 3600 * 24));
-        totalLeadTimeDays += Math.max(1, diffDays);
-        leadTimeCount++;
-      }
-    });
-    const avgLeadTime = leadTimeCount > 0 ? Math.round(totalLeadTimeDays / leadTimeCount) : 3;
-
     // Atualizar os quadros e badges do Dashboard
     const elInProgress = document.getElementById('dash-total-in-progress');
     const elBacklog = document.getElementById('dash-total-backlog');
     const elBlocked = document.getElementById('dash-total-blocked');
     const elCompleted = document.getElementById('dash-total-completed');
-    const elLeadTime = document.getElementById('dash-lead-time');
     const elRate = document.getElementById('dash-completion-rate');
 
     if (elInProgress) elInProgress.textContent = inProgressCount;
     if (elBacklog) elBacklog.textContent = backlogCount;
     if (elBlocked) elBlocked.textContent = blockedCount;
     if (elCompleted) elCompleted.textContent = completedCount;
-    if (elLeadTime) elLeadTime.textContent = `${avgLeadTime} dias`;
     if (elRate) elRate.textContent = `${completionRate}%`;
 
     // Renderizar a Matriz de 4 Gráficos & Tabela de Bloqueados
@@ -2647,6 +2676,56 @@ const app = {
     XLSX.writeFile(wb, `${viewLabel}_${this.activeSquad}_${new Date().toISOString().split('T')[0]}.xlsx`);
   },
 
+  // Exportar Visão Atual para PDF
+  exportPDF() {
+    let element = null;
+    let fileName = `Controle_Squads_${this.activeView}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+    if (this.activeView === 'dashboard') {
+      element = document.getElementById('view-dashboard');
+      fileName = `Dashboard_Consolidado_${new Date().toISOString().split('T')[0]}.pdf`;
+    } else if (this.activeView === 'board') {
+      element = document.getElementById('view-board');
+      fileName = `Em_Andamento_${this.activeSquad}_${new Date().toISOString().split('T')[0]}.pdf`;
+    } else if (this.activeView === 'backlog') {
+      element = document.getElementById('view-backlog');
+      fileName = `Backlog_${this.activeSquad}_${new Date().toISOString().split('T')[0]}.pdf`;
+    } else if (this.activeView === 'concluidos') {
+      element = document.getElementById('view-concluidos');
+      fileName = `Concluidos_${this.activeSquad}_${new Date().toISOString().split('T')[0]}.pdf`;
+    } else if (this.activeView === 'gestao-acessos') {
+      element = document.getElementById('view-gestao-acessos');
+      fileName = `Gestao_Acessos_${new Date().toISOString().split('T')[0]}.pdf`;
+    } else {
+      element = document.querySelector('.view-container:not(.hidden)') || document.body;
+    }
+
+    if (!element) {
+      alert('Não foi possível encontrar a visão ativa para exportação PDF.');
+      return;
+    }
+
+    if (typeof html2pdf === 'undefined') {
+      alert('A biblioteca de exportação PDF ainda está sendo carregada. Tente novamente em alguns segundos.');
+      return;
+    }
+
+    const opt = {
+      margin: [8, 8, 8, 8],
+      filename: fileName,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#090d16' },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+      console.log('✅ PDF exportado com sucesso:', fileName);
+    }).catch(err => {
+      console.error('Erro ao gerar PDF:', err);
+      alert('Ocorreu um erro ao gerar o PDF: ' + (err.message || err));
+    });
+  },
+
   // Modais Handlers
   openModal(id) {
     const modal = document.getElementById(id);
@@ -2683,7 +2762,11 @@ const app = {
   },
 
   saveTask(e) {
-    e.preventDefault();
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    if (this.userRole !== 'admin') {
+      alert('Acesso negado: Apenas administradores podem criar demandas.');
+      return;
+    }
     const gau = document.getElementById('task-gau').value;
     const title = document.getElementById('task-title').value;
     const requester = document.getElementById('task-requester').value;
