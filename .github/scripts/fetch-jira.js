@@ -87,6 +87,24 @@ async function fetchJiraAndSaveJson() {
 
     const cfSquad = fields.customfield_12475 || fields.customfield_squad;
 
+    // Helper to parse ADF format
+    let finalDescription = 'Sem descrição';
+    if (typeof fields.description === 'string') {
+      finalDescription = fields.description;
+    } else if (fields.description && fields.description.type === 'doc' && Array.isArray(fields.description.content)) {
+      let texts = [];
+      function traverse(node) {
+        if (node.type === 'text' && node.text) texts.push(node.text);
+        if (node.type === 'hardBreak') texts.push('\n');
+        if (node.type === 'paragraph') texts.push('\n');
+        if (Array.isArray(node.content)) node.content.forEach(traverse);
+      }
+      fields.description.content.forEach(traverse);
+      finalDescription = texts.join('').trim().replace(/\n{3,}/g, '\n\n') || 'Sem descrição';
+    } else if (fields.description?.content) {
+      finalDescription = JSON.stringify(fields.description);
+    }
+
     return {
       id: issue.id || `jira-${idx}`,
       key: issue.key,
@@ -101,9 +119,7 @@ async function fetchJiraAndSaveJson() {
       priority: fields.priority?.name || '2 - Alta',
       category: 'Geral',
       createdDate: createdFormatted,
-      description: typeof fields.description === 'string' 
-                   ? fields.description 
-                   : (fields.description?.content ? JSON.stringify(fields.description) : 'Sincronizado via Jira API')
+      description: finalDescription
     };
   });
 

@@ -1694,7 +1694,28 @@ const app = {
     document.getElementById('detail-status').textContent = item.status || (item.completionDate ? 'Concluído' : 'Aguardando Triagem');
     
     const descEl = document.getElementById('detail-description');
-    descEl.textContent = item.description || item.notes || item.taskDescription || item.gains || 'Sem descrição fornecida no chamado do Jira.';
+    let rawDesc = item.description || item.notes || item.taskDescription || item.gains || 'Sem descrição fornecida no chamado do Jira.';
+    
+    // Parse ADF JSON Se estiver em formato raw string (Jira v3)
+    try {
+      if (typeof rawDesc === 'string' && rawDesc.startsWith('{"type":"doc"')) {
+        const doc = JSON.parse(rawDesc);
+        if (doc.type === 'doc' && Array.isArray(doc.content)) {
+          let texts = [];
+          function traverse(node) {
+            if (node.type === 'text' && node.text) texts.push(node.text);
+            if (node.type === 'hardBreak' || node.type === 'paragraph') texts.push('\n');
+            if (Array.isArray(node.content)) node.content.forEach(traverse);
+          }
+          doc.content.forEach(traverse);
+          rawDesc = texts.join('').trim().replace(/\n{3,}/g, '\n\n') || 'Sem descrição';
+        }
+      }
+    } catch (e) {
+      // Falha silenciosa se não for JSON válido
+    }
+    
+    descEl.textContent = rawDesc;
 
     // Identificar com precisão a Squad Alvo do Item (dados, operacoes, rpa)
     let targetSquadKey = this.activeSquad || 'operacoes';
