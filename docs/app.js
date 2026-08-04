@@ -145,6 +145,7 @@ const app = {
           const res = await supabaseClient
             .from('profiles')
             .select('*')
+            .eq('app_id', 'controle-squads')
             .or(`id.eq.${user.id},email.ilike.${user.email.toLowerCase()}`)
             .maybeSingle();
           data = res.data;
@@ -182,7 +183,7 @@ const app = {
           
           let { error: upsertErr } = await supabaseClient.from('cs_profiles').upsert(newProfile);
           if (upsertErr) {
-            await supabaseClient.from('profiles').upsert(newProfile);
+            console.warn('[setupUserSession] Falha ao criar perfil em cs_profiles:', upsertErr.message);
           }
           this.userRole = initialRole.toLowerCase();
           this.userStatus = initialStatus;
@@ -978,19 +979,8 @@ const app = {
 
     let usersMap = new Map();
 
-    // 1. Carregar usuários cadastrados localmente (localStorage)
-    (this.state.usersList || []).forEach(u => {
-      if (u && u.email) {
-        usersMap.set(u.email.toLowerCase(), {
-          id: u.id || crypto.randomUUID(),
-          name: u.name || u.nome || u.email.split('@')[0],
-          email: u.email.toLowerCase(),
-          role: (u.role || u.perfil || 'CONSULTA').toUpperCase(),
-          status: (u.status || 'PENDENTE').toUpperCase(),
-          createdAt: u.createdAt || u.created_at ? (typeof (u.createdAt || u.created_at) === 'string' && (u.createdAt || u.created_at).includes('/') ? (u.createdAt || u.created_at) : new Date(u.createdAt || u.created_at).toLocaleDateString('pt-BR')) : new Date().toLocaleDateString('pt-BR')
-        });
-      }
-    });
+    // NOTA: Não carregar do localStorage — Supabase é a fonte única de verdade
+    // para evitar usuários fantasma de outros projetos ou dados obsoletos.
 
     // 2. Mesclar com os dados remotos do Supabase se disponível
     if (supabaseClient) {
@@ -1001,9 +991,11 @@ const app = {
           .order('created_at', { ascending: false });
 
         if (error) {
+          console.warn('[renderUsersTable cs_profiles Warning]', error.message);
           const res = await supabaseClient
             .from('profiles')
             .select('*')
+            .eq('app_id', 'controle-squads')
             .order('created_at', { ascending: false });
           data = res.data;
           error = res.error;
@@ -1167,13 +1159,10 @@ const app = {
     }
     this.saveUsersState();
 
-    // 2. Atualizar no Supabase (em cs_profiles e profiles simultaneamente para garantia total)
+    // 2. Atualizar no Supabase (apenas cs_profiles — tabela isolada deste projeto)
     if (supabaseClient) {
       try {
         await supabaseClient.from('cs_profiles').update(payload).or(`id.eq.${userId},email.eq.${userId.toLowerCase()}`);
-      } catch (_) {}
-      try {
-        await supabaseClient.from('profiles').update(payload).or(`id.eq.${userId},email.eq.${userId.toLowerCase()}`);
       } catch (_) {}
     }
 
@@ -1191,9 +1180,6 @@ const app = {
     if (supabaseClient) {
       try {
         await supabaseClient.from('cs_profiles').update({ perfil: newRole.toUpperCase() }).eq('id', userId);
-      } catch (_) {}
-      try {
-        await supabaseClient.from('profiles').update({ perfil: newRole.toUpperCase() }).eq('id', userId);
       } catch (_) {}
     }
 
@@ -1291,10 +1277,8 @@ const app = {
         if (error) await supabaseClient.from('cs_profiles').update({ nome: name, perfil: role, status: 'PENDENTE' }).eq('email', email);
       } catch (_) {}
 
-      try {
-        const { error } = await supabaseClient.from('profiles').insert(payload);
-        if (error) await supabaseClient.from('profiles').update({ nome: name, perfil: role, status: 'PENDENTE' }).eq('email', email);
-      } catch (_) {}
+      // REMOVIDO: Escrita duplicada na tabela 'profiles' (compartilhada)
+      // Apenas cs_profiles é a tabela oficial deste projeto
     }
 
     this.closeUserModal();
