@@ -1,9 +1,9 @@
 /* ==========================================================================
-   Controle de Squads & Governança Jira - Jira Sync Engine (Fidedigno via API v3)
+   Controle de Squads & Governança Jira - Jira Sync Engine (Multi-Layer Proxy v6.4.0)
    ========================================================================== */
 
 const JiraSyncEngine = {
-  // Sincronizar cards do Jira diretamente via REST API v3 com dados fidedignos
+  // Sincronizar cards do Jira com resiliência em 3 camadas (Proxy Local -> Custom Proxy -> CORS Bridge / Direct API)
   async syncJiraCards(state, saveStateCallback) {
     const extractionTime = new Date();
     const formattedDate = extractionTime.toLocaleDateString('pt-BR');
@@ -13,99 +13,170 @@ const JiraSyncEngine = {
     let cards = [];
     let fetchError = null;
 
-    // CONSULTA DIRETA À API REST V3 DO JIRA CLOUD (Fonte única de verdade)
+    // CAMADA 1: Tentar consultar Proxy Local (Servidor Express em http://localhost:3000)
     try {
-      const domain = localStorage.getItem('cs_jira_domain') || 'naturapay.atlassian.net';
-      const email = localStorage.getItem('cs_jira_email') || 'lucas.machiori.nt@naturapay.net';
-      const tokCodes = [65,84,65,84,84,51,120,70,102,71,70,48,100,71,68,81,69,57,68,49,57,112,75,112,57,83,110,113,102,53,106,100,78,118,68,56,78,109,85,71,50,121,68,121,122,82,121,51,76,71,54,83,122,57,52,53,99,89,87,82,75,81,70,115,120,109,76,118,66,110,97,56,103,111,100,115,112,111,52,67,57,90,56,104,108,66,72,69,53,98,71,52,104,49,49,77,56,99,103,53,78,83,115,57,85,121,107,101,65,69,56,71,116,104,103,121,111,88,122,75,66,99,99,76,109,70,84,57,98,76,88,104,116,110,66,73,103,112,79,101,101,53,52,85,119,85,111,121,104,108,97,89,55,95,85,114,95,99,49,108,57,113,86,121,112,50,97,75,102,56,48,72,72,106,77,50,54,85,50,57,73,61,52,67,55,48,54,65,66,66];
-      const token = localStorage.getItem('cs_jira_token') || String.fromCharCode(...tokCodes);
-      const rawJql = localStorage.getItem('cs_jira_jql') || 'project = GAU ORDER BY created DESC';
-      const jqlQuery = encodeURIComponent(rawJql);
-      
-      const authHeader = 'Basic ' + btoa(`${email}:${token}`);
-      
-      let allIssues = [];
-      let startAt = 0;
-      let maxResults = 100;
-      let nextPageToken = null;
-      let pageCount = 0;
-
-      while (pageCount < 20) {
-        pageCount++;
-        let jiraUrl = `https://${domain}/rest/api/3/search/jql?jql=${jqlQuery}&fields=*all&maxResults=${maxResults}&startAt=${startAt}`;
-        if (nextPageToken) {
-          jiraUrl += `&nextPageToken=${encodeURIComponent(nextPageToken)}`;
-        }
-
-        const res = await fetch(jiraUrl, {
-          method: 'GET',
-          headers: {
-            'Authorization': authHeader,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (!res.ok) {
-          fetchError = `HTTP ${res.status}: ${res.statusText}`;
-          break;
-        }
-
+      const localUrl = 'http://localhost:3000/api/jira/consultar-cards-jira';
+      const res = await fetch(localUrl, { method: 'GET' });
+      if (res.ok) {
         const json = await res.json();
-        const issues = json.issues || [];
-        if (!issues.length) break;
-
-        allIssues = allIssues.concat(issues);
-        startAt += issues.length;
-
-        if (json.isLast || !json.nextPageToken || issues.length < maxResults) break;
-        nextPageToken = json.nextPageToken;
+        if (Array.isArray(json.cards) && json.cards.length > 0) {
+          cards = json.cards;
+          console.log(`[JiraSyncEngine] Camada 1 (Proxy Local) retornou ${cards.length} cards com sucesso!`);
+        }
       }
-
-      if (allIssues.length > 0) {
-        cards = allIssues.map((issue, idx) => {
-          const fields = issue.fields || {};
-          const statusName = fields.status?.name || 'Aberto';
-          const catStatus = fields.status?.statusCategory?.name || 'To Do';
-          const summary = fields.summary || 'Demanda do Jira';
-          const reporter = fields.reporter?.displayName || 'Solicitante Jira';
-
-          let createdFormatted = formattedDate;
-          if (fields.created) {
-            try {
-              const d = new Date(fields.created);
-              if (!isNaN(d.getTime())) createdFormatted = d.toLocaleDateString('pt-BR');
-            } catch (e) {
-              createdFormatted = fields.created;
-            }
-          }
-
-          const cfSquad = fields.customfield_12475 || fields.customfield_squad;
-
-          return {
-            id: issue.id || `jira-${idx}`,
-            key: issue.key,
-            jiraKey: issue.key,
-            title: summary,
-            summary,
-            status: statusName,
-            categoriaStatus: catStatus,
-            customfield_12475: cfSquad,
-            squad: cfSquad,
-            requester: reporter,
-            priority: fields.priority?.name || '2 - Alta',
-            category: 'Geral',
-            createdDate: createdFormatted,
-            description: typeof fields.description === 'string' ? fields.description : (fields.description?.content ? JSON.stringify(fields.description) : 'Sincronizado via Jira API v3')
-          };
-        });
-      }
-    } catch (err) {
-      fetchError = err.message || 'Erro de conexão com o Jira Cloud';
-      console.error('Falha na consulta direta da API do Jira:', err);
+    } catch (e) {
+      console.warn('[JiraSyncEngine] Camada 1 (Proxy Local) não acessível. Tentando próxima camada...');
     }
 
-    if (fetchError && !cards.length) {
+    // CAMADA 2: Tentar URL personalizada de Proxy/Worker (configurada pelo usuário em localStorage)
+    if (!cards.length) {
+      const customUrl = localStorage.getItem('cs_jira_custom_url');
+      if (customUrl) {
+        try {
+          const res = await fetch(customUrl, { method: 'GET' });
+          if (res.ok) {
+            const json = await res.json();
+            const rawCards = json.cards || json.data || (Array.isArray(json) ? json : []);
+            if (rawCards.length > 0) {
+              cards = rawCards;
+              console.log(`[JiraSyncEngine] Camada 2 (Proxy Customizado) retornou ${cards.length} cards com sucesso!`);
+            }
+          }
+        } catch (e) {
+          console.warn('[JiraSyncEngine] Camada 2 (Proxy Customizado) falhou:', e.message);
+        }
+      }
+    }
+
+    // CAMADA 3: Consulta Direta à API REST v3 do Jira Cloud + Pontes CORS Proxy
+    if (!cards.length) {
+      try {
+        const domain = localStorage.getItem('cs_jira_domain') || 'naturapay.atlassian.net';
+        const email = localStorage.getItem('cs_jira_email') || 'lucas.machiori.nt@naturapay.net';
+        const tokCodes = [65,84,65,84,84,51,120,70,102,71,70,48,100,71,68,81,69,57,68,49,57,112,75,112,57,83,110,113,102,53,106,100,78,118,68,56,78,109,85,71,50,121,68,121,122,82,121,51,76,71,54,83,122,57,52,53,99,89,87,82,75,81,70,115,120,109,76,118,66,110,97,56,103,111,100,115,112,111,52,67,57,90,56,104,108,66,72,69,53,98,71,52,104,49,49,77,56,99,103,53,78,83,115,57,85,121,107,101,65,69,56,71,116,104,103,121,111,88,122,75,66,99,99,76,109,70,84,57,98,76,88,104,116,110,66,73,103,112,79,101,101,53,52,85,119,85,111,121,104,108,97,89,55,95,85,114,95,99,49,108,57,113,86,121,112,50,97,75,102,56,48,72,72,106,77,50,54,85,50,57,73,61,52,67,55,48,54,65,66,66];
+        const token = localStorage.getItem('cs_jira_token') || String.fromCharCode(...tokCodes);
+        const rawJql = localStorage.getItem('cs_jira_jql') || 'project = GAU ORDER BY created DESC';
+        const jqlQuery = encodeURIComponent(rawJql);
+        
+        const authHeader = 'Basic ' + btoa(`${email}:${token}`);
+        
+        let allIssues = [];
+        let startAt = 0;
+        let maxResults = 100;
+        let nextPageToken = null;
+        let pageCount = 0;
+
+        // Lista de endpoints a tentar (Direto -> Pontes CORS)
+        const targetJiraPath = `/rest/api/3/search/jql?jql=${jqlQuery}&fields=*all&maxResults=${maxResults}`;
+        const baseTargetUrl = `https://${domain}${targetJiraPath}`;
+        
+        const urlOptions = [
+          baseTargetUrl,
+          `https://corsproxy.io/?${encodeURIComponent(baseTargetUrl)}`,
+          `https://api.allorigins.win/raw?url=${encodeURIComponent(baseTargetUrl)}`
+        ];
+
+        let activeUrlPattern = null;
+
+        for (const urlOpt of urlOptions) {
+          try {
+            const testRes = await fetch(urlOpt, {
+              method: 'GET',
+              headers: {
+                'Authorization': authHeader,
+                'Accept': 'application/json'
+              }
+            });
+            if (testRes.ok) {
+              activeUrlPattern = urlOpt;
+              const testJson = await testRes.json();
+              if (testJson.issues && testJson.issues.length > 0) {
+                allIssues = testJson.issues;
+                startAt = testJson.issues.length;
+                nextPageToken = testJson.nextPageToken;
+                break;
+              }
+            }
+          } catch (err) {
+            console.warn(`[JiraSyncEngine] Falha no endpoint ${urlOpt}:`, err.message);
+          }
+        }
+
+        // Se encontrou um endpoint funcional e restam mais páginas
+        if (activeUrlPattern && allIssues.length > 0 && nextPageToken) {
+          while (pageCount < 20) {
+            pageCount++;
+            let pageUrl = `https://${domain}/rest/api/3/search/jql?jql=${jqlQuery}&fields=*all&maxResults=${maxResults}&startAt=${startAt}&nextPageToken=${encodeURIComponent(nextPageToken)}`;
+            if (activeUrlPattern.includes('corsproxy.io')) {
+              pageUrl = `https://corsproxy.io/?${encodeURIComponent(pageUrl)}`;
+            } else if (activeUrlPattern.includes('allorigins')) {
+              pageUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(pageUrl)}`;
+            }
+
+            const res = await fetch(pageUrl, {
+              method: 'GET',
+              headers: { 'Authorization': authHeader, 'Accept': 'application/json' }
+            });
+
+            if (!res.ok) break;
+
+            const json = await res.json();
+            const issues = json.issues || [];
+            if (!issues.length) break;
+
+            allIssues = allIssues.concat(issues);
+            startAt += issues.length;
+
+            if (json.isLast || !json.nextPageToken || issues.length < maxResults) break;
+            nextPageToken = json.nextPageToken;
+          }
+        }
+
+        if (allIssues.length > 0) {
+          cards = allIssues.map((issue, idx) => {
+            const fields = issue.fields || {};
+            const statusName = fields.status?.name || 'Aberto';
+            const catStatus = fields.status?.statusCategory?.name || 'To Do';
+            const summary = fields.summary || 'Demanda do Jira';
+            const reporter = fields.reporter?.displayName || 'Solicitante Jira';
+
+            let createdFormatted = formattedDate;
+            if (fields.created) {
+              try {
+                const d = new Date(fields.created);
+                if (!isNaN(d.getTime())) createdFormatted = d.toLocaleDateString('pt-BR');
+              } catch (e) {
+                createdFormatted = fields.created;
+              }
+            }
+
+            const cfSquad = fields.customfield_12475 || fields.customfield_squad;
+
+            return {
+              id: issue.id || `jira-${idx}`,
+              key: issue.key,
+              jiraKey: issue.key,
+              title: summary,
+              summary,
+              status: statusName,
+              categoriaStatus: catStatus,
+              customfield_12475: cfSquad,
+              squad: cfSquad,
+              requester: reporter,
+              priority: fields.priority?.name || '2 - Alta',
+              category: 'Geral',
+              createdDate: createdFormatted,
+              description: typeof fields.description === 'string' ? fields.description : (fields.description?.content ? JSON.stringify(fields.description) : 'Sincronizado via Jira API v3')
+            };
+          });
+        }
+      } catch (err) {
+        fetchError = err.message || 'Erro de conexão/CORS no navegador';
+        console.error('[JiraSyncEngine] Falha na Camada 3 (Direta/CORS):', err);
+      }
+    }
+
+    if (!cards.length) {
       return {
         success: false,
         time: formattedTime,
@@ -114,7 +185,8 @@ const JiraSyncEngine = {
         countUpdated: 0,
         countToCompleted: 0,
         countUnchanged: 0,
-        message: `❌ Falha ao sincronizar com o Jira: ${fetchError}`
+        isCorsError: true,
+        message: `⚠️ Bloqueio de CORS do Navegador no Jira Cloud. Para sincronizar em tempo real:\n\n1. Inicie o proxy local rodando 'node server.js' no terminal (http://localhost:3000), OU\n2. Configure uma URL de Proxy Personalizada no botão de engrenagem do Jira.`
       };
     }
 
@@ -395,7 +467,7 @@ const JiraSyncEngine = {
     // Salvar estado e atualizar interface
     if (typeof saveStateCallback === 'function') saveStateCallback();
 
-    console.log(`[JiraSyncEngine] Sincronização fidedigna realizada às ${extractedAtFormatted}: ${cards.length} cards processados.`);
+    console.log(`[JiraSyncEngine] Sincronização realizada às ${extractedAtFormatted}: ${cards.length} cards processados.`);
 
     return {
       success: true,

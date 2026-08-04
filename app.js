@@ -1440,10 +1440,16 @@ const app = {
       if (result.success) {
         toastMsg.textContent = `🔄 Sincronização Jira realizada às ${fullSyncDateTime}! ${result.totalCards || 0} cards processados (${metrics.countNew} novos, ${metrics.countUpdated} atualizados).`;
       } else {
-        toastMsg.textContent = result.message || '❌ Falha ao conectar à API do Jira Cloud.';
+        toastMsg.textContent = `⚠️ Bloqueio de CORS do Navegador no Jira Cloud. Execute 'node server.js' (http://localhost:3000) ou configure uma URL de Proxy Personalizada no botão de engrenagem.`;
       }
       toast.classList.remove('hidden');
-      setTimeout(() => toast.classList.add('hidden'), 6000);
+      setTimeout(() => toast.classList.add('hidden'), 10000);
+    }
+
+    if (!result.success && result.isCorsError) {
+      if (confirm(`⚠️ O navegador bloqueou o acesso direto à API do Jira Cloud (Política de CORS do Jira).\n\nPara sincronizar em tempo real:\n1. Execute no terminal: node server.js (em http://localhost:3000)\nOU\n2. Configure uma URL de Proxy no botão de engrenagem do Jira.\n\nDeseja abrir as configurações do Jira agora?`)) {
+        this.openJiraConfigModal();
+      }
     }
 
     // Re-renderizar a interface inteira imediatamente para atualizar cards em andamento, triagem e concluídos
