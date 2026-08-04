@@ -50,6 +50,66 @@ const app = {
     });
     if (!Array.isArray(this.state.dpoLogs)) this.state.dpoLogs = [];
     if (!Array.isArray(this.state.usersList)) this.state.usersList = [];
+
+    // Purgar cards fantasmas e reparar textos corrompidos por Mojibake UTF-8
+    const ghostKeys = new Set(['GAU-132', 'GAU-133', 'GAU-134', 'GAU-135']);
+    const extractKey = (i) => {
+      if (!i) return null;
+      const raw = (i.jiraKey || i.gau || i.id || i.taskTitle || '').toString();
+      const match = raw.match(/GAU-\d+/i);
+      return match ? match[0].toUpperCase() : null;
+    };
+
+    const fixText = (str) => {
+      if (typeof str !== 'string') return str;
+      return str
+        .replace(/Opera├º├Áes|Opera├º├oes|Operaes/g, 'Operações')
+        .replace(/Transa├º├Áes|Transa├º├oes|Transaes/g, 'Transações')
+        .replace(/Sustenta├º├úo|Sustentao/g, 'Sustentação')
+        .replace(/Ingest├úo|Ingesto/g, 'Ingestão')
+        .replace(/AUTOMA├º├âO|AUTOMAO/g, 'AUTOMAÇÃO')
+        .replace(/Conclu├¡do|Concludo/g, 'Concluído')
+        .replace(/Conclu├¡dos|Concludos/g, 'Concluídos')
+        .replace(/sincroniza├º├úo|sincronizao/g, 'sincronização')
+        .replace(/deduplica├º├úo|deduplicao/g, 'deduplicação')
+        .replace(/solicita├º├Áes|solicitaes/g, 'solicitações')
+        .replace(/cria├º├úo|criao/g, 'criação')
+        .replace(/Integra├º├úo|Integrao/g, 'Integração')
+        .replace(/├º/g, 'ç')
+        .replace(/├Á/g, 'õ')
+        .replace(/├ú/g, 'ã')
+        .replace(/├¡/g, 'í')
+        .replace(/├â/g, 'Ã')
+        .replace(/├ª/g, 'ª');
+    };
+
+    const cleanItem = (item) => {
+      if (!item) return item;
+      if (item.title) item.title = fixText(item.title);
+      if (item.taskTitle) item.taskTitle = fixText(item.taskTitle);
+      if (item.description) item.description = fixText(item.description);
+      if (item.taskDescription) item.taskDescription = fixText(item.taskDescription);
+      if (item.notes) item.notes = fixText(item.notes);
+      if (item.requester) item.requester = fixText(item.requester);
+      if (item.requesterName) item.requesterName = fixText(item.requesterName);
+      if (item.completedBy) item.completedBy = fixText(item.completedBy);
+      if (item.gains) item.gains = fixText(item.gains);
+      return item;
+    };
+
+    this.state.triageItems = (this.state.triageItems || [])
+      .filter(i => !ghostKeys.has(extractKey(i)))
+      .map(cleanItem);
+
+    ['dados', 'operacoes', 'rpa'].forEach(id => {
+      this.state.backlogItems[id] = (this.state.backlogItems[id] || [])
+        .filter(i => !ghostKeys.has(extractKey(i)))
+        .map(cleanItem);
+
+      this.state.completedTasks[id] = (this.state.completedTasks[id] || [])
+        .filter(i => !ghostKeys.has(extractKey(i)))
+        .map(cleanItem);
+    });
   },
 
   // ============================================================
