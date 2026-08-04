@@ -782,8 +782,13 @@ const app = {
     this.render();
   },
 
-  // Dados Iniciais Fictícios para cada uma das 3 Squads
+  // Sincronizar automaticamente os cards do Jira se o estado estiver vazio
   seedDefaultDataIfEmpty() {
+    if (!this.state.triageItems || this.state.triageItems.length === 0) {
+      if (typeof JiraSyncEngine?.syncJiraCards === 'function') {
+        JiraSyncEngine.syncJiraCards(this.state, () => this.saveState());
+      }
+    }
     if (!this.state.resources.dados.length) {
       this.state.resources.dados = [
         {

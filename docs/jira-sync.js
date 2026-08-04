@@ -1,14 +1,14 @@
-/* ==========================================================================
-   Controle de Squads & Governança Jira - Jira Sync Engine (Resiliência Total v6.7.0)
+﻿/* ==========================================================================
+   Controle de Squads & GovernanÃ§a Jira - Jira Sync Engine (ResiliÃªncia Total v6.8.0)
    ========================================================================== */
 
 const JiraSyncEngine = {
-  // Sincronizar cards do Jira com resiliência total em 4 camadas
+  // Sincronizar cards do Jira com resiliÃªncia total em 4 camadas e roteamento dinÃ¢mico
   async syncJiraCards(state, saveStateCallback) {
     const extractionTime = new Date();
     const formattedDate = extractionTime.toLocaleDateString('pt-BR');
     const formattedTime = extractionTime.toLocaleTimeString('pt-BR');
-    const extractedAtFormatted = `${formattedDate} às ${formattedTime}`;
+    const extractedAtFormatted = \ Ã s \;
 
     let cards = [];
 
@@ -34,11 +34,11 @@ const JiraSyncEngine = {
         const json = await res.json();
         if (Array.isArray(json.cards) && json.cards.length > 0) {
           cards = json.cards;
-          console.log(`[JiraSyncEngine] Camada 1 (Proxy Local) respondeu: ${cards.length} cards.`);
+          console.log([JiraSyncEngine] Camada 1 (Proxy Local) respondeu: \ cards.);
         }
       }
     } catch (e) {
-      console.warn('[JiraSyncEngine] Proxy Local indisponível.');
+      console.warn('[JiraSyncEngine] Proxy Local nÃ£o acessÃ­vel.');
     }
 
     // CAMADA 2: Tentar URL personalizada de Proxy/Worker se configurada
@@ -52,16 +52,16 @@ const JiraSyncEngine = {
             const rawCards = json.cards || json.data || (Array.isArray(json) ? json : []);
             if (rawCards.length > 0) {
               cards = rawCards;
-              console.log(`[JiraSyncEngine] Camada 2 (Proxy Customizado) retornou ${cards.length} cards.`);
+              console.log([JiraSyncEngine] Camada 2 (Proxy Customizado) retornou \ cards.);
             }
           }
         } catch (e) {
-          console.warn('[JiraSyncEngine] Proxy Customizado indisponível.');
+          console.warn('[JiraSyncEngine] Proxy Customizado indisponÃ­vel.');
         }
       }
     }
 
-    // CAMADA 3: Tentar consulta direta à API REST v3 do Jira Cloud (timeout de 2s)
+    // CAMADA 3: Tentar consulta direta Ã  API REST v3 do Jira Cloud (timeout de 2s)
     if (!cards.length) {
       try {
         const domain = localStorage.getItem('cs_jira_domain') || 'naturapay.atlassian.net';
@@ -70,9 +70,9 @@ const JiraSyncEngine = {
         const token = localStorage.getItem('cs_jira_token') || String.fromCharCode(...tokCodes);
         const rawJql = localStorage.getItem('cs_jira_jql') || 'project = GAU ORDER BY created DESC';
         const jqlQuery = encodeURIComponent(rawJql);
-        const authHeader = 'Basic ' + btoa(`${email}:${token}`);
+        const authHeader = 'Basic ' + btoa(\:\);
         
-        const targetUrl = `https://${domain}/rest/api/3/search/jql?jql=${jqlQuery}&fields=*all&maxResults=100`;
+        const targetUrl = https://\/rest/api/3/search/jql?jql=\&fields=*all&maxResults=100;
 
         const res = await fetchWithTimeout(targetUrl, {
           method: 'GET',
@@ -86,7 +86,7 @@ const JiraSyncEngine = {
             cards = issues.map((issue, idx) => {
               const fields = issue.fields || {};
               return {
-                id: issue.id || `jira-${idx}`,
+                id: issue.id || jira-\,
                 key: issue.key,
                 jiraKey: issue.key,
                 title: fields.summary || 'Demanda do Jira',
@@ -109,23 +109,2184 @@ const JiraSyncEngine = {
       }
     }
 
-    // CAMADA 4: Base de Dados das Demandas do Espaço GAU (Executa se requisições de rede falharem por CORS)
+    // CAMADA 4: Dataset dos 122 Chamados Reais do EspaÃ§o GAU (Executa se requisiÃ§Ãµes de rede forem retidas pelo CORS do navegador)
     if (!cards.length) {
-      console.log('[JiraSyncEngine] Ativando Camada 4: Carregando demandas da base do espaço GAU.');
-      cards = [
-        {"key":"GAU-135","jiraKey":"GAU-135","title":"TESTE 329-07 LUCAS E JAILTON","status":"Backlog","categoriaStatus":"Itens Pendentes","squadTarget":null,"customfield_12475":null,"requester":"Lucas da Silva Machiori - Natura","priority":"Média","category":"Geral","createdDate":"29/07/2026","description":"Demanda real importada do espaço GAU (GAU-135)"},
-        {"key":"GAU-134","jiraKey":"GAU-134","title":"TESTE 3 LUCAS","status":"Em Análise","categoriaStatus":"Em andamento","squadTarget":"operacoes","customfield_12475":{"self":"https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005","value":"Operações NPay","id":"16005"},"requester":"Lucas da Silva Machiori - Natura","priority":"Média","category":"Geral","createdDate":"29/07/2026","description":"Demanda real importada do espaço GAU (GAU-134)"},
-        {"key":"GAU-133","jiraKey":"GAU-133","title":"TESTE 2 LUCAS MACHIORI","status":"Em Análise","categoriaStatus":"Em andamento","squadTarget":null,"customfield_12475":null,"requester":"Lucas da Silva Machiori - Natura","priority":"Média","category":"Geral","createdDate":"29/07/2026","description":"Demanda real importada do espaço GAU (GAU-133)"},
-        {"key":"GAU-132","jiraKey":"GAU-132","title":"TESTE 1 LUCAS MACHIORI","status":"Em Análise","categoriaStatus":"Em andamento","squadTarget":null,"customfield_12475":null,"requester":"Lucas da Silva Machiori - Natura","priority":"Média","category":"Geral","createdDate":"29/07/2026","description":"Demanda real importada do espaço GAU (GAU-132)"},
-        {"key":"GAU-131","jiraKey":"GAU-131","title":"Painel Transacional (visão consolidada das transações do NPay)","status":"Em Análise","categoriaStatus":"Em andamento","squadTarget":null,"customfield_12475":null,"requester":"Hudson Borges de Oliveira - Natura Pay","priority":"Média","category":"Geral","createdDate":"29/07/2026","description":"Demanda real importada do espaço GAU (GAU-131)"},
-        {"key":"GAU-130","jiraKey":"GAU-130","title":"Construção de dashboard transacional no Superset","status":"Em Análise","categoriaStatus":"Em andamento","squadTarget":null,"customfield_12475":null,"requester":"Hudson Borges de Oliveira - Natura Pay","priority":"Média","category":"Geral","createdDate":"29/07/2026","description":"Demanda real importada do espaço GAU (GAU-130)"},
-        {"key":"GAU-129","jiraKey":"GAU-129","title":"Automatizar o processo de batimento de extratos para conciliação bancária","status":"Em Análise","categoriaStatus":"Em andamento","squadTarget":null,"customfield_12475":null,"requester":"Hudson Borges de Oliveira - Natura Pay","priority":"Média","category":"Geral","createdDate":"29/07/2026","description":"Demanda real importada do espaço GAU (GAU-129)"},
-        {"key":"GAU-128","jiraKey":"GAU-128","title":"Relatório Consolidado de Transações Financeiras NPay","status":"Em Análise","categoriaStatus":"Em andamento","squadTarget":"dados","customfield_12475":{"self":"https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006","value":"Dados Operações","id":"16006"},"requester":"Lucas da Silva Machiori - Natura","priority":"1 - Urgente","category":"Financeiro","createdDate":"28/07/2026","description":"Demanda real importada do espaço GAU (GAU-128)"},
-        {"key":"GAU-127","jiraKey":"GAU-127","title":"Painel de Monitoramento de Fraudes e Riscos","status":"Backlog","categoriaStatus":"To Do","squadTarget":"dados","customfield_12475":{"self":"https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006","value":"Dados Operações","id":"16006"},"requester":"Ana Paula Pontes","priority":"2 - Alta","category":"Governança","createdDate":"28/07/2026","description":"Demanda real importada do espaço GAU (GAU-127)"},
-        {"key":"GAU-126","jiraKey":"GAU-126","title":"Automação de Conciliação Bancária Diária","status":"Em Andamento","categoriaStatus":"In Progress","squadTarget":"rpa","customfield_12475":{"self":"https://naturapay.atlassian.net/rest/api/3/customFieldOption/16007","value":"RPA","id":"16007"},"requester":"Kleiver Carmo","priority":"2 - Alta","category":"Processos","createdDate":"27/07/2026","description":"Demanda real importada do espaço GAU (GAU-126)"},
-        {"key":"GAU-125","jiraKey":"GAU-125","title":"Relatório de Churn e Retenção de Clientes","status":"Concluído","categoriaStatus":"Done","squadTarget":"dados","customfield_12475":{"self":"https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006","value":"Dados Operações","id":"16006"},"requester":"Glenda Souza","priority":"3 - Média","category":"Análise","createdDate":"26/07/2026","description":"Demanda real importada do espaço GAU (GAU-125)"},
-        {"key":"GAU-124","jiraKey":"GAU-124","title":"Integração de Webhooks para Notificações de Pagamento","status":"Em Andamento","categoriaStatus":"In Progress","squadTarget":"operacoes","customfield_12475":{"self":"https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005","value":"Operações NPay","id":"16005"},"requester":"Hudson Borges","priority":"2 - Alta","category":"Infraestrutura","createdDate":"25/07/2026","description":"Demanda real importada do espaço GAU (GAU-124)"}
-      ];
+      console.log('[JiraSyncEngine] Ativando Camada 4: Carregando 122 demandas do espaÃ§o GAU.');
+      cards =       cards = [
+  {
+    "key": "GAU-135",
+    "jiraKey": "GAU-135",
+    "title": "TESTE 329-07 LUCAS E JAILTON",
+    "status": "Backlog",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": null,
+    "customfield_12475": null,
+    "requester": "Lucas da Silva Machiori - Natura",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-135)"
+  },
+  {
+    "key": "GAU-134",
+    "jiraKey": "GAU-134",
+    "title": "TESTE 3 LUCAS",
+    "status": "Em An├ílise",
+    "categoriaStatus": "Em andamento",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Lucas da Silva Machiori - Natura",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-134)"
+  },
+  {
+    "key": "GAU-133",
+    "jiraKey": "GAU-133",
+    "title": "TESTE 2 LUCAS",
+    "status": "Backlog",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": null,
+    "customfield_12475": null,
+    "requester": "Lucas da Silva Machiori - Natura",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-133)"
+  },
+  {
+    "key": "GAU-132",
+    "jiraKey": "GAU-132",
+    "title": "TESTE AUTOMA├ç├âO LUCAS",
+    "status": "Backlog",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": null,
+    "customfield_12475": null,
+    "requester": "Lucas da Silva Machiori - Natura",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-132)"
+  },
+  {
+    "key": "GAU-131",
+    "jiraKey": "GAU-131",
+    "title": "Dados Opera├º├Áes Sustenta├º├úo - Type Person Legal Base Cadastral - Descasamento Dock x Base Cadastral",
+    "status": "Backlog",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": null,
+    "customfield_12475": null,
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-131)"
+  },
+  {
+    "key": "GAU-130",
+    "jiraKey": "GAU-130",
+    "title": "Ingest├úo Dados DataBricks - Novas Tabelas Base Cadastral PJ",
+    "status": "Backlog",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": null,
+    "customfield_12475": null,
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-130)"
+  },
+  {
+    "key": "GAU-129",
+    "jiraKey": "GAU-129",
+    "title": "PIX PARCELADO - Gera├º├úo de Relat├│rio de Concilia├º├úo [.txt]",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Gabriela Alves Sampaio",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-129)"
+  },
+  {
+    "key": "GAU-128",
+    "jiraKey": "GAU-128",
+    "title": "Criar Front no Zord para Consulta de Transa├º├Áes (Integrar Gsurf e Motor de Agenda)",
+    "status": "Backlog",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": null,
+    "customfield_12475": null,
+    "requester": "Jacqueline Soares",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-128)"
+  },
+  {
+    "key": "GAU-127",
+    "jiraKey": "GAU-127",
+    "title": "Acesso a API para consultas de Usu├írios do portal lojista",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Veridiane Servienski Lepinski - Natura&CO",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-127)"
+  },
+  {
+    "key": "GAU-126",
+    "jiraKey": "GAU-126",
+    "title": "Solicita├º├úo - Inclus├úo coluna external_id - prd.trusted_dock_view.dview_general_events_snapshot",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Rafael Luiz Soares Silva Lira",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-126)"
+  },
+  {
+    "key": "GAU-125",
+    "jiraKey": "GAU-125",
+    "title": "Sustenta├º├úo - Coluna bordereaux_id - prd.trusted_dock_view.dview_general_events_snapshot",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Rafael Luiz Soares Silva Lira",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-125)"
+  },
+  {
+    "key": "GAU-124",
+    "jiraKey": "GAU-124",
+    "title": "Solicita├º├úo de Bobinas ( POS / PIN PADs ) ",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "rpa",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16007",
+      "value": "RPA",
+      "id": "16007"
+    },
+    "requester": "Evandro Paulo Coelho",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-124)"
+  },
+  {
+    "key": "GAU-123",
+    "jiraKey": "GAU-123",
+    "title": "Cadastro de Lojas Pr├│prias e Franquias ",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "rpa",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16007",
+      "value": "RPA",
+      "id": "16007"
+    },
+    "requester": "Evandro Paulo Coelho",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-123)"
+  },
+  {
+    "key": "GAU-122",
+    "jiraKey": "GAU-122",
+    "title": "Estorno de Transa├º├úo PIX ",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "rpa",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16007",
+      "value": "RPA",
+      "id": "16007"
+    },
+    "requester": "Evandro Paulo Coelho",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-122)"
+  },
+  {
+    "key": "GAU-121",
+    "jiraKey": "GAU-121",
+    "title": "RPA | Estorno de Transa├º├úo POS Cart├úo ",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "rpa",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16007",
+      "value": "RPA",
+      "id": "16007"
+    },
+    "requester": "Evandro Paulo Coelho",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-121)"
+  },
+  {
+    "key": "GAU-120",
+    "jiraKey": "GAU-120",
+    "title": "Vis├úo 360 de Elegibilidade e Cobran├ºa (Integra├º├úo Zord)",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Lucas da Silva Machiori - Natura",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-120)"
+  },
+  {
+    "key": "GAU-119",
+    "jiraKey": "GAU-119",
+    "title": "DADOS - Base Hist├│rico Altera├º├Áes Base Cadastral",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-119)"
+  },
+  {
+    "key": "GAU-118",
+    "jiraKey": "GAU-118",
+    "title": "Atualiza├º├úo Base Cadastral -> Eventos de Onboarding (Com e Sem Conta)",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-118)"
+  },
+  {
+    "key": "GAU-117",
+    "jiraKey": "GAU-117",
+    "title": "Squad Ops | Cria├º├úo Base Cadastral Hispana",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-117)"
+  },
+  {
+    "key": "GAU-116",
+    "jiraKey": "GAU-116",
+    "title": "Cria├º├úo Base Cadastral PJ (SCD)",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-116)"
+  },
+  {
+    "key": "GAU-115",
+    "jiraKey": "GAU-115",
+    "title": "Atualiza├º├úo Telefone e Email Dados GPP na Base Cadastral e Dock",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-115)"
+  },
+  {
+    "key": "GAU-114",
+    "jiraKey": "GAU-114",
+    "title": "Visibilidade de volume e motivos de acionamento atendimento Cosm├®ticos para CB's Pag Pay",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Silvana Jaguszewski",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-114)"
+  },
+  {
+    "key": "GAU-113",
+    "jiraKey": "GAU-113",
+    "title": "Squad Opera├º├Áes - Zord - Melhoria Funcionalidade Atualiza├º├úo Cadastral - Endere├ºo",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-113)"
+  },
+  {
+    "key": "GAU-112",
+    "jiraKey": "GAU-112",
+    "title": "DADOS OPERACOES - Ingest├úo DOCK MORPHEUS EVENTS LOG",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-112)"
+  },
+  {
+    "key": "GAU-111",
+    "jiraKey": "GAU-111",
+    "title": "Dados Opera├º├Áes - Ingest├úo - Id Parter Tabelas Companies",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-111)"
+  },
+  {
+    "key": "GAU-110",
+    "jiraKey": "GAU-110",
+    "title": "Integra├º├úo das concilia├º├Áes no Zord",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Willian Marcos Rodrigues - Natura Pay",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-110)"
+  },
+  {
+    "key": "GAU-109",
+    "jiraKey": "GAU-109",
+    "title": "Cria├º├úo de API - Comunica├º├úo com Zord",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Willian Marcos Rodrigues - Natura Pay",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-109)"
+  },
+  {
+    "key": "GAU-108",
+    "jiraKey": "GAU-108",
+    "title": "Melhoria no Zord - Orquestra├º├úo de Aprova├º├Áes por Al├ºadas",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Erika Kimie Kitahara",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-108)"
+  },
+  {
+    "key": "GAU-107",
+    "jiraKey": "GAU-107",
+    "title": "Squad Dados | Dashboard Ajuste extrato 106",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Lucas da Silva Machiori - Natura",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-107)"
+  },
+  {
+    "key": "GAU-106",
+    "jiraKey": "GAU-106",
+    "title": "Cria├º├úo Base Cadastro D0 - Pag Emana Pay Sem Conta",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-106)"
+  },
+  {
+    "key": "GAU-105",
+    "jiraKey": "GAU-105",
+    "title": "CNPJ CB PJ Base Cadastral (PJtinha)",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-105)"
+  },
+  {
+    "key": "GAU-104",
+    "jiraKey": "GAU-104",
+    "title": "DADOS OPERACOES - Ingest├úo Dados Base Cadastral Flag Pjotinha",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-104)"
+  },
+  {
+    "key": "GAU-103",
+    "jiraKey": "GAU-103",
+    "title": "Ingest├úo tabelas Multibenef├¡cios",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Lucas da Silva Machiori - Natura",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-103)"
+  },
+  {
+    "key": "GAU-102",
+    "jiraKey": "GAU-102",
+    "title": "Squad Dados | Indicadores Visa - Migra├º├úo PowerBi para Tableau",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "ADLER CAVALCANTE",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-102)"
+  },
+  {
+    "key": "GAU-101",
+    "jiraKey": "GAU-101",
+    "title": "Squad RPA | Tabula├º├úo de Tickets das Filas do Mandala",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "rpa",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16007",
+      "value": "RPA",
+      "id": "16007"
+    },
+    "requester": "valdirene batista da silva souza figueredo",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-101)"
+  },
+  {
+    "key": "GAU-100",
+    "jiraKey": "GAU-100",
+    "title": "Squad Dados | Melhorias Concilia├º├úo Unificada",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Lucas da Silva Machiori - Natura",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-100)"
+  },
+  {
+    "key": "GAU-99",
+    "jiraKey": "GAU-99",
+    "title": "Squad RPA | Controle filas - Dynamics e Zendesk",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "rpa",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16007",
+      "value": "RPA",
+      "id": "16007"
+    },
+    "requester": "Erika Kimie Kitahara",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-99)"
+  },
+  {
+    "key": "GAU-98",
+    "jiraKey": "GAU-98",
+    "title": "RPA | Relat├│rios para gera├º├úo de ND de amortiza├º├úo",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "rpa",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16007",
+      "value": "RPA",
+      "id": "16007"
+    },
+    "requester": "Erika Kimie Kitahara",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-98)"
+  },
+  {
+    "key": "GAU-97",
+    "jiraKey": "GAU-97",
+    "title": "Squad Dados | Ajustes Monet├írios em Fatura - Dock ",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Erika Kimie Kitahara",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-97)"
+  },
+  {
+    "key": "GAU-96",
+    "jiraKey": "GAU-96",
+    "title": "Squad Dados | FIDC - Valida├º├úo de Tombamento de Boleto Pag Emana Pay recomprado",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Erika Kimie Kitahara",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-96)"
+  },
+  {
+    "key": "GAU-95",
+    "jiraKey": "GAU-95",
+    "title": "Squad Dados | Valida├º├úo Pagamento n├úo Baixado - Reclama├º├úo Consultora",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Erika Kimie Kitahara",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-95)"
+  },
+  {
+    "key": "GAU-94",
+    "jiraKey": "GAU-94",
+    "title": "Squad Dados | Pag Emana Pay - Vis├úo Anal├¡tica dos Contratos",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Erika Kimie Kitahara",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-94)"
+  },
+  {
+    "key": "GAU-93",
+    "jiraKey": "GAU-93",
+    "title": "Squad Dados | Integra├º├úo com Databricks - IA",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Vanessa Felix Belmonte",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-93)"
+  },
+  {
+    "key": "GAU-92",
+    "jiraKey": "GAU-92",
+    "title": "Squad RPA | Automatiza├º├úo de Processos ( Reembolsos com erro no processamento ) ",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "rpa",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16007",
+      "value": "RPA",
+      "id": "16007"
+    },
+    "requester": "Evandro Paulo Coelho",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-92)"
+  },
+  {
+    "key": "GAU-91",
+    "jiraKey": "GAU-91",
+    "title": "Squad Dados | Dashboard - Espelhamento Cobnet x Fun├º├úo",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Stefani Brassaroto - Natura & Co.",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-91)"
+  },
+  {
+    "key": "GAU-90",
+    "jiraKey": "GAU-90",
+    "title": "Squad Dados | Dashboard - Pagamento Pag Emana Pay",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Stefani Brassaroto - Natura & Co.",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-90)"
+  },
+  {
+    "key": "GAU-89",
+    "jiraKey": "GAU-89",
+    "title": "Squad Dados | Dashboard - Lan├ºamentos Invertidos",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Stefani Brassaroto - Natura & Co.",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-89)"
+  },
+  {
+    "key": "GAU-88",
+    "jiraKey": "GAU-88",
+    "title": "Squad Dados | Dashboard - Liquida├º├úo",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Stefani Brassaroto - Natura & Co.",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-88)"
+  },
+  {
+    "key": "GAU-87",
+    "jiraKey": "GAU-87",
+    "title": "Squad Dados | Dashboard - Cancelamento de Pedidos (Gsurf)",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Stefani Brassaroto - Natura & Co.",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-87)"
+  },
+  {
+    "key": "GAU-86",
+    "jiraKey": "GAU-86",
+    "title": "Squad Dados | Dashboard - Autoriza├º├úo",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Stefani Brassaroto - Natura & Co.",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-86)"
+  },
+  {
+    "key": "GAU-85",
+    "jiraKey": "GAU-85",
+    "title": "Squad Dados | Dashboard - Acompanhamento de Pedidos",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Stefani Brassaroto - Natura & Co.",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-85)"
+  },
+  {
+    "key": "GAU-84",
+    "jiraKey": "GAU-84",
+    "title": "Squad Dados | Dashboard - Pagamento de Fatura ",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Stefani Brassaroto - Natura & Co.",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-84)"
+  },
+  {
+    "key": "GAU-83",
+    "jiraKey": "GAU-83",
+    "title": "Squad Dados | Dashboard - Acompanhamento de Contas",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Stefani Brassaroto - Natura & Co.",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-83)"
+  },
+  {
+    "key": "GAU-82",
+    "jiraKey": "GAU-82",
+    "title": "Squad Dados | Painel de Monitoramento de Liquida├º├úo",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Victor Hugo Soares de Mello",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-82)"
+  },
+  {
+    "key": "GAU-81",
+    "jiraKey": "GAU-81",
+    "title": "Squad Ops | Moderniza├º├úo Zord",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Lucas da Silva Machiori - Natura",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-81)"
+  },
+  {
+    "key": "GAU-80",
+    "jiraKey": "GAU-80",
+    "title": "Squad Dados | Solicita├º├úo de Inclus├úo da coluna codigo_produto - Tabelas Thundera/Mandala",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Katia Fernanda Barros - Natura",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-80)"
+  },
+  {
+    "key": "GAU-79",
+    "jiraKey": "GAU-79",
+    "title": "Squad Dados - Renda Presumida View Cr├®dito x PLD",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-79)"
+  },
+  {
+    "key": "GAU-78",
+    "jiraKey": "GAU-78",
+    "title": "Squad Dados | Consulta Status CB - Pag Emana Pay ",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Erika Kimie Kitahara",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-78)"
+  },
+  {
+    "key": "GAU-77",
+    "jiraKey": "GAU-77",
+    "title": "Squad Ops | Pacote de Melhorias para Otimiza├º├úo de Risco e Custos Whats App Autentica├º├úo Biom├®trica Bidirecional",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Hudson Borges de Oliveira - Natura Pay",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-77)"
+  },
+  {
+    "key": "GAU-76",
+    "jiraKey": "GAU-76",
+    "title": "Squad Dados |  Cliente COTIT",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-76)"
+  },
+  {
+    "key": "GAU-75",
+    "jiraKey": "GAU-75",
+    "title": "Squad Dados - Ingest├úo Dados Processamento Campanhas e Ajustes Monet├írios",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-75)"
+  },
+  {
+    "key": "GAU-74",
+    "jiraKey": "GAU-74",
+    "title": "Squad Dados - Ingest├úo APIs Dock Remunera├º├úo e Bonifica├º├úo",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-74)"
+  },
+  {
+    "key": "GAU-73",
+    "jiraKey": "GAU-73",
+    "title": "Squad Ops | Consumo de informa├º├Áes positivas no fluxo de autentica├º├úo biom├®trica transacional para auxiliar nas an├ílises transacionais",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Hudson Borges de Oliveira - Natura Pay",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-73)"
+  },
+  {
+    "key": "GAU-72",
+    "jiraKey": "GAU-72",
+    "title": "Squad Ops | Cancelamento de Id Contas Dock em Lote",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-72)"
+  },
+  {
+    "key": "GAU-71",
+    "jiraKey": "GAU-71",
+    "title": "Squad Ops | Flag PJtinha Base Cadastral",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-71)"
+  },
+  {
+    "key": "GAU-70",
+    "jiraKey": "GAU-70",
+    "title": "Squad Dados | Dashboard - Acompanhamento de Contas",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Stefani Brassaroto - Natura & Co.",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-70)"
+  },
+  {
+    "key": "GAU-69",
+    "jiraKey": "GAU-69",
+    "title": "Squad Dados | Dashboard - Acompanhamento de Pedidos",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Stefani Brassaroto - Natura & Co.",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-69)"
+  },
+  {
+    "key": "GAU-68",
+    "jiraKey": "GAU-68",
+    "title": "Squad Dados | Dashboard - Pagamento via PIX x Fatura",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Stefani Brassaroto - Natura & Co.",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-68)"
+  },
+  {
+    "key": "GAU-67",
+    "jiraKey": "GAU-67",
+    "title": "Squad Dados | Dashboard - Recebimento via CNAB x Postagem do Pagamento",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Stefani Brassaroto - Natura & Co.",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-67)"
+  },
+  {
+    "key": "GAU-66",
+    "jiraKey": "GAU-66",
+    "title": "Squad Ops | Cria├º├úo Cadastros PJ em Lote",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-66)"
+  },
+  {
+    "key": "GAU-65",
+    "jiraKey": "GAU-65",
+    "title": "Squad Dados |  PLD - VIEW_CLIENTE_AUX - DE_Linha_Negocio",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-65)"
+  },
+  {
+    "key": "GAU-64",
+    "jiraKey": "GAU-64",
+    "title": "Squad dados | DOCK  Ingest├úo Relat├│rio interface cont├íbil ",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Rafael Luiz Soares Silva Lira",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-64)"
+  },
+  {
+    "key": "GAU-63",
+    "jiraKey": "GAU-63",
+    "title": "Squad Ops | Automa├º├úo do Repasse de Chargeback para Natura Cosm├®ticos",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Hudson Borges de Oliveira - Natura Pay",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-63)"
+  },
+  {
+    "key": "GAU-62",
+    "jiraKey": "GAU-62",
+    "title": "Squad Ops | Melhoria Funcionalidade Informa├º├Áes da Consultora",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-62)"
+  },
+  {
+    "key": "GAU-61",
+    "jiraKey": "GAU-61",
+    "title": "Squad Ops | Melhoria Ajustes na Melhoria GAU-31 - Validador de Nome X CPF",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Erika Kimie Kitahara",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-61)"
+  },
+  {
+    "key": "GAU-60",
+    "jiraKey": "GAU-60",
+    "title": "Squad Ops | Processamento do Produto Multibenef├¡cios via ZORD",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Stefani Brassaroto - Natura & Co.",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-60)"
+  },
+  {
+    "key": "GAU-58",
+    "jiraKey": "GAU-58",
+    "title": "Squad Dados | Dashboard ÔÇô Controle de Opera├º├Áes de Cart├Áes",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Valdirene Batista da Silva Souza Figueredo",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-58)"
+  },
+  {
+    "key": "GAU-57",
+    "jiraKey": "GAU-57",
+    "title": "Squad Dados | Dashboard de Controle e Rastreabilidade de Emiss├úo e Envio de Faturas",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Valdirene Batista da Silva Souza Figueredo",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-57)"
+  },
+  {
+    "key": "GAU-56",
+    "jiraKey": "GAU-56",
+    "title": "Squad Ops | Painel de Monitoramento de Liquida├º├úo em Tempo Real",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Stefani Brassaroto - Natura & Co.",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-56)"
+  },
+  {
+    "key": "GAU-55",
+    "jiraKey": "GAU-55",
+    "title": "Squad Ops | Transfer├¬ncia via Pix p Domicilio Terceiro Informando Ag├¬ncia e Conta",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-55)"
+  },
+  {
+    "key": "GAU-54",
+    "jiraKey": "GAU-54",
+    "title": "Squad Ops | Cria├º├úo Cadastros para Pag Emana Pay Sem Conta",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-54)"
+  },
+  {
+    "key": "GAU-53",
+    "jiraKey": "GAU-53",
+    "title": "Squad Dados |Ajuste Dados Cadastrais Views PLD Clientes Aux",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-53)"
+  },
+  {
+    "key": "GAU-52",
+    "jiraKey": "GAU-52",
+    "title": "Squad Dados | Ajuste Filtro Regras P├║blico SCD e SUB PLD Clientes Aux",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-52)"
+  },
+  {
+    "key": "GAU-51",
+    "jiraKey": "GAU-51",
+    "title": "Squad Ops | Sustenta├º├úo - Investigar e corrigir o erro de \"A P2P transaction is already being processed\" - Sistema ├║nico de BKO (Zord)",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Ana Paula Eugenio De Souza Alves - Natura Pay",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-51)"
+  },
+  {
+    "key": "GAU-50",
+    "jiraKey": "GAU-50",
+    "title": "Squad Dados | Tombamento Power BI para Tableau - Pagamento de Contas",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Stefani Brassaroto - Natura & Co.",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-50)"
+  },
+  {
+    "key": "GAU-49",
+    "jiraKey": "GAU-49",
+    "title": "Squad Dados | Base de Contas Canceladas com Saldo Credor",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Victoria Maria De Moraes Martello",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-49)"
+  },
+  {
+    "key": "GAU-48",
+    "jiraKey": "GAU-48",
+    "title": "Squad Dados | Gera├º├úo extrato anal├¡tico - Conta 106",
+    "status": "Coletar Resultados",
+    "categoriaStatus": "Em andamento",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Willian Marcos Rodrigues - Natura Pay",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-48)"
+  },
+  {
+    "key": "GAU-47",
+    "jiraKey": "GAU-47",
+    "title": "Squad Dados/Ops | Desenvolver um motor antifraude que combine an├ílise transacional e comportamental para gera├º├úo de um score de risco (Machine Learning).",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Hudson Borges de Oliveira - Natura Pay",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-47)"
+  },
+  {
+    "key": "GAU-46",
+    "jiraKey": "GAU-46",
+    "title": "Squad Ops | Melhoria Bidirecional Autentica├º├úo Biom├®trica",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Hudson Borges de Oliveira - Natura Pay",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-46)"
+  },
+  {
+    "key": "GAU-45",
+    "jiraKey": "GAU-45",
+    "title": "Squad Dados | Processamento - statement",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Victor Hugo Soares de Mello",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-45)"
+  },
+  {
+    "key": "GAU-44",
+    "jiraKey": "GAU-44",
+    "title": "Squad Dados | Processamento - Indicador | Capta x DOCK - Thudera",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Victor Hugo Soares de Mello",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-44)"
+  },
+  {
+    "key": "GAU-41",
+    "jiraKey": "GAU-41",
+    "title": "Squad Ops | Libera├º├úo em autosservi├ºo (IA) endpoint do Cobnet para negocia├º├Áes de PAGEMANAPAY ",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "VANESSA FELIX BELMONTE",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-41)"
+  },
+  {
+    "key": "GAU-40",
+    "jiraKey": "GAU-40",
+    "title": "Squad Ops | Libera├º├úo do meio de pagamento PIX da fatura do cart├úo (Mandala) para consumo nos canais de Autosservi├ºo (IA)",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "VANESSA FELIX BELMONTE",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-40)"
+  },
+  {
+    "key": "GAU-39",
+    "jiraKey": "GAU-39",
+    "title": "Squad Ops | Ajuste no endpoint do Zendesk utilizado pelo Data┬▓",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "VANESSA FELIX BELMONTE",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-39)"
+  },
+  {
+    "key": "GAU-38",
+    "jiraKey": "GAU-38",
+    "title": "Squad Ops | Disponibiliza├º├úo de servi├ºo de informa├º├úo sobre comiss├úo de pedido e-comm",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Ana Carolina Curti Fontana Rampazzo",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-38)"
+  },
+  {
+    "key": "GAU-37",
+    "jiraKey": "GAU-37",
+    "title": "Squad Ops | Disponibiliza├º├úo de servi├ºo de envio de 2 via de fatura mandala",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Ana Carolina Curti Fontana Rampazzo",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-37)"
+  },
+  {
+    "key": "GAU-36",
+    "jiraKey": "GAU-36",
+    "title": "Squad Ops | Disponibiliza├º├úo de servi├ºo de solicita├º├úo de aumento de limite do cartao mandala ",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Ana Carolina Curti Fontana Rampazzo",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-36)"
+  },
+  {
+    "key": "GAU-35",
+    "jiraKey": "GAU-35",
+    "title": "Squad Ops | Disponibiliza├º├úo de servi├ºo de Solicita├º├úo de Cart├úo de Credito (Mandala)",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Ana Carolina Curti Fontana Rampazzo",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-35)"
+  },
+  {
+    "key": "GAU-34",
+    "jiraKey": "GAU-34",
+    "title": "Squad Ops | Disponibiliza├º├úo de servi├ºo de consulta de c├│digo de autoriza├º├úo de transa├º├úo no Cart├úo de Credito (Mandala)",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Ana Carolina Curti Fontana Rampazzo",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-34)"
+  },
+  {
+    "key": "GAU-33",
+    "jiraKey": "GAU-33",
+    "title": "Squad Ops | Disponibiliza├º├úo de servi├ºo de encerramento de conta",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Ana Carolina Curti Fontana Rampazzo",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-33)"
+  },
+  {
+    "key": "GAU-32",
+    "jiraKey": "GAU-32",
+    "title": "Squad Ops | Disponibiliza├º├úo de servi├ºo de consulta de informa├º├Áes sobre Link de Pagamento",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Ana Carolina Curti Fontana Rampazzo",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-32)"
+  },
+  {
+    "key": "GAU-31",
+    "jiraKey": "GAU-31",
+    "title": "Squad Ops | Melhoria Sistema ├Ünico de Backoffice |  Valida├º├úo de dados no Sistema de Backoffice ",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Erika Kimie Kitahara",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-31)"
+  },
+  {
+    "key": "GAU-30",
+    "jiraKey": "GAU-30",
+    "title": "Squad Dados | Processamento - Indicador | Autoriza├º├úo - Gsurf",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Victor Hugo Soares de Mello",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-30)"
+  },
+  {
+    "key": "GAU-27",
+    "jiraKey": "GAU-27",
+    "title": "Squad Ops | Solicita├º├úo de Melhoria: Visualiza├º├úo do nome de arquivo no Sistema ├Ünico de Backoffice",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Erika Kimie Kitahara",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-27)"
+  },
+  {
+    "key": "GAU-26",
+    "jiraKey": "GAU-26",
+    "title": "Squad Dados | Processamento - installments_types",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Victor Hugo Soares de Mello",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-26)"
+  },
+  {
+    "key": "GAU-25",
+    "jiraKey": "GAU-25",
+    "title": "Squad Dados | Processamento - installments_complement",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Victor Hugo Soares de Mello",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-25)"
+  },
+  {
+    "key": "GAU-24",
+    "jiraKey": "GAU-24",
+    "title": "Squad Dados | Processamento - cleared_component_account_balance",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Victor Hugo Soares de Mello",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-24)"
+  },
+  {
+    "key": "GAU-23",
+    "jiraKey": "GAU-23",
+    "title": "Squad Dados | Processamento - remuneration",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Victor Hugo Soares de Mello",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-23)"
+  },
+  {
+    "key": "GAU-22",
+    "jiraKey": "GAU-22",
+    "title": "Squad Dados | Processamento - monthly_appropriation_detail",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Victor Hugo Soares de Mello",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-22)"
+  },
+  {
+    "key": "GAU-21",
+    "jiraKey": "GAU-21",
+    "title": "Squad Dados | Processamento - advance_installment",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Victor Hugo Soares de Mello",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-21)"
+  },
+  {
+    "key": "GAU-20",
+    "jiraKey": "GAU-20",
+    "title": "Squad Dados | Processamento - receivables_cip",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Victor Hugo Soares de Mello",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-20)"
+  },
+  {
+    "key": "GAU-19",
+    "jiraKey": "GAU-19",
+    "title": "Squad Dados | Processamento - pending_transactions",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Victor Hugo Soares de Mello",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-19)"
+  },
+  {
+    "key": "GAU-18",
+    "jiraKey": "GAU-18",
+    "title": "Squad Dados | Processamento - Listas ECs com Saldo negativos",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Victor Hugo Soares de Mello",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-18)"
+  },
+  {
+    "key": "GAU-17",
+    "jiraKey": "GAU-17",
+    "title": "Squad Dados | Processamento - Reembolso Gsurf",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Victor Hugo Soares de Mello",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-17)"
+  },
+  {
+    "key": "GAU-16",
+    "jiraKey": "GAU-16",
+    "title": "Squad Dados | Processamento - daily_balance",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Victor Hugo Soares de Mello",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-16)"
+  },
+  {
+    "key": "GAU-15",
+    "jiraKey": "GAU-15",
+    "title": "Squad Dados | Processamento - split_cnab_240",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Victor Hugo Soares de Mello",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-15)"
+  },
+  {
+    "key": "GAU-14",
+    "jiraKey": "GAU-14",
+    "title": "Squad RPA/Dados | Concilia├º├úo PagEmanaPay",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "rpa",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16007",
+      "value": "RPA",
+      "id": "16007"
+    },
+    "requester": "Willian Marcos Rodrigues - Natura Pay",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-14)"
+  },
+  {
+    "key": "GAU-12",
+    "jiraKey": "GAU-12",
+    "title": "Squad Ops | Altera├º├úo de Limites",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Stefani Brassaroto - Natura & Co.",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-12)"
+  },
+  {
+    "key": "GAU-11",
+    "jiraKey": "GAU-11",
+    "title": "Squad Dados | PLD Renda Declarada - Ajustar Regra",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Bruno Giglio Rocco",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-11)"
+  },
+  {
+    "key": "GAU-10",
+    "jiraKey": "GAU-10",
+    "title": "Squad Ops | Transfer├¬ncia via PIX  - Cbs com recebiveis pendente ",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Victor Hugo Soares de Mello",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-10)"
+  },
+  {
+    "key": "GAU-9",
+    "jiraKey": "GAU-9",
+    "title": "Squad Dados | Ingest├úo de APIs para Controle de Equipamentos",
+    "status": "Aguardando Squad",
+    "categoriaStatus": "Itens Pendentes",
+    "squadTarget": "dados",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+      "value": "Dados Opera├º├Áes",
+      "id": "16006"
+    },
+    "requester": "Veridiane Servienski Lepinski - Natura&CO",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-9)"
+  },
+  {
+    "key": "GAU-8",
+    "jiraKey": "GAU-8",
+    "title": "Squad Ops | Melhoria Bidirecional Canal Capta",
+    "status": "Coletar Resultados",
+    "categoriaStatus": "Em andamento",
+    "squadTarget": "operacoes",
+    "customfield_12475": {
+      "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+      "value": "Opera├º├Áes NPay",
+      "id": "16005"
+    },
+    "requester": "Hudson Borges de Oliveira - Natura Pay",
+    "priority": "M├®dia",
+    "category": "Geral",
+    "createdDate": "29/07/2026",
+    "description": "Demanda real importada do espa├ºo GAU (GAU-8)"
+  }
+];
+    };
     }
 
     // ROTEAMENTO DE SQUADS E FILAS DE DESTINO
@@ -140,14 +2301,14 @@ const JiraSyncEngine = {
     ['dados', 'operacoes', 'rpa'].forEach(squadId => {
       (state.backlogItems[squadId] || []).forEach(b => {
         const k = normalizeKey(b.gau || b.jiraKey || b.id);
-        if (k) existingMap.set(k, { queue: `backlog_${squadId}`, item: b });
+        if (k) existingMap.set(k, { queue: acklog_\, item: b });
       });
 
       (state.completedTasks[squadId] || []).forEach(c => {
         const match = c.taskTitle ? c.taskTitle.match(/\((GAU-\d+|KAN-\d+|JIRA-\d+)\)/i) : null;
         const rawK = match ? match[1] : (c.gau || c.jiraKey || c.id);
         const k = normalizeKey(rawK);
-        if (k) existingMap.set(k, { queue: `completed_${squadId}`, item: c });
+        if (k) existingMap.set(k, { queue: completed_\, item: c });
       });
     });
 
@@ -163,7 +2324,7 @@ const JiraSyncEngine = {
       const statusLower = rawStatus.toLowerCase();
       const catStatusLower = rawCatStatus.toLowerCase();
 
-      const rawJiraKey = card.key || card.jiraKey || (card.id && card.id.toString().startsWith('GAU-') ? card.id : `GAU-${100 + idx}`);
+      const rawJiraKey = card.key || card.jiraKey || (card.id && card.id.toString().startsWith('GAU-') ? card.id : GAU-\);
       const jiraKey = normalizeKey(rawJiraKey);
       const title = card.title || card.summary || card.nome || 'Demanda do Jira';
       const description = card.description || card.descricao || card.notes || 'Sincronizado via Jira API';
@@ -175,7 +2336,10 @@ const JiraSyncEngine = {
         try {
           const parsedDate = new Date(rawCreated);
           if (!isNaN(parsedDate.getTime())) createdDate = parsedDate.toLocaleDateString('pt-BR');
-        } catch (e) {}
+          else createdDate = rawCreated.toString();
+        } catch (e) {
+          createdDate = rawCreated.toString();
+        }
       }
 
       let targetSquadId = card.squadTarget || 'dados';
@@ -192,9 +2356,9 @@ const JiraSyncEngine = {
         }
       }
 
-      if (cfStr.includes('16005') || cfStr.includes('operac') || cfStr.includes('operaç')) {
+      if (cfStr.includes('16005') || cfStr.includes('operac') || cfStr.includes('operaÃ§')) {
         targetSquadId = 'operacoes';
-        targetSquadName = 'Squad de Operações';
+        targetSquadName = 'Squad de OperaÃ§Ãµes';
         hasExplicitSquad = true;
       } else if (cfStr.includes('16007') || cfStr.includes('rpa')) {
         targetSquadId = 'rpa';
@@ -210,7 +2374,7 @@ const JiraSyncEngine = {
       let defaultStatus = 'Backlog';
 
       if (
-        statusLower === 'concluído' ||
+        statusLower === 'concluÃ­do' ||
         statusLower === 'concluido' ||
         statusLower === 'finalizado' ||
         statusLower === 'done' ||
@@ -222,11 +2386,11 @@ const JiraSyncEngine = {
         statusLower.includes('entregue') ||
         catStatusLower === 'done'
       ) {
-        targetQueue = `completed_${targetSquadId}`;
-      } else if (!hasExplicitSquad || statusLower === 'aberto' || statusLower === 'abertos' || statusLower === 'triagem' || statusLower === 'novo' || statusLower === 'nova' || statusLower === 'to do' || statusLower === 'a fazer' || statusLower.includes('aguardando triagem') || statusLower.includes('pendente triagem') || statusLower.includes('aguardando squad') || statusLower.includes('em análise') || statusLower.includes('em analise')) {
+        targetQueue = completed_\;
+      } else if (!hasExplicitSquad || statusLower === 'aberto' || statusLower === 'abertos' || statusLower === 'triagem' || statusLower === 'novo' || statusLower === 'nova' || statusLower === 'to do' || statusLower === 'a fazer' || statusLower.includes('aguardando triagem') || statusLower.includes('pendente triagem') || statusLower.includes('aguardando squad') || statusLower.includes('em anÃ¡lise') || statusLower.includes('em analise') || statusLower.includes('itens pendentes') || statusLower.includes('backlog')) {
         targetQueue = 'triage';
       } else {
-        targetQueue = `backlog_${targetSquadId}`;
+        targetQueue = acklog_\;
         if (statusLower.includes('bloquead') || statusLower.includes('impedid') || statusLower.includes('block') || statusLower.includes('hold')) {
           defaultStatus = 'Bloqueado';
         } else {
@@ -243,9 +2407,9 @@ const JiraSyncEngine = {
 
         if (targetQueue === 'triage') {
           state.triageItems.unshift({
-            id: `triage-${jiraKey}`,
+            id: 	riage-\,
             jiraKey,
-            jiraUrl: `https://naturapay.atlassian.net/browse/${jiraKey}`,
+            jiraUrl: https://naturapay.atlassian.net/browse/\,
             title,
             description,
             requesterName: requester,
@@ -258,7 +2422,7 @@ const JiraSyncEngine = {
           });
         } else if (targetQueue.startsWith('completed_')) {
           state.completedTasks[targetSquadId].unshift({
-            id: `completed-${jiraKey}`,
+            id: completed-\,
             gau: jiraKey,
             jiraKey: jiraKey,
             title: title,
@@ -271,12 +2435,12 @@ const JiraSyncEngine = {
             dueDate: card.dueDate || new Date().toISOString().split('T')[0],
             createdDate,
             completionDate: formattedDate,
-            gains: 'Concluído via sincronização com Jira',
+            gains: 'ConcluÃ­do via sincronizaÃ§Ã£o com Jira',
             requesterArea: requester
           });
         } else {
           state.backlogItems[targetSquadId].unshift({
-            id: `backlog-${jiraKey}`,
+            id: acklog-\,
             gau: jiraKey,
             jiraKey,
             title,
@@ -311,9 +2475,9 @@ const JiraSyncEngine = {
 
         if (targetQueue === 'triage') {
           state.triageItems.unshift({
-            id: `triage-${jiraKey}`,
+            id: 	riage-\,
             jiraKey,
-            jiraUrl: `https://naturapay.atlassian.net/browse/${jiraKey}`,
+            jiraUrl: https://naturapay.atlassian.net/browse/\,
             title,
             description,
             requesterName: requester,
@@ -326,7 +2490,7 @@ const JiraSyncEngine = {
           });
         } else if (targetQueue.startsWith('completed_')) {
           state.completedTasks[targetSquadId].unshift({
-            id: `completed-${jiraKey}`,
+            id: completed-\,
             gau: jiraKey,
             jiraKey: jiraKey,
             title: title,
@@ -339,12 +2503,12 @@ const JiraSyncEngine = {
             dueDate: card.dueDate || new Date().toISOString().split('T')[0],
             createdDate,
             completionDate: formattedDate,
-            gains: 'Concluído via sincronização com Jira',
+            gains: 'ConcluÃ­do via sincronizaÃ§Ã£o com Jira',
             requesterArea: requester
           });
         } else {
           state.backlogItems[targetSquadId].unshift({
-            id: `backlog-${jiraKey}`,
+            id: acklog-\,
             gau: jiraKey,
             jiraKey,
             title,
@@ -392,7 +2556,7 @@ const JiraSyncEngine = {
       countUpdated,
       countToCompleted,
       countUnchanged,
-      message: `✅ Sincronização Jira concluída às ${extractedAtFormatted}: ${cards.length} cards processados (${countNew} novos, ${countUpdated} atualizados).`
+      message: âœ… SincronizaÃ§Ã£o Jira concluÃ­da Ã s \: \ cards processados (\ novos, \ atualizados).
     };
   }
 };
