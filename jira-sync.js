@@ -54,54 +54,55 @@ const JiraSyncEngine = {
       };
     }
 
-    const normalizeKey = (k) => (k || '').toString().trim().toUpperCase();
+    const extractJiraKey = (item) => {
+      if (!item) return null;
+      const raw = (item.jiraKey || item.gau || item.id || item.taskTitle || '').toString();
+      const match = raw.match(/GAU-\d+/i);
+      return match ? match[0].toUpperCase() : null;
+    };
 
     // Mapear conjunto de todas as chaves válidas vindas do Jira nesta sincronização
     const validJiraKeys = new Set();
     cards.forEach((card, idx) => {
       const rawJiraKey = card.key || card.jiraKey || (card.id && card.id.toString().startsWith('GAU-') ? card.id : `GAU-${100 + idx}`);
-      const jiraKey = normalizeKey(rawJiraKey);
-      if (jiraKey) validJiraKeys.add(jiraKey);
+      const keyStr = extractJiraKey({ jiraKey: rawJiraKey });
+      if (keyStr) validJiraKeys.add(keyStr);
     });
 
-    // 1. PURGA DE CARDS EXCLUÍDOS/DELETADOS DO JIRA
-    // Se o card tem chave GAU/Jira mas NÃO veio na resposta atual do Jira, remove da aplicação
+    // 1. PURGA DEFINITIVA DE CARDS EXCLUÍDOS/DELETADOS DO JIRA (ex: GAU-132, GAU-133, GAU-134)
+    // Se o item tem uma chave GAU mas ela NÃO existe na base vinda do Jira, PURGA imediata!
     state.triageItems = state.triageItems.filter(item => {
-      const k = normalizeKey(item.jiraKey || item.gau || item.id);
-      return !k || !k.startsWith('GAU-') || validJiraKeys.has(k);
+      const k = extractJiraKey(item);
+      return !k || validJiraKeys.has(k);
     });
 
     ['dados', 'operacoes', 'rpa'].forEach(squadId => {
       state.backlogItems[squadId] = (state.backlogItems[squadId] || []).filter(item => {
-        const k = normalizeKey(item.gau || item.jiraKey || item.id);
-        return !k || !k.startsWith('GAU-') || validJiraKeys.has(k);
+        const k = extractJiraKey(item);
+        return !k || validJiraKeys.has(k);
       });
 
       state.completedTasks[squadId] = (state.completedTasks[squadId] || []).filter(item => {
-        const match = item.taskTitle ? item.taskTitle.match(/\((GAU-\d+|KAN-\d+|JIRA-\d+)\)/i) : null;
-        const rawK = match ? match[1] : (item.gau || item.jiraKey || item.id);
-        const k = normalizeKey(rawK);
-        return !k || !k.startsWith('GAU-') || validJiraKeys.has(k);
+        const k = extractJiraKey(item);
+        return !k || validJiraKeys.has(k);
       });
     });
 
     // Mapear posição atual dos cards existentes no estado para roteamento
     const existingMap = new Map();
     state.triageItems.forEach(t => {
-      const k = normalizeKey(t.jiraKey || t.gau || t.id);
+      const k = extractJiraKey(t);
       if (k) existingMap.set(k, { queue: 'triage', item: t });
     });
 
     ['dados', 'operacoes', 'rpa'].forEach(squadId => {
       (state.backlogItems[squadId] || []).forEach(b => {
-        const k = normalizeKey(b.gau || b.jiraKey || b.id);
+        const k = extractJiraKey(b);
         if (k) existingMap.set(k, { queue: `backlog_${squadId}`, item: b });
       });
 
       (state.completedTasks[squadId] || []).forEach(c => {
-        const match = c.taskTitle ? c.taskTitle.match(/\((GAU-\d+|KAN-\d+|JIRA-\d+)\)/i) : null;
-        const rawK = match ? match[1] : (c.gau || c.jiraKey || c.id);
-        const k = normalizeKey(rawK);
+        const k = extractJiraKey(c);
         if (k) existingMap.set(k, { queue: `completed_${squadId}`, item: c });
       });
     });
@@ -120,7 +121,7 @@ const JiraSyncEngine = {
       const catStatusLower = rawCatStatus.toLowerCase();
 
       const rawJiraKey = card.key || card.jiraKey || (card.id && card.id.toString().startsWith('GAU-') ? card.id : `GAU-${100 + idx}`);
-      const jiraKey = normalizeKey(rawJiraKey);
+      const jiraKey = extractJiraKey({ jiraKey: rawJiraKey }) || `GAU-${100 + idx}`;
       const title = card.title || card.summary || card.nome || 'Demanda do Jira';
       const description = card.description || card.descricao || card.notes || 'Sincronizado via Jira API';
       const requester = card.requester || card.reporter || card.solicitante || 'Solicitante Jira';
@@ -193,13 +194,13 @@ const JiraSyncEngine = {
           // Remover da fila onde estiver
           const oldLoc = existing.queue;
           if (oldLoc === 'triage') {
-            state.triageItems = state.triageItems.filter(t => t.jiraKey !== jiraKey);
+            state.triageItems = state.triageItems.filter(t => extractJiraKey(t) !== jiraKey);
           } else if (oldLoc.startsWith('backlog_')) {
             const sId = oldLoc.replace('backlog_', '');
-            state.backlogItems[sId] = (state.backlogItems[sId] || []).filter(b => (b.gau || b.jiraKey) !== jiraKey);
+            state.backlogItems[sId] = (state.backlogItems[sId] || []).filter(b => extractJiraKey(b) !== jiraKey);
           } else if (oldLoc.startsWith('completed_')) {
             const sId = oldLoc.replace('completed_', '');
-            state.completedTasks[sId] = (state.completedTasks[sId] || []).filter(c => !c.taskTitle.includes(jiraKey) && c.jiraKey !== jiraKey && c.gau !== jiraKey);
+            state.completedTasks[sId] = (state.completedTasks[sId] || []).filter(c => extractJiraKey(c) !== jiraKey);
           }
           existingMap.delete(jiraKey);
         }
@@ -305,13 +306,13 @@ const JiraSyncEngine = {
         // Remover da fila anterior
         const oldLoc = existing.queue;
         if (oldLoc === 'triage') {
-          state.triageItems = state.triageItems.filter(t => t.jiraKey !== jiraKey);
+          state.triageItems = state.triageItems.filter(t => extractJiraKey(t) !== jiraKey);
         } else if (oldLoc.startsWith('backlog_')) {
           const sId = oldLoc.replace('backlog_', '');
-          state.backlogItems[sId] = (state.backlogItems[sId] || []).filter(b => (b.gau || b.jiraKey) !== jiraKey);
+          state.backlogItems[sId] = (state.backlogItems[sId] || []).filter(b => extractJiraKey(b) !== jiraKey);
         } else if (oldLoc.startsWith('completed_')) {
           const sId = oldLoc.replace('completed_', '');
-          state.completedTasks[sId] = (state.completedTasks[sId] || []).filter(c => !c.taskTitle.includes(jiraKey) && c.jiraKey !== jiraKey && c.gau !== jiraKey);
+          state.completedTasks[sId] = (state.completedTasks[sId] || []).filter(c => extractJiraKey(c) !== jiraKey);
         }
 
         // Inserir na nova fila
