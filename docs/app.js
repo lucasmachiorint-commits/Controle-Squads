@@ -106,7 +106,13 @@ const app = {
       if (item.requester) item.requester = fixText(item.requester);
       if (item.requesterName) item.requesterName = fixText(item.requesterName);
       if (item.completedBy) item.completedBy = fixText(item.completedBy);
-      if (item.gains) item.gains = fixText(item.gains);
+      if (item.gains) {
+        item.gains = fixText(item.gains);
+        if (item.gains === 'Demanda concluída via alteração de status no painel' || 
+            item.gains === 'Demanda concluida via alteração de status no painel') {
+          item.gains = '';
+        }
+      }
       return item;
     };
 
