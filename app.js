@@ -108,8 +108,13 @@ const app = {
       if (item.completedBy) item.completedBy = fixText(item.completedBy);
       if (item.gains) {
         item.gains = fixText(item.gains);
-        if (item.gains === 'Demanda concluída via alteração de status no painel' || 
-            item.gains === 'Demanda concluida via alteração de status no painel') {
+        if (item.gains.includes('via alteração de status no painel') || 
+            item.gains.includes('via alterao de status no painel') ||
+            item.gains.includes('via alterao de status no painel') ||
+            item.gains.includes('via alteracao de status no painel') ||
+            item.gains.includes('Demanda concluída com sucesso') ||
+            item.gains.includes('Demanda concluda com sucesso') ||
+            item.gains.includes('Demanda concluda com sucesso')) {
           item.gains = '';
         }
       }
@@ -1916,9 +1921,28 @@ const app = {
     if (!this.activeDemandItemId) return;
 
     const squadKey = this.activeDemandSquadKey || this.activeSquad;
-    const item = (this.state.backlogItems[squadKey] || []).find(i => i.id === this.activeDemandItemId || i.gau === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId) ||
-                 (this.state.completedTasks[squadKey] || []).find(i => i.id === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId) ||
-                 this.state.triageItems.find(i => i.id === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId);
+    
+    let item = null;
+    
+    // Tenta procurar na squad ativa primeiro
+    if (squadKey) {
+      item = (this.state.backlogItems[squadKey] || []).find(i => i.id === this.activeDemandItemId || i.gau === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId) ||
+             (this.state.completedTasks[squadKey] || []).find(i => i.id === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId);
+    }
+    
+    // Se não achar, procura em todas as squads (útil para Dashboard Consolidado ou caso squadKey esteja nulo)
+    if (!item) {
+      for (const sq of ['dados', 'operacoes', 'rpa']) {
+        item = (this.state.backlogItems[sq] || []).find(i => i.id === this.activeDemandItemId || i.gau === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId) ||
+               (this.state.completedTasks[sq] || []).find(i => i.id === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId);
+        if (item) break;
+      }
+    }
+    
+    // Procura na triagem como último recurso
+    if (!item) {
+      item = (this.state.triageItems || []).find(i => i.id === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId);
+    }
 
     if (!item) return;
 
