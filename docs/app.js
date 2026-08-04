@@ -1412,18 +1412,14 @@ const app = {
 
     if (btn) btn.disabled = false;
     if (icon) icon.classList.remove('fa-spin');
-    if (statusTxt) statusTxt.textContent = 'Sincronização concluída';
+    if (statusTxt) statusTxt.textContent = result.success ? 'Sincronização concluída' : 'Erro na sincronização';
 
-    // Salvar data e horário completos da última sincronização realizada
-    const now = new Date();
-    const formattedDate = now.toLocaleDateString('pt-BR');
-    const formattedTime = now.toLocaleTimeString('pt-BR');
-    const fullSyncDateTime = `${formattedDate} às ${formattedTime}`;
+    const fullSyncDateTime = result.extractedAt || `${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`;
     localStorage.setItem('cs_last_sync_time', fullSyncDateTime);
 
     const timeEl = document.getElementById('sync-last-time');
     if (timeEl) {
-      timeEl.textContent = `Última atualização: ${fullSyncDateTime}`;
+      timeEl.textContent = `Última extração Jira: ${fullSyncDateTime}`;
     }
 
     // Salvar e atualizar o Status da Atualização (Métricas detalhadas)
@@ -1441,7 +1437,11 @@ const app = {
     const toast = document.getElementById('sync-toast-banner');
     const toastMsg = document.getElementById('sync-toast-message');
     if (toast && toastMsg) {
-      toastMsg.textContent = `🔄 Sincronização Jira realizada! ${metrics.countNew} novos criados, ${metrics.countUpdated} atualizados, ${metrics.countToCompleted} concluídos.`;
+      if (result.success) {
+        toastMsg.textContent = `🔄 Sincronização Jira realizada às ${fullSyncDateTime}! ${result.totalCards || 0} cards processados (${metrics.countNew} novos, ${metrics.countUpdated} atualizados).`;
+      } else {
+        toastMsg.textContent = result.message || '❌ Falha ao conectar à API do Jira Cloud.';
+      }
       toast.classList.remove('hidden');
       setTimeout(() => toast.classList.add('hidden'), 6000);
     }
