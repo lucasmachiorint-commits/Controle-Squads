@@ -1446,10 +1446,9 @@ const app = {
       setTimeout(() => toast.classList.add('hidden'), 10000);
     }
 
+    // Notificação elegante em caso de bloqueio de CORS (sem pop-ups intrusivos)
     if (!result.success && result.isCorsError) {
-      if (confirm(`⚠️ O navegador bloqueou o acesso direto à API do Jira Cloud (Política de CORS do Jira).\n\nPara sincronizar em tempo real:\n1. Execute no terminal: node server.js (em http://localhost:3000)\nOU\n2. Configure uma URL de Proxy no botão de engrenagem do Jira.\n\nDeseja abrir as configurações do Jira agora?`)) {
-        this.openJiraConfigModal();
-      }
+      console.warn('[Jira Sync] Bloqueio de CORS detectado. Para sincronização direta no cliente, use a engrenagem ou proxy local.');
     }
 
     // Re-renderizar a interface inteira imediatamente para atualizar cards em andamento, triagem e concluídos
