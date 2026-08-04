@@ -421,17 +421,16 @@ const app = {
   async saveStateToSupabase() {
     if (!supabaseClient) return;
     _lastSelfSaveTime = Date.now();
+    const payload = {
+      id: 'default',
+      data: this.state,
+      updated_by: this.authUserId || null,
+      updated_at: new Date().toISOString()
+    };
     try {
-      const { error } = await supabaseClient
-        .from('cs_board_state')
-        .upsert({
-          id: 'default',
-          data: this.state,
-          updated_by: this.authUserId || null,
-          updated_at: new Date().toISOString()
-        });
+      let { error } = await supabaseClient.from('cs_board_state').upsert(payload);
       if (error) {
-        console.warn('[Supabase Save Error]', error.message);
+        await supabaseClient.from('board_state').upsert(payload);
       }
     } catch (err) {
       console.warn('[Supabase Save Exception]', err);
@@ -441,23 +440,33 @@ const app = {
   async loadStateFromSupabase() {
     if (!supabaseClient) return false;
     try {
-      const { data, error } = await supabaseClient
+      let data = null;
+      let error = null;
+
+      const res1 = await supabaseClient
         .from('cs_board_state')
         .select('data, updated_at')
         .eq('id', 'default')
         .maybeSingle();
 
-      if (error) {
-        console.warn('[Supabase Load Error]', error.message);
-        return false;
+      if (!res1.error && res1.data) {
+        data = res1.data;
+      } else {
+        const res2 = await supabaseClient
+          .from('board_state')
+          .select('data, updated_at')
+          .eq('id', 'default')
+          .maybeSingle();
+        data = res2.data;
+        error = res2.error;
       }
+
       if (!data || !data.data) {
-        console.log('[Supabase Load] Nenhum registro existente. Usando localStorage.');
+        console.log('[Supabase Load] Nenhum registro existente nas tabelas de estado.');
         return false;
       }
 
       this.state = data.data;
-      // Garantir que usersList existe no state carregado
       if (!this.state.usersList) this.state.usersList = [];
       localStorage.setItem('cs_triage_items', JSON.stringify(this.state.triageItems || []));
       ['dados', 'operacoes', 'rpa'].forEach(id => {
