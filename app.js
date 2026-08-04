@@ -62,6 +62,18 @@ const app = {
 
     const fixText = (str) => {
       if (typeof str !== 'string') return str;
+      
+      // 1. Tentar decodificar Mojibake padrão ISO-8859-1 (ex: Ã© -> é)
+      try {
+        // Se a string contiver caracteres esquisitos do UTF-8 quebrado, tenta consertar
+        if (str.includes('Ã')) {
+          str = decodeURIComponent(escape(str));
+        }
+      } catch(e) {
+        // Ignora se não for decodificável
+      }
+
+      // 2. Fallbacks manuais para CP850/CP437 ou erros específicos e legados
       return str
         .replace(/Opera├º├Áes|Opera├º├oes|Operaes/g, 'Operações')
         .replace(/Transa├º├Áes|Transa├º├oes|Transaes/g, 'Transações')
@@ -80,7 +92,8 @@ const app = {
         .replace(/├ú/g, 'ã')
         .replace(/├¡/g, 'í')
         .replace(/├â/g, 'Ã')
-        .replace(/├ª/g, 'ª');
+        .replace(/├ª/g, 'ª')
+        .replace(/Ã/g, 'À'); // Fallback final para 'Ã' isolado que não foi pego pelo decode
     };
 
     const cleanItem = (item) => {
