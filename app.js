@@ -2105,7 +2105,7 @@ const app = {
           completedBy: item.requester || item.requesterName || 'Analista Squad',
           createdDate: item.createdDate || item.date || item.createdAt,
           completionDate: new Date().toLocaleDateString('pt-BR'),
-          gains: item.gains || 'Demanda concluída via alteração de status no painel',
+          gains: item.gains || '',
           devRole: item.devRole,
           devName: item.devName,
           targetDeliveryDate: item.targetDeliveryDate,
@@ -2761,7 +2761,7 @@ const app = {
         <td class="text-slate-300" style="white-space:nowrap; width:160px;">${item.requester || item.completedBy || item.requesterName || 'Solicitante Jira'}</td>
         <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; width:120px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
         <td class="text-slate-300 font-semibold text-xs" style="white-space:nowrap; width:120px;">${this.formatOnlyDate(item.completionDate || item.completedAt)}</td>
-        <td class="text-emerald-400 text-xs italic" style="white-space:normal; word-break:break-word;">${item.gains || 'Demanda concluída com sucesso'}</td>
+        <td class="text-emerald-400 text-xs italic" style="white-space:normal; word-break:break-word;">${item.gains || ''}</td>
       </tr>
     `).join('');
   },
