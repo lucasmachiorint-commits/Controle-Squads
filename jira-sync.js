@@ -16,9 +16,10 @@ const JiraSyncEngine = {
 
     let cards = [];
 
-    // CAMADA 1: Tentar consultar Proxy Local (se rodando em localhost:3000)
+    // CAMADA 1: Tentar consultar Proxy Configurado ou Local
     try {
-      const localUrl = 'http://localhost:3000/api/jira/consultar-cards-jira';
+      const customUrl = localStorage.getItem('cs_jira_custom_url');
+      const localUrl = customUrl ? customUrl : 'http://localhost:3000/api/jira/consultar-cards-jira';
       const res = await fetch(localUrl);
       if (res.ok) {
         const json = await res.json();
