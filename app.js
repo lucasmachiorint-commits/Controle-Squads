@@ -1422,42 +1422,46 @@ const app = {
     if (icon) icon.classList.add('fa-spin');
     if (statusTxt) statusTxt.textContent = 'Sincronizando com Jira Cloud...';
 
-    const result = await JiraSyncEngine.syncJiraCards(this.state, () => this.saveState());
+    try {
+      const result = await JiraSyncEngine.syncJiraCards(this.state, () => this.saveState());
 
-    if (btn) btn.disabled = false;
-    if (icon) icon.classList.remove('fa-spin');
-    if (statusTxt) statusTxt.textContent = result.success ? 'Sincronização concluída' : 'Erro na sincronização';
+      if (statusTxt) statusTxt.textContent = result?.success ? 'Sincronização concluída' : 'Erro na sincronização';
 
-    const fullSyncDateTime = result.extractedAt || `${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`;
-    localStorage.setItem('cs_last_sync_time', fullSyncDateTime);
+      const fullSyncDateTime = result?.extractedAt || `${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`;
+      localStorage.setItem('cs_last_sync_time', fullSyncDateTime);
 
-    const timeEl = document.getElementById('sync-last-time');
-    if (timeEl) {
-      timeEl.textContent = `Última extração Jira: ${fullSyncDateTime}`;
+      const timeEl = document.getElementById('sync-last-time');
+      if (timeEl) {
+        timeEl.textContent = `Última extração Jira: ${fullSyncDateTime}`;
+      }
+
+      // Salvar e atualizar o Status da Atualização (Métricas detalhadas)
+      const metrics = {
+        countNew: result?.countNew || 0,
+        countUpdated: result?.countUpdated || 0,
+        countToCompleted: result?.countToCompleted || 0,
+        countUnchanged: result?.countUnchanged || 0,
+        syncTime: fullSyncDateTime
+      };
+      localStorage.setItem('cs_last_sync_metrics', JSON.stringify(metrics));
+      this.updateSyncMetricsUI(metrics);
+
+      // Toast de notificação com o resumo da atualização
+      const toast = document.getElementById('sync-toast-banner');
+      const toastMsg = document.getElementById('sync-toast-message');
+      if (toast && toastMsg) {
+        toastMsg.textContent = result?.message || `🔄 Quadro sincronizado às ${fullSyncDateTime}!`;
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 5000);
+      }
+    } catch (err) {
+      console.error('[App] Erro ao sincronizar com o Jira:', err);
+      if (statusTxt) statusTxt.textContent = 'Erro na sincronização';
+    } finally {
+      if (btn) btn.disabled = false;
+      if (icon) icon.classList.remove('fa-spin');
+      this.render();
     }
-
-    // Salvar e atualizar o Status da Atualização (Métricas detalhadas)
-    const metrics = {
-      countNew: result.countNew || 0,
-      countUpdated: result.countUpdated || 0,
-      countToCompleted: result.countToCompleted || 0,
-      countUnchanged: result.countUnchanged || 0,
-      syncTime: fullSyncDateTime
-    };
-    localStorage.setItem('cs_last_sync_metrics', JSON.stringify(metrics));
-    this.updateSyncMetricsUI(metrics);
-
-    // Toast de notificação com o resumo da atualização
-    const toast = document.getElementById('sync-toast-banner');
-    const toastMsg = document.getElementById('sync-toast-message');
-    if (toast && toastMsg) {
-      toastMsg.textContent = result.message || `🔄 Quadro sincronizado às ${fullSyncDateTime}!`;
-      toast.classList.remove('hidden');
-      setTimeout(() => toast.classList.add('hidden'), 5000);
-    }
-
-    // Re-renderizar a interface inteira imediatamente para atualizar cards em andamento, triagem e concluídos
-    this.render();
   },
 
   triageFilter: 'pending',
