@@ -719,7 +719,11 @@ const app = {
       try {
         const metrics = JSON.parse(savedMetrics);
         this.updateSyncMetricsUI(metrics);
-      } catch (e) {}
+      } catch (e) {
+        this.updateSyncMetricsUI({ countNew: 0, countUpdated: 0, countToCompleted: 0, countUnchanged: 0 });
+      }
+    } else {
+      this.updateSyncMetricsUI({ countNew: 0, countUpdated: 0, countToCompleted: 0, countUnchanged: 0 });
     }
   },
 
@@ -870,14 +874,9 @@ const app = {
     }, 1000);
   },
 
-  // Sincronizar automaticamente os cards do Jira se o estado estiver vazio
+  // Inicializar dados de suporte das Squads se estiverem vazios
   seedDefaultDataIfEmpty() {
     this.ensureStateSanity();
-    if (!this.state.triageItems || this.state.triageItems.length === 0) {
-      if (typeof JiraSyncEngine?.syncJiraCards === 'function') {
-        JiraSyncEngine.syncJiraCards(this.state, () => this.saveState());
-      }
-    }
     if (!this.state.resources.dados.length) {
       this.state.resources.dados = [
         {
