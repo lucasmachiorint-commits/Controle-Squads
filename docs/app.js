@@ -1068,8 +1068,25 @@ const app = {
             }
           }
         })
-        .subscribe((status) => {
-          console.log('[Realtime] Status da inscrição:', status);
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'rpa_pendencies'
+        }, async () => {
+          console.log('[Realtime RPA Pendencies] Alteração em pendências de robôs detectada.');
+          await this.loadRpaPendenciesFromSupabase();
+          if (this.activeView === 'rpa-pendencies') {
+            this.renderRpaPendenciesView();
+          }
+        })
+        .subscribe((status, err) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('[Realtime] Conectado e escutando alterações via WebSocket!');
+          } else if (status === 'CHANNEL_ERROR') {
+            console.warn('[Realtime Info] Canal de WebSockets em modo passivo/desativado no Supabase. O sistema opera normalmente via REST API & LocalStorage.', err || '');
+          } else {
+            console.log('[Realtime] Status da inscrição:', status);
+          }
         });
 
       this.realtimeChannel = channel;
