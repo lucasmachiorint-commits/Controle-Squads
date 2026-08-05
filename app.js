@@ -3246,6 +3246,7 @@ const app = {
           responsible: targetItem.responsible,
           severity: targetItem.severity,
           status: targetItem.status,
+          description: initial_note || title,
           history_notes: targetItem.history_notes,
           updated_at: nowIso
         };
