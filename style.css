@@ -1548,6 +1548,32 @@ body.light-theme .modal-title {
   color: #0f172a !important;
 }
 
+body.light-theme #detail-title,
+body.light-theme #detail-requester {
+  color: #0f172a !important;
+}
+
+body.light-theme #detail-created-date {
+  color: #d97706 !important; /* Âmbar escuro legível em fundo claro */
+}
+
+body.light-theme #detail-squad {
+  color: #047857 !important; /* Esmeralda escuro legível em fundo claro */
+}
+
+body.light-theme #section-squad-followup {
+  background: #ffffff !important;
+  border-color: #a7f3d0 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+}
+
+body.light-theme #followup-dev-name,
+body.light-theme #followup-timeline-text {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
 body.light-theme #detail-description {
   background: #f8fafc !important;
   border-color: #e2e8f0 !important;
