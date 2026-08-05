@@ -1,7 +1,6 @@
 /* ==========================================================================
    Controle de Squads - Módulo Isolado de Pendências RPA (rpa-pendencies.js)
-   Interface Limpa (Sem inputs soltos na tela) + Modal Dedicado de Cadastro
-   100% Autônomo, Resiliente com Fallback REST Supabase + LocalStorage
+   Garantia Total de Conexão dos Modais (onclick / window.app / DOM Direct)
    ========================================================================== */
 
 (function () {
@@ -11,14 +10,31 @@
     pendencies: [],
     activeId: null,
 
-    // Inicialização
+    // Inicialização do Módulo
     init() {
       this.injectUI();
       this.fetchPendencies();
       this.setupNavigationHook();
+      this.registerGlobalAliases();
     },
 
-    // 1. Auto-Verificação e Leitura no Supabase via REST Client
+    // 1. Registro de Aliases Globais no window.app para evitar quebras em qualquer onclick
+    registerGlobalAliases() {
+      const self = this;
+      window.RpaPendenciesModule = self;
+
+      if (window.app) {
+        window.app.openNewRpaPendencyModal = function (id = null) { self.openModal(id); };
+        window.app.openRpaPendencyModal = function (id = null) { self.openModal(id); };
+        window.app.closeRpaPendencyModal = function () { self.closeModal(); };
+        window.app.saveRpaPendency = function (e) { self.savePendency(e); };
+        window.app.openRpaPendencyDetailsModal = function (id) { self.openDetailsModal(id); };
+        window.app.closeRpaPendencyDetailsModal = function () { self.closeDetailsModal(); };
+        window.app.renderRpaPendenciesView = function () { self.renderView(); };
+      }
+    },
+
+    // 2. Auto-Verificação e Leitura no Supabase via REST Client
     async fetchPendencies() {
       try {
         if (window.supabaseClient) {
@@ -70,9 +86,9 @@
       } catch (_) {}
     },
 
-    // 2. Injeção Dinâmica da UI (View Limpa + Botão Subnav + Modais)
+    // 3. Injeção Resiliente da UI (View Limpa + Botão Subnav + Modais)
     injectUI() {
-      // Injetar Botão "Pendências RPA" no Subnav das Squads (oculto por padrão)
+      // Injetar Botão "Pendências RPA" no Subnav das Squads
       document.querySelectorAll('.view-container').forEach(container => {
         const subnav = container.querySelector('.flex.items-center.gap-2.mb-6');
         if (subnav && !subnav.querySelector('.rpa-only-tab-btn')) {
@@ -86,7 +102,7 @@
         }
       });
 
-      // Injetar View Limpa da Tabela de Pendências
+      // Injetar View Limpa da Tabela de Pendências se não existir
       if (!document.getElementById('view-rpa-pendencies')) {
         const viewHtml = `
           <div class="view-container" id="view-rpa-pendencies">
@@ -125,7 +141,7 @@
                 </div>
               </div>
 
-              <!-- BARRA DE BUSCA ÚNICA E LIMPA (Padrão igual aos outros menus) -->
+              <!-- BARRA DE BUSCA ÚNICA E LIMPA -->
               <div class="search-box" style="width:100%; margin-bottom:20px;">
                 <i class="fa-solid fa-magnifying-glass search-icon"></i>
                 <input type="search" id="rpa-filter-search" class="input-field" style="padding:12px 14px 12px 44px; font-size:12px;" placeholder="Buscar por robô, ocorrência ou responsável..." onkeyup="RpaPendenciesModule.renderView()">
@@ -161,10 +177,10 @@
         }
       }
 
-      // Injetar Modal Completo de Cadastro / Edição
+      // Injetar Modal Completo de Cadastro / Edição se não existir
       if (!document.getElementById('modal-rpa-edit')) {
         const editModalHtml = `
-          <div class="modal-backdrop hidden" id="modal-rpa-edit" style="z-index: 9999; backdrop-filter: blur(8px);">
+          <div class="modal-backdrop hidden" id="modal-rpa-edit" style="z-index: 99999; backdrop-filter: blur(8px); display: none;">
             <div class="modal-content" style="max-width: 520px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.7); border-radius: 16px; padding: 24px;">
               <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
                 <div class="flex items-center gap-3">
@@ -242,10 +258,10 @@
         document.body.appendChild(this.parseHTML(editModalHtml));
       }
 
-      // Injetar Modal de Detalhes & Histórico
+      // Injetar Modal de Detalhes & Histórico se não existir
       if (!document.getElementById('modal-rpa-details')) {
         const detailsModalHtml = `
-          <div class="modal-backdrop hidden" id="modal-rpa-details" style="z-index: 9999; backdrop-filter: blur(8px);">
+          <div class="modal-backdrop hidden" id="modal-rpa-details" style="z-index: 99999; backdrop-filter: blur(8px); display: none;">
             <div class="modal-content" style="max-width: 640px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.7); border-radius: 16px; padding: 24px;">
               <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
                 <div class="flex items-center gap-3">
@@ -328,7 +344,7 @@
       return tmp.firstElementChild;
     },
 
-    // 3. Hook Limpo na Navegação do App (Sem Alterar o app.js)
+    // 4. Hook Limpo na Navegação do App (Sem Alterar o app.js)
     setupNavigationHook() {
       const checkAndToggleTab = () => {
         const squad = (window.app?.activeSquad || '').toString().toLowerCase();
@@ -379,7 +395,7 @@
       }
     },
 
-    // 4. Renderização da Tabela de Pendências
+    // 5. Renderização da Tabela de Pendências
     renderView() {
       const tbody = document.getElementById('rpa-pendencies-tbody');
       if (!tbody) return;
@@ -469,9 +485,13 @@
       }).join('');
     },
 
-    // 5. Handlers de Modais e Formulários
+    // 6. Handlers de Abertura / Fechamento Garantidos de Modais
     openModal(id = null) {
-      const modal = document.getElementById('modal-rpa-edit');
+      let modal = document.getElementById('modal-rpa-edit');
+      if (!modal) {
+        this.injectUI();
+        modal = document.getElementById('modal-rpa-edit');
+      }
       if (!modal) return;
 
       const titleEl = document.getElementById('rpa-modal-edit-title');
@@ -507,14 +527,15 @@
       }
 
       modal.classList.remove('hidden');
-      modal.style.display = 'flex';
+      modal.style.setProperty('display', 'flex', 'important');
+      modal.style.setProperty('z-index', '99999', 'important');
     },
 
     closeModal() {
       const modal = document.getElementById('modal-rpa-edit');
       if (modal) {
         modal.classList.add('hidden');
-        modal.style.display = 'none';
+        modal.style.setProperty('display', 'none', 'important');
       }
     },
 
@@ -565,7 +586,6 @@
         this.pendencies.unshift(target);
       }
 
-      // Salvar no Supabase via REST Client
       if (window.supabaseClient) {
         try {
           const payload = {
@@ -600,7 +620,11 @@
       if (!item) return;
 
       this.activeId = id;
-      const modal = document.getElementById('modal-rpa-details');
+      let modal = document.getElementById('modal-rpa-details');
+      if (!modal) {
+        this.injectUI();
+        modal = document.getElementById('modal-rpa-details');
+      }
       if (!modal) return;
 
       document.getElementById('rpa-detail-robo-title').textContent = `Robô: ${item.robo_name}`;
@@ -626,7 +650,8 @@
 
       this.renderNotesList(item);
       modal.classList.remove('hidden');
-      modal.style.display = 'flex';
+      modal.style.setProperty('display', 'flex', 'important');
+      modal.style.setProperty('z-index', '99999', 'important');
     },
 
     renderNotesList(item) {
@@ -654,7 +679,7 @@
       const modal = document.getElementById('modal-rpa-details');
       if (modal) {
         modal.classList.add('hidden');
-        modal.style.display = 'none';
+        modal.style.setProperty('display', 'none', 'important');
       }
     },
 
