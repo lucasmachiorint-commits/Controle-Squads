@@ -2561,19 +2561,55 @@ const app = {
 
     if (sprintBanner) {
       sprintBanner.classList.remove('hidden');
+
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
       if (this.activeSquad === 'operacoes') {
-        if (bannerTitle) bannerTitle.textContent = 'Quarter squad de Operações';
-        if (bannerSub) bannerSub.innerHTML = 'Quarter vigente - 3° Término <span class="text-emerald-400 font-black">30/09</span>';
-        if (bannerBadge) bannerBadge.textContent = '3° Quarter';
+        const qIndex = Math.floor(now.getMonth() / 3);
+        const qName = `${qIndex + 1}º Quarter`;
+        const qEndMonths = [2, 5, 8, 11];
+        const qEndDays = [31, 30, 30, 31];
+        const qEndDate = new Date(now.getFullYear(), qEndMonths[qIndex], qEndDays[qIndex]);
+        const qDiffMs = qEndDate.getTime() - today.getTime();
+        const qDaysRemaining = Math.max(0, Math.round(qDiffMs / (1000 * 60 * 60 * 24)));
+        const qDateStr = `${String(qEndDate.getDate()).padStart(2, '0')}/${String(qEndDate.getMonth() + 1).padStart(2, '0')}`;
+
+        if (bannerTitle) bannerTitle.textContent = 'Quarter Squad de Operações';
+        if (bannerSub) bannerSub.innerHTML = `Quarter Vigente • Término: <span class="text-emerald-400 font-black">${qDateStr} (${qDaysRemaining} dias restantes)</span>`;
+        if (bannerBadge) bannerBadge.textContent = qName;
       } else if (this.activeSquad === 'rpa') {
         if (bannerTitle) bannerTitle.textContent = 'Squad de RPA';
         if (bannerSub) bannerSub.innerHTML = 'Atuação por demanda';
         if (bannerBadge) bannerBadge.textContent = 'Sob Demanda';
       } else {
-        // Squad de Dados
+        // Squad de Dados (Sprint 15 dias)
+        let sprintEnd;
+        if (now.getDate() <= 15) {
+          sprintEnd = new Date(now.getFullYear(), now.getMonth(), 15);
+        } else {
+          sprintEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        }
+        const diffMs = sprintEnd.getTime() - today.getTime();
+        const daysRemaining = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+        const dateStr = `${String(sprintEnd.getDate()).padStart(2, '0')}/${String(sprintEnd.getMonth() + 1).padStart(2, '0')}/${sprintEnd.getFullYear()}`;
+
+        let relativeStr = '';
+        let badgeStr = '';
+        if (daysRemaining === 0) {
+          relativeStr = ' (Hoje)';
+          badgeStr = 'ÚLTIMO DIA';
+        } else if (daysRemaining === 1) {
+          relativeStr = ' (Amanhã)';
+          badgeStr = '1 DIA RESTANTE';
+        } else {
+          relativeStr = '';
+          badgeStr = `${daysRemaining} DIAS RESTANTES`;
+        }
+
         if (bannerTitle) bannerTitle.textContent = 'Sprint Squad de Dados (15 dias)';
-        if (bannerSub) bannerSub.innerHTML = 'Sprint Vigente • Término: <span class="text-emerald-400 font-black">31/07/2026 (Amanhã)</span>';
-        if (bannerBadge) bannerBadge.textContent = '1 dia restante';
+        if (bannerSub) bannerSub.innerHTML = `Sprint Vigente • Término: <span class="text-emerald-400 font-black">${dateStr}${relativeStr}</span>`;
+        if (bannerBadge) bannerBadge.textContent = badgeStr;
       }
     }
 
