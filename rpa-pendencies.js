@@ -1,5 +1,6 @@
 /* ==========================================================================
    Controle de Squads - Módulo Isolado de Pendências RPA (rpa-pendencies.js)
+   Interface Limpa (Sem inputs soltos na tela) + Modal Dedicado de Cadastro
    100% Autônomo, Resiliente com Fallback REST Supabase + LocalStorage
    ========================================================================== */
 
@@ -10,7 +11,7 @@
     pendencies: [],
     activeId: null,
 
-    // Initial Bootstrap
+    // Inicialização
     init() {
       this.injectUI();
       this.fetchPendencies();
@@ -50,7 +51,6 @@
         console.warn('[RPA Pendencies] Modo de operação resiliente ativado:', err);
       }
 
-      // LocalStorage Fallback
       this.loadLocal();
       this.renderView();
     },
@@ -70,9 +70,9 @@
       } catch (_) {}
     },
 
-    // 2. Injeção Dinâmica da UI (View + Tab Button + Modais)
+    // 2. Injeção Dinâmica da UI (View Limpa + Botão Subnav + Modais)
     injectUI() {
-      // Inject Subnav Button into Squad Headers if not present
+      // Injetar Botão "Pendências RPA" no Subnav das Squads (oculto por padrão)
       document.querySelectorAll('.view-container').forEach(container => {
         const subnav = container.querySelector('.flex.items-center.gap-2.mb-6');
         if (subnav && !subnav.querySelector('.rpa-only-tab-btn')) {
@@ -86,7 +86,7 @@
         }
       });
 
-      // Inject View Container if not present
+      // Injetar View Limpa da Tabela de Pendências
       if (!document.getElementById('view-rpa-pendencies')) {
         const viewHtml = `
           <div class="view-container" id="view-rpa-pendencies">
@@ -125,44 +125,10 @@
                 </div>
               </div>
 
-              <!-- Filtros em Linha -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6 p-4 rounded-xl" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08);">
-                <div>
-                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Buscar por Robô ou Ocorrência:</label>
-                  <div class="search-box w-full">
-                    <input type="search" id="rpa-filter-search" class="input-field py-2 text-xs" placeholder="Ex: Robô de Extratos..." onkeyup="RpaPendenciesModule.renderView()">
-                  </div>
-                </div>
-                <div>
-                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Responsável:</label>
-                  <select id="rpa-filter-responsible" class="form-control text-xs py-2 px-3" onchange="RpaPendenciesModule.renderView()" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;">
-                    <option value="ALL">Todos os Responsáveis</option>
-                    <option value="Redesign">Redesign (Parceiro)</option>
-                    <option value="Caio (Interno)">Caio (Interno)</option>
-                    <option value="Ambos">Ambos</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Status da Pendência:</label>
-                  <select id="rpa-filter-status" class="form-control text-xs py-2 px-3" onchange="RpaPendenciesModule.renderView()" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;">
-                    <option value="ABERTOS_ONLY" selected>Somente Abertos (Em Aberto / Análise / Cobrança)</option>
-                    <option value="ALL">Todos os Status</option>
-                    <option value="ABERTO">Em Aberto</option>
-                    <option value="EM_ANALISE">Em Análise</option>
-                    <option value="AGUARDANDO_PARCEIRO">Aguardando Parceiro</option>
-                    <option value="RESOLVIDO">Resolvidos</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Severidade:</label>
-                  <select id="rpa-filter-severity" class="form-control text-xs py-2 px-3" onchange="RpaPendenciesModule.renderView()" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;">
-                    <option value="ALL">Todas as Severidades</option>
-                    <option value="CRITICA">🚨 Crítica</option>
-                    <option value="ALTA">🔥 Alta</option>
-                    <option value="MEDIA">⚡ Média</option>
-                    <option value="BAIXA">🟢 Baixa</option>
-                  </select>
-                </div>
+              <!-- BARRA DE BUSCA ÚNICA E LIMPA (Padrão igual aos outros menus) -->
+              <div class="search-box" style="width:100%; margin-bottom:20px;">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="search" id="rpa-filter-search" class="input-field" style="padding:12px 14px 12px 44px; font-size:12px;" placeholder="Buscar por robô, ocorrência ou responsável..." onkeyup="RpaPendenciesModule.renderView()">
               </div>
 
               <!-- Tabela de Pendências -->
@@ -172,10 +138,10 @@
                     <tr>
                       <th style="width: 18%;">ROBÔ AFETADO</th>
                       <th style="min-width: 200px;">DESCRIÇÃO / OCORRÊNCIA</th>
-                      <th style="width: 14%;">RESPONSÁVEL</th>
+                      <th style="width: 15%;">RESPONSÁVEL</th>
                       <th style="width: 12%;">SEVERIDADE</th>
                       <th style="width: 14%;">STATUS</th>
-                      <th style="width: 130px; text-align: right;">AÇÕES</th>
+                      <th style="width: 140px; text-align: right;">AÇÕES</th>
                     </tr>
                   </thead>
                   <tbody id="rpa-pendencies-tbody">
@@ -195,7 +161,7 @@
         }
       }
 
-      // Inject Modals if not present
+      // Injetar Modal Completo de Cadastro / Edição
       if (!document.getElementById('modal-rpa-edit')) {
         const editModalHtml = `
           <div class="modal-backdrop hidden" id="modal-rpa-edit" style="z-index: 9999; backdrop-filter: blur(8px);">
@@ -220,12 +186,12 @@
 
                 <div class="form-group mb-3">
                   <label class="form-label text-xs text-slate-300 font-bold">Nome do Robô Afetado *</label>
-                  <input type="text" class="form-control text-xs py-2.5" id="rpa-edit-robo" placeholder="Ex: Robô de Conciliação" required style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
+                  <input type="text" class="form-control text-xs py-2.5" id="rpa-edit-robo" placeholder="Ex: Robô de Conciliação Extratos" required style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
                 </div>
 
                 <div class="form-group mb-3">
                   <label class="form-label text-xs text-slate-300 font-bold">Título / Resumo do Problema *</label>
-                  <input type="text" class="form-control text-xs py-2.5" id="rpa-edit-title" placeholder="Ex: Timeout na API bancária" required style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
+                  <input type="text" class="form-control text-xs py-2.5" id="rpa-edit-title" placeholder="Ex: Timeout na API bancária durante execução" required style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
                 </div>
 
                 <div class="grid grid-cols-2 gap-3 mb-3">
@@ -249,7 +215,7 @@
                 </div>
 
                 <div class="form-group mb-4">
-                  <label class="form-label text-xs text-slate-300 font-bold">Status *</label>
+                  <label class="form-label text-xs text-slate-300 font-bold">Status Inicial *</label>
                   <select class="form-control text-xs py-2.5" id="rpa-edit-status" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;">
                     <option value="ABERTO">Em Aberto</option>
                     <option value="EM_ANALISE">Em Análise</option>
@@ -259,8 +225,8 @@
                 </div>
 
                 <div class="form-group mb-4">
-                  <label class="form-label text-xs text-slate-300 font-bold">Nota Inicial / Detalhes</label>
-                  <textarea class="form-control text-xs py-2.5" id="rpa-edit-note" rows="3" placeholder="Descreva o chamado..." style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; resize: vertical;"></textarea>
+                  <label class="form-label text-xs text-slate-300 font-bold">Nota Inicial / Detalhes do Incidente</label>
+                  <textarea class="form-control text-xs py-2.5" id="rpa-edit-note" rows="3" placeholder="Descreva o impacto ou motivo do chamado..." style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; resize: vertical;"></textarea>
                 </div>
 
                 <div class="flex items-center justify-end gap-2 pt-3 border-t border-white/10">
@@ -276,6 +242,7 @@
         document.body.appendChild(this.parseHTML(editModalHtml));
       }
 
+      // Injetar Modal de Detalhes & Histórico
       if (!document.getElementById('modal-rpa-details')) {
         const detailsModalHtml = `
           <div class="modal-backdrop hidden" id="modal-rpa-details" style="z-index: 9999; backdrop-filter: blur(8px);">
@@ -377,7 +344,6 @@
           }
         });
 
-        // Se sair da squad de RPA enquanto estiver na view de pendencias, volta pro board
         if (!isRpa && window.app?.activeView === 'rpa-pendencies') {
           window.app.navigate('board');
         }
@@ -420,27 +386,15 @@
 
       const items = this.pendencies || [];
       const search = (document.getElementById('rpa-filter-search')?.value || '').toLowerCase().trim();
-      const respFilter = document.getElementById('rpa-filter-responsible')?.value || 'ALL';
-      const statusFilter = document.getElementById('rpa-filter-status')?.value || 'ABERTOS_ONLY';
-      const sevFilter = document.getElementById('rpa-filter-severity')?.value || 'ALL';
 
       const filtered = items.filter(i => {
         if (search) {
           const matchRobo = (i.robo_name || '').toLowerCase().includes(search);
           const matchTitle = (i.title || '').toLowerCase().includes(search);
+          const matchResp = (i.responsible || '').toLowerCase().includes(search);
           const matchDesc = (i.description || '').toLowerCase().includes(search);
-          if (!matchRobo && !matchTitle && !matchDesc) return false;
+          if (!matchRobo && !matchTitle && !matchResp && !matchDesc) return false;
         }
-
-        if (respFilter !== 'ALL' && i.responsible !== respFilter) return false;
-        if (sevFilter !== 'ALL' && i.severity !== sevFilter) return false;
-
-        if (statusFilter === 'ABERTOS_ONLY') {
-          if (i.status === 'RESOLVIDO') return false;
-        } else if (statusFilter !== 'ALL' && i.status !== statusFilter) {
-          return false;
-        }
-
         return true;
       });
 
@@ -449,7 +403,7 @@
           <tr>
             <td colspan="6" class="text-center py-8 text-slate-400">
               <i class="fa-solid fa-folder-open text-2xl mb-2 block text-slate-500"></i>
-              Nenhuma pendência de robô encontrada.
+              Nenhuma pendência de robô cadastrada ou encontrada.
             </td>
           </tr>
         `;
@@ -576,7 +530,7 @@
       const initial_note = document.getElementById('rpa-edit-note')?.value.trim();
 
       if (!robo_name || !title) {
-        alert('Por favor, preencha o Nome do Robô e o Título.');
+        alert('Por favor, preencha o Nome do Robô e o Título da ocorrência.');
         return;
       }
 
@@ -611,7 +565,7 @@
         this.pendencies.unshift(target);
       }
 
-      // Tentar salvar no Supabase via REST
+      // Salvar no Supabase via REST Client
       if (window.supabaseClient) {
         try {
           const payload = {
