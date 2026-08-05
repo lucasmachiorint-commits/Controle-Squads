@@ -2717,6 +2717,7 @@ const app = {
             onkeydown="if(event.key === 'Enter'){ this.blur(); }"
             onclick="event.stopPropagation(); this.select();"
             title="Digite a posição desejada para reordenar"
+            autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other"
           />
         </td>
         <td class="font-extrabold text-emerald-400" style="white-space:nowrap; width:110px;">${item.gau || item.jiraKey || 'GAU-000'}</td>
