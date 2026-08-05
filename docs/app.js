@@ -1414,14 +1414,17 @@ const app = {
     if (badgeEl) badgeEl.textContent = pendingCount;
   },
 
-  // Limpar todos os cards de demandas (Triagem, Backlog, Em Andamento, Concluídos) mantendo os cadastros de recursos intactos
-  clearAllCards() {
-    if (confirm('Tem certeza que deseja limpar TODOS os cards de demandas (Triagem, Backlog, Em Andamento e Concluídos)? Os desenvolvedores cadastrados serão mantidos.')) {
+  // Limpar todos os cards de demandas (Mesa de Triagem, Backlog, Em Andamento, Concluídos) mantendo os cadastros de recursos intactos
+  async clearAllCards() {
+    if (confirm('Tem certeza que deseja limpar TODOS os cards de demandas (Mesa de Triagem, Backlog, Em Andamento e Concluídos)? Os desenvolvedores cadastrados serão mantidos.')) {
+      // 1. Zeramento total do estado em memória
       this.state.triageItems = [];
       ['dados', 'operacoes', 'rpa'].forEach(id => {
         this.state.backlogItems[id] = [];
         this.state.completedTasks[id] = [];
       });
+
+      // 2. Limpeza completa do LocalStorage
       localStorage.removeItem('cs_triage_items');
       ['dados', 'operacoes', 'rpa'].forEach(id => {
         localStorage.removeItem(`cs_backlog_${id}`);
@@ -1430,17 +1433,33 @@ const app = {
       localStorage.removeItem('cs_last_sync_time');
       localStorage.removeItem('cs_last_sync_metrics');
 
+      // 3. Atualização dos indicadores e métricas
       const timeEl = document.getElementById('sync-last-time');
-      if (timeEl) timeEl.textContent = 'Última atualização: N/D';
-
+      if (timeEl) timeEl.textContent = 'Última atualização: Pendente de sincronização';
       this.updateSyncMetricsUI({ countNew: 0, countUpdated: 0, countToCompleted: 0, countUnchanged: 0 });
 
+      // 4. Salvar estado zerado no LocalStorage e no Supabase (cs_board_state)
       this.saveState();
+      await this.saveStateToSupabase();
 
+      // 5. Exclusão incondicional no Supabase (tabelas cs_tickets e tickets se existirem)
+      if (supabaseClient) {
+        try {
+          await supabaseClient.from('cs_tickets').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+          await supabaseClient.from('tickets').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        } catch (e) {
+          console.warn('[Supabase Direct Delete Exception]', e);
+        }
+      }
+
+      // 6. Re-renderização IMEDIATA de todas as visões (Mesa de Triagem, Board, Backlog, Concluídos, Dashboard, Badges)
+      this.render();
+
+      // 7. Toast de notificação
       const toast = document.getElementById('sync-toast-banner');
       const toastMsg = document.getElementById('sync-toast-message');
       if (toast && toastMsg) {
-        toastMsg.textContent = '🗑️ Todos os cards de demandas foram limpos! Clique em Sincronizar com Jira para recarregar.';
+        toastMsg.textContent = '🗑️ Todos os cards de demandas (incluindo Mesa de Triagem) foram limpos!';
         toast.classList.remove('hidden');
         setTimeout(() => toast.classList.add('hidden'), 5000);
       }
