@@ -1785,10 +1785,13 @@ const app = {
 
   // Configurar a interface do card de acompanhamento para cada Squad específica
   configureSquadFollowupUI(squadKey, item) {
+    const isBacklog = this.activeView === 'backlog' || (item?.status || '').toString().toLowerCase() === 'backlog';
+
     const titleEl = document.getElementById('followup-title');
     const roleContainer = document.getElementById('followup-role-container');
     const nameContainer = document.getElementById('followup-name-container');
     const gridContainer = document.getElementById('followup-grid-container');
+    const gainsContainer = document.getElementById('followup-ganhos-container');
     const labelRoleEl = document.getElementById('followup-label-role');
     const roleSelect = document.getElementById('followup-dev-role');
     const labelNameEl = document.getElementById('followup-label-name');
@@ -1797,6 +1800,17 @@ const app = {
     const dateInput = document.getElementById('followup-dev-target-date');
     const labelProgressEl = document.getElementById('followup-label-progress');
     const progressSelect = document.getElementById('followup-dev-progress');
+
+    // Regra de Negócio: Ocultar Acompanhamento e Ganhos se for demanda do Backlog
+    if (isBacklog) {
+      if (titleEl) titleEl.style.setProperty('display', 'none', 'important');
+      if (gridContainer) gridContainer.style.setProperty('display', 'none', 'important');
+      if (gainsContainer) gainsContainer.style.setProperty('display', 'none', 'important');
+    } else {
+      if (titleEl) titleEl.style.display = 'block';
+      if (gridContainer) gridContainer.style.display = 'grid';
+      if (gainsContainer) gainsContainer.style.display = 'block';
+    }
 
     // Configurações customizadas por Squad
     if (squadKey === 'operacoes') {
