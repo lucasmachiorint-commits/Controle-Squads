@@ -134,12 +134,19 @@ const app = {
     console.log('[APP INIT v9.0.0] Iniciando Controle de Squads...');
     this.ensureStateSanity();
     this.loadTheme();
+    
     const hasSession = await this.checkSession();
     if (!hasSession) {
-      console.warn('[APP INIT] Sessão não autenticada. Exibindo tela de login.');
-      this.showAuthOverlay();
-      return;
+      console.log('[APP INIT] Nenhuma sessão Supabase Auth prévia. Entrando em modo Visitante (Consulta).');
+      this.authUserId = 'guest';
+      this.userEmail = 'visitante@squads.local';
+      this.userName = 'Visitante';
+      this.userRole = 'consulta';
+      this.userStatus = 'ATIVO';
+      this.hideAuthOverlay();
+      this.updateUserBadgeUI();
     }
+
     this.loadLocalState();
     await this.loadStateFromSupabase();
     this.ensureStateSanity();
