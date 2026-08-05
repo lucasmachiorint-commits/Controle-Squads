@@ -110,11 +110,12 @@ const app = {
         item.gains = fixText(item.gains);
         if (item.gains.includes('via alteração de status no painel') || 
             item.gains.includes('via alterao de status no painel') ||
-            item.gains.includes('via alterao de status no painel') ||
             item.gains.includes('via alteracao de status no painel') ||
             item.gains.includes('Demanda concluída com sucesso') ||
             item.gains.includes('Demanda concluda com sucesso') ||
-            item.gains.includes('Demanda concluda com sucesso')) {
+            item.gains.includes('via sincronização com Jira') ||
+            item.gains.includes('via sincronizao com Jira') ||
+            item.gains.includes('via sincronizacao com Jira')) {
           item.gains = '';
         }
       }
@@ -1959,7 +1960,9 @@ const app = {
     if (gainsTextarea) item.gains = gainsTextarea.value;
 
     this.saveState();
-    this.render();
+    if (this.activeView === 'concluidos') this.renderCompletedView();
+    else if (this.activeView === 'board') this.renderBoardView();
+    else if (this.activeView === 'backlog') this.renderBacklogView();
   },
 
   // Adicionar entrada na linha do tempo com auto-save no localStorage

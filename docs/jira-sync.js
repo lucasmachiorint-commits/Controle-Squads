@@ -275,7 +275,7 @@ const JiraSyncEngine = {
             dueDate: card.dueDate || new Date().toISOString().split('T')[0],
             createdDate,
             completionDate: new Date().toLocaleDateString('pt-BR'),
-            gains: 'Concluído via sincronização com Jira',
+            gains: '',
             requesterArea: requester
           });
         } else {
@@ -349,7 +349,7 @@ const JiraSyncEngine = {
             dueDate: card.dueDate || new Date().toISOString().split('T')[0],
             createdDate,
             completionDate: new Date().toLocaleDateString('pt-BR'),
-            gains: 'Concluído via sincronização com Jira',
+            gains: '',
             requesterArea: requester
           });
         } else {
