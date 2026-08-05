@@ -880,8 +880,6 @@ const app = {
     _saveDebounceTimer = setTimeout(() => {
       this.saveStateToSupabase();
     }, 1000);
-
-    this.render();
   },
 
   // Sincronizar automaticamente os cards do Jira se o estado estiver vazio
@@ -1960,9 +1958,9 @@ const app = {
     if (gainsTextarea) item.gains = gainsTextarea.value;
 
     this.saveState();
-    if (this.activeView === 'concluidos') this.renderCompletedView();
-    else if (this.activeView === 'board') this.renderBoardView();
-    else if (this.activeView === 'backlog') this.renderBacklogView();
+    this.renderCompletedView();
+    this.renderBoardView();
+    this.renderBacklogView();
   },
 
   // Adicionar entrada na linha do tempo com auto-save no localStorage
