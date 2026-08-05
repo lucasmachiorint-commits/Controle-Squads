@@ -3062,7 +3062,9 @@ const app = {
           .select('*')
           .order('created_at', { ascending: false });
 
-        if (!error && Array.isArray(data)) {
+        if (error) {
+          console.warn('[Supabase loadRpaPendencies notice]', error.message || error);
+        } else if (Array.isArray(data)) {
           this.state.rpaPendencies = data.map(item => ({
             id: item.id,
             robo_name: item.robo_name || 'Robô sem nome',
@@ -3364,6 +3366,7 @@ const app = {
     } catch (_) {}
 
     this.closeRpaPendencyModal();
+    await this.loadRpaPendenciesFromSupabase();
     await this.renderRpaPendenciesView();
     alert('✅ Pendência de Robô cadastrada/atualizada com sucesso!');
   },
