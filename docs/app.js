@@ -34,7 +34,8 @@ const app = {
     completedTasks: { dados: [], operacoes: [], rpa: [] },
     resources: { dados: [], operacoes: [], rpa: [] },
     dpoLogs: [],
-    usersList: []
+    usersList: [],
+    rpaPendencies: []
   },
 
   ensureStateSanity() {
@@ -50,6 +51,7 @@ const app = {
     });
     if (!Array.isArray(this.state.dpoLogs)) this.state.dpoLogs = [];
     if (!Array.isArray(this.state.usersList)) this.state.usersList = [];
+    if (!Array.isArray(this.state.rpaPendencies)) this.state.rpaPendencies = [];
 
     // Purgar cards fantasmas e reparar textos corrompidos por Mojibake UTF-8
     const ghostKeys = new Set(['GAU-132', 'GAU-133', 'GAU-134', 'GAU-135']);
@@ -140,6 +142,7 @@ const app = {
     await this.loadStateFromSupabase();
     this.ensureStateSanity();
     this.loadUsersState();
+    await this.loadRpaPendenciesFromSupabase();
     this.seedDefaultDataIfEmpty();
     this.setupRealtimeSync();
     this.restoreLastSyncTime();
@@ -759,6 +762,7 @@ const app = {
       squadBadge.innerHTML = `<i class="fa-solid ${icons[squadId]}"></i> ${names[squadId]}`;
     }
 
+    this.updateRpaSubnavVisibility();
     this.render();
   },
 
@@ -770,6 +774,8 @@ const app = {
   // Alternar View Ativa
   navigate(viewId) {
     this.activeView = viewId;
+
+    this.updateRpaSubnavVisibility();
 
     // Atualizar links da sidebar
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -784,7 +790,7 @@ const app = {
       const activeNav = document.getElementById('nav-gestao-acessos');
       if (activeNav) activeNav.classList.add('active');
     } else {
-      // Para visões de squad (board, backlog, concluidos)
+      // Para visões de squad (board, backlog, concluidos, rpa-pendencies)
       const activeSquadNav = document.getElementById(`nav-squad-${this.activeSquad}`);
       if (activeSquadNav) activeSquadNav.classList.add('active');
     }
@@ -802,6 +808,7 @@ const app = {
       board: `Em Andamento - ${squadNames[this.activeSquad]}`,
       backlog: `Backlog - ${squadNames[this.activeSquad]}`,
       concluidos: `Concluídos - ${squadNames[this.activeSquad]}`,
+      'rpa-pendencies': 'Pendências - Squad de RPA',
       'dpo-sync': 'Modo Reunião DPO',
       'dpo-logs': 'Histórico de Alinhamentos DPO',
       'gestao-acessos': 'Gestão de Perfis & Acessos Supabase'
@@ -1491,6 +1498,7 @@ const app = {
     else if (this.activeView === 'board') this.renderBoardView();
     else if (this.activeView === 'backlog') this.renderBacklogView();
     else if (this.activeView === 'concluidos') this.renderCompletedView();
+    else if (this.activeView === 'rpa-pendencies') this.renderRpaPendenciesView();
     else if (this.activeView === 'gestao-acessos') this.renderUsersTable();
 
     this.applyRolePermissions();
@@ -2993,6 +3001,8 @@ const app = {
       document.title = `Backlog_${this.activeSquad}_${dateStr}`;
     } else if (this.activeView === 'concluidos') {
       document.title = `Concluidos_${this.activeSquad}_${dateStr}`;
+    } else if (this.activeView === 'rpa-pendencies') {
+      document.title = `Pendencias_RPA_${dateStr}`;
     } else if (this.activeView === 'gestao-acessos') {
       document.title = `Gestao_Acessos_${dateStr}`;
     } else {
@@ -3017,8 +3027,7 @@ const app = {
 
   openMemberModal() { this.openModal('modal-member'); },
 
-  saveMember(e) {
-    e.preventDefault();
+  addMember() {
     const name = document.getElementById('member-name').value;
     const role = document.getElementById('member-role').value;
     const ops = parseInt(document.getElementById('member-alloc-ops').value) || 50;
@@ -3037,6 +3046,497 @@ const app = {
 
     this.closeModal('modal-member');
     this.saveState();
+  },
+
+  // ============================================================
+  // GESTÃO DE PENDÊNCIAS EXCLUSIVAS DA SQUAD RPA
+  // ============================================================
+  async loadRpaPendenciesFromSupabase() {
+    if (!this.state) this.state = {};
+    if (!Array.isArray(this.state.rpaPendencies)) this.state.rpaPendencies = [];
+
+    if (supabaseClient) {
+      try {
+        const { data, error } = await supabaseClient
+          .from('rpa_pendencies')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && Array.isArray(data)) {
+          this.state.rpaPendencies = data.map(item => ({
+            id: item.id,
+            robo_name: item.robo_name || 'Robô sem nome',
+            title: item.title || 'Sem título',
+            responsible: item.responsible || 'Redesign',
+            status: item.status || 'ABERTO',
+            severity: item.severity || 'MEDIA',
+            history_notes: Array.isArray(item.history_notes) ? item.history_notes : [],
+            created_at: item.created_at || new Date().toISOString(),
+            updated_at: item.updated_at || new Date().toISOString()
+          }));
+          try {
+            localStorage.setItem('cs_rpa_pendencies', JSON.stringify(this.state.rpaPendencies));
+          } catch (_) {}
+          return true;
+        }
+      } catch (err) {
+        console.warn('[loadRpaPendenciesFromSupabase error]', err);
+      }
+    }
+
+    try {
+      const saved = localStorage.getItem('cs_rpa_pendencies');
+      if (saved) this.state.rpaPendencies = JSON.parse(saved);
+    } catch (_) {}
+    return false;
+  },
+
+  updateRpaSubnavVisibility() {
+    const isRpa = this.activeSquad === 'rpa';
+    document.querySelectorAll('.rpa-only-tab').forEach(el => {
+      if (isRpa) {
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+      }
+    });
+
+    if (!isRpa && this.activeView === 'rpa-pendencies') {
+      this.navigate('board');
+    }
+  },
+
+  renderRpaPendenciesView() {
+    if (!this.state.rpaPendencies) this.state.rpaPendencies = [];
+    const tbody = document.getElementById('tbody-rpa-pendencies');
+    if (!tbody) return;
+
+    const searchTerm = (document.getElementById('search-rpa-pendencies')?.value || '').toLowerCase().trim();
+    const responsibleFilter = document.getElementById('filter-rpa-responsible')?.value || 'ALL';
+    const statusFilter = document.getElementById('filter-rpa-status')?.value || 'ABERTOS_ONLY';
+    const severityFilter = document.getElementById('filter-rpa-severity')?.value || 'ALL';
+
+    const filtered = this.state.rpaPendencies.filter(item => {
+      if (searchTerm) {
+        const matchRobo = (item.robo_name || '').toLowerCase().includes(searchTerm);
+        const matchTitle = (item.title || '').toLowerCase().includes(searchTerm);
+        if (!matchRobo && !matchTitle) return false;
+      }
+
+      if (responsibleFilter !== 'ALL' && item.responsible !== responsibleFilter) {
+        return false;
+      }
+
+      if (severityFilter !== 'ALL' && item.severity !== severityFilter) {
+        return false;
+      }
+
+      if (statusFilter === 'ABERTOS_ONLY') {
+        if (item.status === 'RESOLVIDO') return false;
+      } else if (statusFilter !== 'ALL' && item.status !== statusFilter) {
+        return false;
+      }
+
+      return true;
+    });
+
+    if (!filtered.length) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="text-center py-8 text-slate-400">
+            <i class="fa-solid fa-folder-open text-2xl mb-2 block text-slate-500"></i>
+            Nenhuma pendência encontrada com os filtros selecionados.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    const isAdmin = this.userRole === 'admin';
+
+    tbody.innerHTML = filtered.map(item => {
+      let respBadge = '';
+      if (item.responsible === 'Redesign') {
+        respBadge = `<span class="badge bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2.5 py-1 font-bold text-[11px] rounded-lg">Redesign (Parceiro)</span>`;
+      } else if (item.responsible === 'Caio (Interno)') {
+        respBadge = `<span class="badge bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 font-bold text-[11px] rounded-lg">Caio (Interno)</span>`;
+      } else {
+        respBadge = `<span class="badge bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-1 font-bold text-[11px] rounded-lg">Ambos</span>`;
+      }
+
+      let sevBadge = '';
+      if (item.severity === 'CRITICA') {
+        sevBadge = `<span class="badge bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2 py-0.5 font-bold text-[10px]">🚨 Crítica</span>`;
+      } else if (item.severity === 'ALTA') {
+        sevBadge = `<span class="badge bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 font-bold text-[10px]">🔥 Alta</span>`;
+      } else if (item.severity === 'MEDIA') {
+        sevBadge = `<span class="badge bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 px-2 py-0.5 font-bold text-[10px]">⚡ Média</span>`;
+      } else {
+        sevBadge = `<span class="badge bg-slate-500/20 text-slate-300 border border-slate-500/30 px-2 py-0.5 font-bold text-[10px]">🟢 Baixa</span>`;
+      }
+
+      let statusBadge = '';
+      if (item.status === 'ABERTO') {
+        statusBadge = `<span class="badge bg-rose-500/20 text-rose-300 border border-rose-500/40 px-2.5 py-1 font-extrabold text-[11px]">Em Aberto</span>`;
+      } else if (item.status === 'EM_ANALISE') {
+        statusBadge = `<span class="badge bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 font-extrabold text-[11px]">Em Análise</span>`;
+      } else if (item.status === 'AGUARDANDO_PARCEIRO') {
+        statusBadge = `<span class="badge bg-purple-500/20 text-purple-300 border border-purple-500/40 px-2.5 py-1 font-extrabold text-[11px]">Aguardando Parceiro</span>`;
+      } else {
+        statusBadge = `<span class="badge bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 font-extrabold text-[11px]">Resolvido</span>`;
+      }
+
+      const notesCount = (item.history_notes || []).length;
+      const lastUpdate = this.formatOnlyDate(item.updated_at || item.created_at);
+
+      return `
+        <tr class="hover:bg-white/5 transition-all">
+          <td style="padding: 14px 16px;">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-robot text-amber-400"></i>
+              <span class="font-extrabold text-white text-xs">${item.robo_name}</span>
+            </div>
+          </td>
+          <td style="padding: 14px 16px;">
+            <span class="font-semibold text-slate-200 text-xs block">${item.title}</span>
+            <span class="text-[10px] text-slate-400"><i class="fa-solid fa-clock me-1"></i>Atualizado em ${lastUpdate} · ${notesCount} nota(s)</span>
+          </td>
+          <td style="padding: 14px 16px;">${respBadge}</td>
+          <td style="padding: 14px 16px;">${sevBadge}</td>
+          <td style="padding: 14px 16px;">${statusBadge}</td>
+          <td style="padding: 14px 16px; text-align: right;">
+            <div class="flex items-center justify-end gap-1.5">
+              <button onclick="app.openRpaPendencyDetailsModal('${item.id}')" class="btn btn-secondary text-[11px] py-1 px-2.5" title="Ver Detalhes e Notas de Cobrança">
+                <i class="fa-solid fa-comments text-indigo-400 me-1"></i> Notas (${notesCount})
+              </button>
+              ${isAdmin ? `
+                <button onclick="app.openNewRpaPendencyModal('${item.id}')" class="btn btn-secondary text-[11px] py-1 px-2" title="Editar Pendência">
+                  <i class="fa-solid fa-pen text-slate-300"></i>
+                </button>
+                <button onclick="app.deleteRpaPendency('${item.id}')" class="btn btn-secondary text-[11px] py-1 px-2 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30" title="Excluir Pendência">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              ` : ''}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  },
+
+  openNewRpaPendencyModal(id = null) {
+    const modal = document.getElementById('modal-rpa-pendency-edit');
+    if (!modal) return;
+
+    const titleEl = document.getElementById('rpa-pendency-modal-title');
+    const idEl = document.getElementById('rpa-pendency-id');
+    const roboEl = document.getElementById('rpa-pendency-robo');
+    const titleInput = document.getElementById('rpa-pendency-title');
+    const respEl = document.getElementById('rpa-pendency-responsible');
+    const sevEl = document.getElementById('rpa-pendency-severity');
+    const statusEl = document.getElementById('rpa-pendency-status');
+    const noteEl = document.getElementById('rpa-pendency-initial-note');
+
+    if (id) {
+      const item = (this.state.rpaPendencies || []).find(i => i.id === id);
+      if (item) {
+        if (titleEl) titleEl.textContent = 'Editar Ocorrência RPA';
+        if (idEl) idEl.value = item.id;
+        if (roboEl) roboEl.value = item.robo_name;
+        if (titleInput) titleInput.value = item.title;
+        if (respEl) respEl.value = item.responsible;
+        if (sevEl) sevEl.value = item.severity;
+        if (statusEl) statusEl.value = item.status;
+        if (noteEl) noteEl.value = '';
+      }
+    } else {
+      if (titleEl) titleEl.textContent = 'Cadastrar Ocorrência RPA';
+      if (idEl) idEl.value = '';
+      if (roboEl) roboEl.value = '';
+      if (titleInput) titleInput.value = '';
+      if (respEl) respEl.value = 'Redesign';
+      if (sevEl) sevEl.value = 'MEDIA';
+      if (statusEl) statusEl.value = 'ABERTO';
+      if (noteEl) noteEl.value = '';
+    }
+
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+  },
+
+  closeRpaPendencyModal() {
+    const modal = document.getElementById('modal-rpa-pendency-edit');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.style.display = 'none';
+    }
+  },
+
+  async saveRpaPendency(e) {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+
+    const id = document.getElementById('rpa-pendency-id')?.value;
+    const robo_name = document.getElementById('rpa-pendency-robo')?.value.trim();
+    const title = document.getElementById('rpa-pendency-title')?.value.trim();
+    const responsible = document.getElementById('rpa-pendency-responsible')?.value;
+    const severity = document.getElementById('rpa-pendency-severity')?.value;
+    const status = document.getElementById('rpa-pendency-status')?.value;
+    const initial_note = document.getElementById('rpa-pendency-initial-note')?.value.trim();
+
+    if (!robo_name || !title) {
+      alert('Por favor, preencha o Nome do Robô e a Descrição da ocorrência.');
+      return;
+    }
+
+    if (!this.state.rpaPendencies) this.state.rpaPendencies = [];
+
+    let targetItem = id ? this.state.rpaPendencies.find(i => i.id === id) : null;
+    const nowIso = new Date().toISOString();
+
+    if (targetItem) {
+      targetItem.robo_name = robo_name;
+      targetItem.title = title;
+      targetItem.responsible = responsible;
+      targetItem.severity = severity;
+      targetItem.status = status;
+      targetItem.updated_at = nowIso;
+
+      if (initial_note) {
+        if (!Array.isArray(targetItem.history_notes)) targetItem.history_notes = [];
+        targetItem.history_notes.unshift({
+          date: nowIso,
+          author: this.userName || 'Usuário',
+          text: initial_note
+        });
+      }
+    } else {
+      const notes = initial_note ? [{
+        date: nowIso,
+        author: this.userName || 'Usuário',
+        text: initial_note
+      }] : [];
+
+      targetItem = {
+        id: 'rpa-' + Date.now(),
+        robo_name,
+        title,
+        responsible,
+        severity,
+        status,
+        history_notes: notes,
+        created_at: nowIso,
+        updated_at: nowIso
+      };
+      this.state.rpaPendencies.unshift(targetItem);
+    }
+
+    // Persistir no Supabase
+    if (supabaseClient) {
+      try {
+        const payload = {
+          robo_name: targetItem.robo_name,
+          title: targetItem.title,
+          responsible: targetItem.responsible,
+          severity: targetItem.severity,
+          status: targetItem.status,
+          history_notes: targetItem.history_notes,
+          updated_at: nowIso
+        };
+        if (id && !id.startsWith('rpa-')) {
+          await supabaseClient.from('rpa_pendencies').update(payload).eq('id', id);
+        } else {
+          const { data, error } = await supabaseClient.from('rpa_pendencies').insert([payload]).select().single();
+          if (!error && data) {
+            targetItem.id = data.id;
+          }
+        }
+      } catch (err) {
+        console.warn('[saveRpaPendency Supabase error]', err);
+      }
+    }
+
+    try {
+      localStorage.setItem('cs_rpa_pendencies', JSON.stringify(this.state.rpaPendencies));
+    } catch (_) {}
+
+    this.closeRpaPendencyModal();
+    this.renderRpaPendenciesView();
+  },
+
+  openRpaPendencyDetailsModal(id) {
+    const item = (this.state.rpaPendencies || []).find(i => i.id === id);
+    if (!item) return;
+
+    this.activeRpaPendencyId = id;
+
+    const modal = document.getElementById('modal-rpa-pendency-details');
+    if (!modal) return;
+
+    const titleEl = document.getElementById('rpa-detail-title');
+    const respEl = document.getElementById('rpa-detail-responsible');
+    const sevEl = document.getElementById('rpa-detail-severity');
+    const statusBadgeEl = document.getElementById('rpa-detail-status-badge');
+    const createdEl = document.getElementById('rpa-detail-created');
+    const statusSelectEl = document.getElementById('rpa-detail-status-select');
+
+    if (titleEl) titleEl.textContent = `Robô: ${item.robo_name}`;
+    if (respEl) respEl.textContent = item.responsible;
+    if (createdEl) createdEl.textContent = this.formatOnlyDate(item.created_at);
+    if (statusSelectEl) statusSelectEl.value = item.status;
+
+    if (sevEl) {
+      if (item.severity === 'CRITICA') sevEl.innerHTML = '<span class="text-rose-400 font-extrabold">🚨 Crítica</span>';
+      else if (item.severity === 'ALTA') sevEl.innerHTML = '<span class="text-amber-400 font-extrabold">🔥 Alta</span>';
+      else if (item.severity === 'MEDIA') sevEl.innerHTML = '<span class="text-yellow-400 font-extrabold">⚡ Média</span>';
+      else sevEl.innerHTML = '<span class="text-slate-300 font-extrabold">🟢 Baixa</span>';
+    }
+
+    if (statusBadgeEl) {
+      if (item.status === 'ABERTO') statusBadgeEl.innerHTML = '<span class="badge bg-rose-500/20 text-rose-300 border border-rose-500/40 px-2 py-0.5 font-bold text-[10px]">Em Aberto</span>';
+      else if (item.status === 'EM_ANALISE') statusBadgeEl.innerHTML = '<span class="badge bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 font-bold text-[10px]">Em Análise</span>';
+      else if (item.status === 'AGUARDANDO_PARCEIRO') statusBadgeEl.innerHTML = '<span class="badge bg-purple-500/20 text-purple-300 border border-purple-500/40 px-2 py-0.5 font-bold text-[10px]">Aguardando Parceiro</span>';
+      else statusBadgeEl.innerHTML = '<span class="badge bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 font-bold text-[10px]">Resolvido</span>';
+    }
+
+    this.renderRpaPendencyNotesList(item);
+
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+  },
+
+  renderRpaPendencyNotesList(item) {
+    const listEl = document.getElementById('rpa-detail-notes-list');
+    if (!listEl) return;
+
+    const notes = item.history_notes || [];
+    if (!notes.length) {
+      listEl.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Nenhuma nota ou cobrança registrada até o momento.</p>`;
+      return;
+    }
+
+    listEl.innerHTML = notes.map(n => `
+      <div class="mb-2.5 pb-2.5 border-b border-white/5 last:border-none last:mb-0 last:pb-0">
+        <div class="flex items-center justify-between gap-2 mb-1">
+          <span class="text-[11px] font-bold text-emerald-400"><i class="fa-solid fa-user me-1"></i>${n.author || 'Usuário'}</span>
+          <span class="text-[10px] text-slate-400 font-mono">${this.formatOnlyDate(n.date)}</span>
+        </div>
+        <p class="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">${n.text}</p>
+      </div>
+    `).join('');
+  },
+
+  closeRpaPendencyDetailsModal() {
+    const modal = document.getElementById('modal-rpa-pendency-details');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.style.display = 'none';
+    }
+  },
+
+  async addRpaPendencyNote() {
+    const id = this.activeRpaPendencyId;
+    if (!id) return;
+
+    const textarea = document.getElementById('rpa-detail-new-note');
+    const text = (textarea?.value || '').trim();
+    if (!text) {
+      alert('Digite o texto da nota de cobrança.');
+      return;
+    }
+
+    const item = (this.state.rpaPendencies || []).find(i => i.id === id);
+    if (!item) return;
+
+    if (!Array.isArray(item.history_notes)) item.history_notes = [];
+    const nowIso = new Date().toISOString();
+
+    const newNote = {
+      date: nowIso,
+      author: this.userName || 'Usuário',
+      text: text
+    };
+
+    item.history_notes.unshift(newNote);
+    item.updated_at = nowIso;
+
+    if (supabaseClient) {
+      try {
+        await supabaseClient
+          .from('rpa_pendencies')
+          .update({ history_notes: item.history_notes, updated_at: nowIso })
+          .eq('id', id);
+      } catch (err) {
+        console.warn('[addRpaPendencyNote Supabase error]', err);
+      }
+    }
+
+    try {
+      localStorage.setItem('cs_rpa_pendencies', JSON.stringify(this.state.rpaPendencies));
+    } catch (_) {}
+
+    if (textarea) textarea.value = '';
+    this.renderRpaPendencyNotesList(item);
+    this.renderRpaPendenciesView();
+  },
+
+  async updateRpaPendencyStatusFromModal(newStatus) {
+    const id = this.activeRpaPendencyId;
+    if (!id) return;
+
+    const item = (this.state.rpaPendencies || []).find(i => i.id === id);
+    if (!item) return;
+
+    const oldStatus = item.status;
+    if (oldStatus === newStatus) return;
+
+    item.status = newStatus;
+    const nowIso = new Date().toISOString();
+    item.updated_at = nowIso;
+
+    if (!Array.isArray(item.history_notes)) item.history_notes = [];
+    item.history_notes.unshift({
+      date: nowIso,
+      author: 'Sistema',
+      text: `Status alterado de "${oldStatus}" para "${newStatus}".`
+    });
+
+    if (supabaseClient) {
+      try {
+        await supabaseClient
+          .from('rpa_pendencies')
+          .update({ status: newStatus, history_notes: item.history_notes, updated_at: nowIso })
+          .eq('id', id);
+      } catch (err) {
+        console.warn('[updateRpaPendencyStatusFromModal Supabase error]', err);
+      }
+    }
+
+    try {
+      localStorage.setItem('cs_rpa_pendencies', JSON.stringify(this.state.rpaPendencies));
+    } catch (_) {}
+
+    this.openRpaPendencyDetailsModal(id);
+    this.renderRpaPendenciesView();
+  },
+
+  async deleteRpaPendency(id) {
+    if (!confirm('Tem certeza que deseja excluir esta pendência de robô?')) return;
+
+    this.state.rpaPendencies = (this.state.rpaPendencies || []).filter(i => i.id !== id);
+
+    if (supabaseClient) {
+      try {
+        await supabaseClient.from('rpa_pendencies').delete().eq('id', id);
+      } catch (err) {
+        console.warn('[deleteRpaPendency Supabase error]', err);
+      }
+    }
+
+    try {
+      localStorage.setItem('cs_rpa_pendencies', JSON.stringify(this.state.rpaPendencies));
+    } catch (_) {}
+
+    this.renderRpaPendenciesView();
   }
 };
 

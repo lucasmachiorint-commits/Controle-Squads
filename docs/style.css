@@ -1549,7 +1549,9 @@ body.light-theme .modal-title {
 }
 
 body.light-theme #detail-title,
-body.light-theme #detail-requester {
+body.light-theme #detail-requester,
+body.light-theme #rpa-detail-title,
+body.light-theme #rpa-pendency-modal-title {
   color: #0f172a !important;
 }
 

@@ -451,7 +451,6 @@
 
     <!-- VIEW 3: DEMANDAS EM ANDAMENTO (ANTIGO QUADRO DA SQUAD) -->
     <div class="view-container" id="view-board">
-      <!-- SUB-NAVEGAÇÃO DA SQUAD -->
       <div class="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
         <button class="btn btn-primary text-xs py-1.5 px-3" onclick="app.navigate('board')">
           <i class="fa-solid fa-spinner text-emerald-400 me-1"></i> Em Andamento
@@ -461,6 +460,9 @@
         </button>
         <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('concluidos')">
           <i class="fa-solid fa-circle-check me-1"></i> Concluídos
+        </button>
+        <button class="btn btn-secondary text-xs py-1.5 px-3 rpa-only-tab hidden" onclick="app.navigate('rpa-pendencies')">
+          <i class="fa-solid fa-triangle-exclamation text-amber-400 me-1"></i> Pendências RPA
         </button>
       </div>
       <!-- BANNER DE SPRINT / QUARTER DINÂMICO POR SQUAD -->
@@ -522,7 +524,6 @@
 
     <!-- VIEW 4: BACKLOG DE DEMANDAS -->
     <div class="view-container" id="view-backlog">
-      <!-- SUB-NAVEGAÇÃO DA SQUAD -->
       <div class="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
         <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('board')">
           <i class="fa-solid fa-spinner text-emerald-400 me-1"></i> Em Andamento
@@ -532,6 +533,9 @@
         </button>
         <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('concluidos')">
           <i class="fa-solid fa-circle-check me-1"></i> Concluídos
+        </button>
+        <button class="btn btn-secondary text-xs py-1.5 px-3 rpa-only-tab hidden" onclick="app.navigate('rpa-pendencies')">
+          <i class="fa-solid fa-triangle-exclamation text-amber-400 me-1"></i> Pendências RPA
         </button>
       </div>
       <div class="triage-table-panel">
@@ -577,8 +581,7 @@
 
     <!-- VIEW 5: CONCLUÍDOS -->
     <div class="view-container" id="view-concluidos">
-      <!-- SUB-NAVEGAÇÃO DA SQUAD -->
-      <div class="flex items-center gap-2 mb-6 border-white/10 pb-4">
+      <div class="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
         <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('board')">
           <i class="fa-solid fa-spinner text-emerald-400 me-1"></i> Em Andamento
         </button>
@@ -587,6 +590,9 @@
         </button>
         <button class="btn btn-primary text-xs py-1.5 px-3" onclick="app.navigate('concluidos')">
           <i class="fa-solid fa-circle-check me-1"></i> Concluídos
+        </button>
+        <button class="btn btn-secondary text-xs py-1.5 px-3 rpa-only-tab hidden" onclick="app.navigate('rpa-pendencies')">
+          <i class="fa-solid fa-triangle-exclamation text-amber-400 me-1"></i> Pendências RPA
         </button>
       </div>
       <div class="triage-table-panel">
@@ -623,6 +629,106 @@
               </tr>
             </thead>
             <tbody id="completed-table-body">
+              <!-- Dinamicamente gerado via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: PENDÊNCIAS EXCLUSIVAS DA SQUAD DE RPA -->
+    <div class="view-container" id="view-rpa-pendencies">
+      <!-- SUB-NAVEGAÇÃO DA SQUAD -->
+      <div class="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
+        <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('board')">
+          <i class="fa-solid fa-spinner text-emerald-400 me-1"></i> Em Andamento
+        </button>
+        <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('backlog')">
+          <i class="fa-solid fa-list-check me-1"></i> Backlog
+        </button>
+        <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('concluidos')">
+          <i class="fa-solid fa-circle-check me-1"></i> Concluídos
+        </button>
+        <button class="btn btn-primary text-xs py-1.5 px-3 rpa-only-tab" onclick="app.navigate('rpa-pendencies')">
+          <i class="fa-solid fa-triangle-exclamation text-amber-400 me-1"></i> Pendências RPA
+        </button>
+      </div>
+
+      <div class="triage-table-panel">
+        <div class="panel-header-row mb-6">
+          <div class="panel-header-left">
+            <h2 style="font-size:20px; font-weight:800; color:#fff; margin:0;">
+              <i class="fa-solid fa-robot text-amber-400 me-2"></i> Pendências de Robôs em Produção
+            </h2>
+            <p style="font-size:12px; color:#94a3b8; margin:4px 0 0 0;">
+              Ocorrências recorrentes, problemas de infra/APIs e histórico de cobrança (Redesign & Caio)
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" class="btn btn-primary text-xs py-2 px-3.5 admin-only" onclick="app.openNewRpaPendencyModal()">
+              <i class="fa-solid fa-plus me-1.5"></i> Nova Pendência
+            </button>
+            <button type="button" class="btn btn-secondary btn-export text-xs py-2 px-3.5" onclick="app.exportPDF()">
+              <i class="fa-solid fa-print text-indigo-400 me-1.5"></i> Imprimir / PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- FILTROS RÁPIDOS DA TABELA DE PENDÊNCIAS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6 p-4 rounded-xl" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08);">
+          <div>
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Buscar por Robô ou Ocorrência:</label>
+            <div class="search-box w-full">
+              <i class="fa-solid fa-magnifying-glass search-icon"></i>
+              <input type="search" name="search_rpa_pendencies_no_autocomplete" class="input-field py-2 text-xs" id="search-rpa-pendencies" placeholder="Ex: Robô de Conciliação..." onkeyup="app.renderRpaPendenciesView()" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other">
+            </div>
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Responsável:</label>
+            <select id="filter-rpa-responsible" class="form-control text-xs py-2 px-3" onchange="app.renderRpaPendenciesView()" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;">
+              <option value="ALL">Todos os Responsáveis</option>
+              <option value="Redesign">Redesign (Parceiro)</option>
+              <option value="Caio (Interno)">Caio (Interno)</option>
+              <option value="Ambos">Ambos</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Status da Pendência:</label>
+            <select id="filter-rpa-status" class="form-control text-xs py-2 px-3" onchange="app.renderRpaPendenciesView()" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;">
+              <option value="ABERTOS_ONLY" selected>Somente Abertos (Em Aberto / Análise / Cobrança)</option>
+              <option value="ALL">Todos os Status</option>
+              <option value="ABERTO">Em Aberto</option>
+              <option value="EM_ANALISE">Em Análise</option>
+              <option value="AGUARDANDO_PARCEIRO">Aguardando Parceiro</option>
+              <option value="RESOLVIDO">Resolvidos</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Severidade:</label>
+            <select id="filter-rpa-severity" class="form-control text-xs py-2 px-3" onchange="app.renderRpaPendenciesView()" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;">
+              <option value="ALL">Todas as Severidades</option>
+              <option value="CRITICA">🚨 Crítica</option>
+              <option value="ALTA">🔥 Alta</option>
+              <option value="MEDIA">⚡ Média</option>
+              <option value="BAIXA">🟢 Baixa</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- TABELA DE PENDÊNCIAS DE ROBÔS -->
+        <div class="table-responsive">
+          <table class="custom-table w-full text-left">
+            <thead>
+              <tr>
+                <th style="width: 18%;">ROBÔ AFETADO</th>
+                <th style="min-width: 200px;">DESCRIÇÃO / OCORRÊNCIA</th>
+                <th style="width: 14%;">RESPONSÁVEL</th>
+                <th style="width: 12%;">SEVERIDADE</th>
+                <th style="width: 14%;">STATUS</th>
+                <th style="width: 130px; text-align: right;">AÇÕES</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-rpa-pendencies">
               <!-- Dinamicamente gerado via JS -->
             </tbody>
           </table>
@@ -1050,6 +1156,160 @@
         </div>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- MODAL NOVO / EDITAR PENDÊNCIA DA SQUAD RPA -->
+<div class="modal-backdrop hidden" id="modal-rpa-pendency-edit" style="z-index: 9999; backdrop-filter: blur(8px);">
+  <div class="modal-content" style="max-width: 520px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.7); border-radius: 16px; padding: 24px;">
+    <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold text-lg">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-extrabold text-white tracking-tight" id="rpa-pendency-modal-title">Cadastrar Ocorrência RPA</h3>
+          <p class="text-xs text-slate-400">Controle de Incidentes e Cobrança em Produção</p>
+        </div>
+      </div>
+      <button type="button" class="text-slate-400 hover:text-white transition-colors" onclick="app.closeRpaPendencyModal()">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <form onsubmit="app.saveRpaPendency(event)">
+      <input type="hidden" id="rpa-pendency-id" />
+
+      <div class="form-group mb-3">
+        <label class="form-label text-xs text-slate-300 font-bold">Nome do Robô Afetado *</label>
+        <input type="text" class="form-control text-xs py-2.5" id="rpa-pendency-robo" placeholder="Ex: Robô de Extratos / Conciliação Extratos" required style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
+      </div>
+
+      <div class="form-group mb-3">
+        <label class="form-label text-xs text-slate-300 font-bold">Título / Resumo do Problema *</label>
+        <input type="text" class="form-control text-xs py-2.5" id="rpa-pendency-title" placeholder="Ex: Falha de timeout no login da API bancária" required style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="form-label text-xs text-slate-300 font-bold">Responsável pela Atuação *</label>
+          <select class="form-control text-xs py-2.5" id="rpa-pendency-responsible" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;">
+            <option value="Redesign">Redesign (Parceiro)</option>
+            <option value="Caio (Interno)">Caio (Interno)</option>
+            <option value="Ambos">Ambos</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label text-xs text-slate-300 font-bold">Severidade *</label>
+          <select class="form-control text-xs py-2.5" id="rpa-pendency-severity" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;">
+            <option value="MEDIA">⚡ Média</option>
+            <option value="BAIXA">🟢 Baixa</option>
+            <option value="ALTA">🔥 Alta</option>
+            <option value="CRITICA">🚨 Crítica</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group mb-4">
+        <label class="form-label text-xs text-slate-300 font-bold">Status Inicial *</label>
+        <select class="form-control text-xs py-2.5" id="rpa-pendency-status" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;">
+          <option value="ABERTO">Em Aberto</option>
+          <option value="EM_ANALISE">Em Análise</option>
+          <option value="AGUARDANDO_PARCEIRO">Aguardando Parceiro</option>
+          <option value="RESOLVIDO">Resolvido</option>
+        </select>
+      </div>
+
+      <div class="form-group mb-4">
+        <label class="form-label text-xs text-slate-300 font-bold">Nota Inicial / Detalhe do Incidente</label>
+        <textarea class="form-control text-xs py-2.5" id="rpa-pendency-initial-note" rows="3" placeholder="Descreva o impacto ou motivo do chamado..." style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; resize: vertical;"></textarea>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-white/10">
+        <button type="button" class="btn btn-secondary text-xs px-4 py-2" onclick="app.closeRpaPendencyModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary text-xs px-5 py-2">
+          <i class="fa-solid fa-floppy-disk me-1.5"></i> Salvar Pendência
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL DETALHES E HISTÓRICO DE COBRANÇA DA PENDÊNCIA -->
+<div class="modal-backdrop hidden" id="modal-rpa-pendency-details" style="z-index: 9999; backdrop-filter: blur(8px);">
+  <div class="modal-content" style="max-width: 640px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.7); border-radius: 16px; padding: 24px;">
+    <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-bold text-lg">
+          <i class="fa-solid fa-robot"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-extrabold text-white tracking-tight" id="rpa-detail-title">Robô: --</h3>
+          <p class="text-xs text-slate-400" id="rpa-detail-subtitle">Histórico de Ocorrências e Cobranças</p>
+        </div>
+      </div>
+      <button type="button" class="text-slate-400 hover:text-white transition-colors" onclick="app.closeRpaPendencyDetailsModal()">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <!-- CARDS DE INFORMAÇÕES RÁPIDAS -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4 p-3 rounded-xl bg-slate-900/80 border border-slate-700/50 text-xs">
+      <div>
+        <span class="text-[10px] text-slate-400 block font-bold">RESPONSÁVEL:</span>
+        <span class="font-extrabold text-white" id="rpa-detail-responsible">--</span>
+      </div>
+      <div>
+        <span class="text-[10px] text-slate-400 block font-bold">SEVERIDADE:</span>
+        <span class="font-extrabold" id="rpa-detail-severity">--</span>
+      </div>
+      <div>
+        <span class="text-[10px] text-slate-400 block font-bold">STATUS ATUAL:</span>
+        <span id="rpa-detail-status-badge">--</span>
+      </div>
+      <div>
+        <span class="text-[10px] text-slate-400 block font-bold">CRIADO EM:</span>
+        <span class="text-slate-300 font-mono text-[11px]" id="rpa-detail-created">--</span>
+      </div>
+    </div>
+
+    <!-- SEÇÃO ALTERAR STATUS RÁPIDO -->
+    <div class="flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-900/50 border border-white/10 mb-4">
+      <label class="text-xs font-bold text-slate-300">Alterar Status da Ocorrência:</label>
+      <select id="rpa-detail-status-select" class="form-control text-xs py-1.5 px-3" style="max-width: 200px; background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;" onchange="app.updateRpaPendencyStatusFromModal(this.value)">
+        <option value="ABERTO">Em Aberto</option>
+        <option value="EM_ANALISE">Em Análise</option>
+        <option value="AGUARDANDO_PARCEIRO">Aguardando Parceiro</option>
+        <option value="RESOLVIDO">Resolvido</option>
+      </select>
+    </div>
+
+    <!-- SEÇÃO ADICIONAR NOTA / HISTÓRICO DE COBRANÇA -->
+    <div class="mb-4">
+      <label class="text-xs font-extrabold text-emerald-400 uppercase tracking-wider block mb-2">
+        <i class="fa-solid fa-comment-dots me-1.5"></i> Registrar Cobrança / Evolução
+      </label>
+      <div class="flex gap-2 mb-3">
+        <textarea id="rpa-detail-new-note" rows="2" placeholder="Digite uma nova atualização, data de cobrança ou resposta do parceiro..." class="form-control text-xs p-2.5 flex-1" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; resize: vertical;"></textarea>
+        <button type="button" class="btn btn-primary text-xs px-4 py-2 self-end shrink-0" onclick="app.addRpaPendencyNote()">
+          <i class="fa-solid fa-paper-plane me-1"></i> Registrar
+        </button>
+      </div>
+    </div>
+
+    <!-- HISTÓRICO DAS NOTAS DA PENDÊNCIA -->
+    <div>
+      <label class="text-xs font-extrabold text-slate-400 uppercase tracking-wider block mb-2">
+        <i class="fa-solid fa-clock-rotate-left me-1.5"></i> Histórico de Notas & Timeline
+      </label>
+      <div class="timeline-scroll-container max-h-[180px] overflow-y-auto p-3 rounded-xl bg-slate-950/60 border border-slate-800" id="rpa-detail-notes-list">
+        <!-- Dinamicamente gerado via JS -->
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end pt-4 mt-4 border-t border-white/10">
+      <button type="button" class="btn btn-secondary text-xs px-4 py-2" onclick="app.closeRpaPendencyDetailsModal()">Fechar</button>
+    </div>
   </div>
 </div>
 
