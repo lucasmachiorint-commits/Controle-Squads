@@ -3234,10 +3234,10 @@ const app = {
               <button onclick="app.openRpaPendencyDetailsModal('${item.id}')" class="btn btn-secondary text-[11px] py-1 px-2.5" title="Ver Detalhes e Notas de Cobrança">
                 <i class="fa-solid fa-comments text-indigo-400 me-1"></i> Notas (${notesCount})
               </button>
+              <button onclick="app.openNewRpaPendencyModal('${item.id}')" class="btn btn-secondary text-[11px] py-1 px-2" title="Editar Pendência">
+                <i class="fa-solid fa-pen text-slate-300"></i>
+              </button>
               ${isAdmin ? `
-                <button onclick="app.openNewRpaPendencyModal('${item.id}')" class="btn btn-secondary text-[11px] py-1 px-2" title="Editar Pendência">
-                  <i class="fa-solid fa-pen text-slate-300"></i>
-                </button>
                 <button onclick="app.deleteRpaPendency('${item.id}')" class="btn btn-secondary text-[11px] py-1 px-2 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30" title="Excluir Pendência">
                   <i class="fa-solid fa-trash-can"></i>
                 </button>
