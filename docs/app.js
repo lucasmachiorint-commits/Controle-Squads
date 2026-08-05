@@ -131,10 +131,12 @@ const app = {
   // INICIALIZAÇÃO
   // ============================================================
   async init() {
+    console.log('[APP INIT v9.0.0] Iniciando Controle de Squads...');
     this.ensureStateSanity();
     this.loadTheme();
     const hasSession = await this.checkSession();
     if (!hasSession) {
+      console.warn('[APP INIT] Sessão não autenticada. Exibindo tela de login.');
       this.showAuthOverlay();
       return;
     }
@@ -142,12 +144,15 @@ const app = {
     await this.loadStateFromSupabase();
     this.ensureStateSanity();
     this.loadUsersState();
+    console.log('[APP INIT] Carregando pendências RPA...');
     await this.loadRpaPendenciesFromSupabase();
+    console.log(`[APP INIT] Pendências RPA carregadas: ${this.state.rpaPendencies.length} item(ns).`);
     this.seedDefaultDataIfEmpty();
     this.setupRealtimeSync();
     this.restoreLastSyncTime();
     this.setupKeyboardShortcuts();
     this.render();
+    console.log('[APP INIT v9.0.0] Aplicação inicializada e renderizada com sucesso! ✅');
   },
 
   loadTheme() {
