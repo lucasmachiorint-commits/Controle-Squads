@@ -4,7 +4,7 @@
    ========================================================================== */
 
 const SUPABASE_URL = 'https://dpgtiecmicjytwhmonjw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwZ3RpZWNtaWNqeXR3aG1vbmp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2NTU0MDMsImV4cCI6MjEwMDIzMTQwM30.Ow9xruE1qAFTX3mqELERxrY3CRBOdV_n4MoXXhtt3Y8';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwZ3RpZWNtaWNqeXR3aG1vbmp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4OTIzMDYsImV4cCI6MjEwMTQ2ODMwNn0.LuwxpIc9GTE5z5Hve9eQ9wA-kh7mcATSYx5TtDW71I4';
 
 let supabaseClient = null;
 if (window.supabase) {
