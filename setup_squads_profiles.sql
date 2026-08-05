@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS public.squads_profiles (
   role TEXT DEFAULT 'PENDENTE',
   perfil TEXT DEFAULT 'CONSULTA',
   status TEXT DEFAULT 'PENDING',
-  created_at TIMESTAMP WITH TIMEZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIMEZONE DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 2. Habilitar RLS (Row Level Security)
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS public.cs_board_state (
   id TEXT PRIMARY KEY DEFAULT 'default',
   data JSONB NOT NULL,
   updated_by TEXT,
-  updated_at TIMESTAMP WITH TIMEZONE DEFAULT NOW()
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 ALTER TABLE public.cs_board_state ENABLE ROW LEVEL SECURITY;
@@ -57,5 +57,12 @@ CREATE POLICY "Permitir acesso total a cs_board_state"
   USING (true);
 
 -- 5. Habilitar publicação Realtime para squads_profiles e cs_board_state
-ALTER PUBLICATION supabase_realtime ADD TABLE public.squads_profiles;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.cs_board_state;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.squads_profiles;
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.cs_board_state;
+  END IF;
+EXCEPTION
+  WHEN OTHERS THEN NULL;
+END $$;
