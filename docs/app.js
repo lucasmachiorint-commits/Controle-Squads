@@ -1265,7 +1265,7 @@ const app = {
           </td>
           <td class="text-slate-300 text-xs font-mono" style="padding: 16px 20px;">${user.email}</td>
           <td style="padding: 16px 20px;">
-            <select class="form-control text-xs py-1.5 px-3 ${isAdminCurrentUser ? '' : 'pointer-events-none opacity-60'}" 
+            <select id="user-role-select-${user.id}" class="form-control text-xs py-1.5 px-3 ${isAdminCurrentUser ? '' : 'pointer-events-none opacity-60'}" 
                     onchange="app.changeUserRoleDirectly('${user.id}', this.value)"
                     ${isAdminCurrentUser ? '' : 'disabled="true"'}
                     style="background: rgba(15,23,42,0.9); color:#fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; min-width: 120px;">
@@ -1287,30 +1287,54 @@ const app = {
       return;
     }
 
-    const payload = { status: newStatus };
-    if (newRole) payload.perfil = newRole;
+    // Se newRole não foi passado explicitamente, tenta obter a opção selecionada no dropdown da tabela
+    if (!newRole) {
+      const selectEl = document.getElementById(`user-role-select-${userId}`);
+      if (selectEl && selectEl.value) {
+        newRole = selectEl.value;
+      }
+    }
+
+    const formattedRole = (newRole || 'CONSULTA').toUpperCase();
+    const dbStatus = (newStatus === 'ATIVO' || newStatus === 'ACTIVE') ? 'ACTIVE' : (newStatus === 'BLOQUEADO' || newStatus === 'BLOCKED') ? 'BLOCKED' : 'PENDING';
+    const normStatus = (dbStatus === 'ACTIVE') ? 'ATIVO' : (dbStatus === 'BLOCKED') ? 'BLOQUEADO' : 'PENDENTE';
+
+    const payload = {
+      status: normStatus,
+      perfil: formattedRole,
+      role: formattedRole
+    };
 
     // 1. Atualizar no estado local (localStorage) imediatamente
     if (!this.state.usersList) this.state.usersList = [];
     const targetLocal = this.state.usersList.find(u => u && (u.id === userId || (u.email && u.email.toLowerCase() === userId.toLowerCase())));
     if (targetLocal) {
-      targetLocal.status = newStatus;
-      if (newRole) targetLocal.perfil = newRole;
+      targetLocal.status = normStatus;
+      targetLocal.role = formattedRole;
+      targetLocal.perfil = formattedRole;
     } else {
-      this.state.usersList.push({ id: userId, email: userId, status: newStatus, perfil: newRole || 'CONSULTA' });
+      this.state.usersList.push({ id: userId, email: userId, status: normStatus, role: formattedRole, perfil: formattedRole });
     }
     this.saveUsersState();
 
     // 2. Atualizar no Supabase (squads_profiles com fallback para cs_profiles)
     if (supabaseClient) {
       try {
-        const dbStatus = newStatus === 'ATIVO' ? 'ACTIVE' : newStatus === 'BLOQUEADO' ? 'BLOCKED' : 'PENDING';
-        await supabaseClient.from('squads_profiles').update({ status: dbStatus, role: (newRole || 'CONSULTA').toUpperCase() }).or(`user_id.eq.${userId},id.eq.${userId},email.eq.${userId.toLowerCase()}`);
-        await supabaseClient.from('cs_profiles').update(payload).or(`id.eq.${userId},email.eq.${userId.toLowerCase()}`);
-      } catch (_) {}
+        await supabaseClient
+          .from('squads_profiles')
+          .update({ status: dbStatus, role: formattedRole, perfil: formattedRole })
+          .or(`user_id.eq.${userId},id.eq.${userId},email.eq.${userId.toLowerCase()}`);
+
+        await supabaseClient
+          .from('cs_profiles')
+          .update(payload)
+          .or(`id.eq.${userId},email.eq.${userId.toLowerCase()}`);
+      } catch (err) {
+        console.warn('[updateUserStatus Supabase Error]', err);
+      }
     }
 
-    const msg = newStatus === 'ATIVO' ? '✅ Usuário aprovado e ativado com sucesso!' : '🚫 Acesso do usuário atualizado para ' + newStatus;
+    const msg = normStatus === 'ATIVO' ? '✅ Usuário aprovado e ativado com sucesso como ' + formattedRole : '🚫 Acesso do usuário atualizado para ' + normStatus;
     console.log(msg);
     await this.renderUsersTable();
   },
@@ -1321,19 +1345,41 @@ const app = {
       return;
     }
 
+    const formattedRole = (newRole || 'CONSULTA').toUpperCase();
+
+    // 1. Atualizar no estado local
+    if (!this.state.usersList) this.state.usersList = [];
+    const targetLocal = this.state.usersList.find(u => u && (u.id === userId || (u.email && u.email.toLowerCase() === userId.toLowerCase())));
+    if (targetLocal) {
+      targetLocal.role = formattedRole;
+      targetLocal.perfil = formattedRole;
+    }
+    this.saveUsersState();
+
+    // 2. Atualizar no Supabase (squads_profiles e cs_profiles)
     if (supabaseClient) {
       try {
-        await supabaseClient.from('cs_profiles').update({ perfil: newRole.toUpperCase() }).eq('id', userId);
-      } catch (_) {}
+        await supabaseClient
+          .from('squads_profiles')
+          .update({ role: formattedRole, perfil: formattedRole })
+          .or(`user_id.eq.${userId},id.eq.${userId},email.eq.${userId.toLowerCase()}`);
+
+        await supabaseClient
+          .from('cs_profiles')
+          .update({ perfil: formattedRole, role: formattedRole })
+          .or(`id.eq.${userId},email.eq.${userId.toLowerCase()}`);
+      } catch (err) {
+        console.warn('[changeUserRoleDirectly Supabase Error]', err);
+      }
     }
 
     if (userId === this.authUserId) {
-      this.userRole = newRole.toLowerCase();
+      this.userRole = formattedRole.toLowerCase() === 'admin' ? 'admin' : 'consulta';
       this.updateUserBadgeUI();
       this.applyRolePermissions();
     }
 
-    this.renderUsersTable();
+    await this.renderUsersTable();
   },
 
   openNewUserModal() {
