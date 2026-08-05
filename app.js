@@ -1508,6 +1508,7 @@ const app = {
 
   // Renderizador principal da interface
   render() {
+    this.updateRpaSubnavVisibility();
     this.renderBadgeCounts();
 
     if (this.activeView === 'triagem') this.renderTriageView();
@@ -3111,17 +3112,22 @@ const app = {
   },
 
   updateRpaSubnavVisibility() {
-    const isRpa = this.activeSquad === 'rpa';
+    const isRpa = (this.activeSquad || '').toString().toLowerCase() === 'rpa';
     document.querySelectorAll('.rpa-only-tab').forEach(el => {
       if (isRpa) {
         el.classList.remove('hidden');
+        el.style.setProperty('display', 'inline-flex', 'important');
       } else {
         el.classList.add('hidden');
+        el.style.setProperty('display', 'none', 'important');
       }
     });
 
     if (!isRpa && this.activeView === 'rpa-pendencies') {
-      this.navigate('board');
+      this.activeView = 'board';
+      document.querySelectorAll('.view-container').forEach(e => e.classList.remove('active-view'));
+      const boardView = document.getElementById('view-board');
+      if (boardView) boardView.classList.add('active-view');
     }
   },
 

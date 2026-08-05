@@ -2,6 +2,11 @@
    Controle de Squads & Governança Jira - Visual Design System Executivo (Impeccable UI)
    ========================================================================== */
 
+/* Utilitário global de ocultamento rígido */
+.hidden, [hidden] {
+  display: none !important;
+}
+
 :root {
   --bg-primary: #07090e;
   --bg-secondary: #0d121d;
