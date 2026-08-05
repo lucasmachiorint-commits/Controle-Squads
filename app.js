@@ -750,6 +750,15 @@ const app = {
     if (elUnchanged) elUnchanged.textContent = metrics.countUnchanged || 0;
   },
 
+  // Alternar visibilidade da sidebar em telas mobile
+  toggleMobileSidebar() {
+    const sidebar = document.querySelector('aside') || document.querySelector('.sidebar');
+    if (sidebar) {
+      sidebar.classList.toggle('open');
+      sidebar.classList.toggle('hidden');
+    }
+  },
+
   // Alternar Squad Ativa
   setSquad(squadId) {
     this.activeSquad = squadId;
@@ -3449,6 +3458,9 @@ const app = {
     this.renderRpaPendenciesView();
   }
 };
+
+// Expor objeto app globalmente no window
+window.app = app;
 
 // Inicializar aplicação ao carregar a página
 document.addEventListener('DOMContentLoaded', () => app.init());
