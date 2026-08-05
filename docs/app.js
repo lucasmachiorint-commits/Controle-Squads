@@ -632,7 +632,7 @@ const app = {
 
     // 3. Campos editáveis no Modal de Detalhes (Read-Only para Consulta)
     const modalDetailFields = [
-      'task-gau', 'task-title', 'task-requester', 'task-priority',
+      'task-gau', 'task-title', 'task-requester',
       'followup-dev-role', 'followup-dev-name', 'followup-dev-target-date',
       'followup-dev-progress', 'followup-ganhos', 'followup-timeline-text'
     ];
@@ -2915,7 +2915,6 @@ const app = {
   },
 
   openMemberModal() { this.openModal('modal-member'); },
-  openTaskModal() { this.openModal('modal-task'); },
 
   saveMember(e) {
     e.preventDefault();
@@ -2936,38 +2935,6 @@ const app = {
     });
 
     this.closeModal('modal-member');
-    this.saveState();
-  },
-
-  saveTask(e) {
-    if (e && typeof e.preventDefault === 'function') e.preventDefault();
-    if (this.userRole !== 'admin') {
-      alert('Acesso negado: Apenas administradores podem criar demandas.');
-      return;
-    }
-    const gau = document.getElementById('task-gau').value;
-    const title = document.getElementById('task-title').value;
-    const requester = document.getElementById('task-requester').value;
-    const priority = document.getElementById('task-priority').value;
-    const category = document.getElementById('task-category').value;
-
-    const squadNames = { dados: 'Squad de Dados', operacoes: 'Squad de Operações', rpa: 'Squad de RPA' };
-
-    this.state.backlogItems[this.activeSquad].unshift({
-      id: `backlog-${Date.now()}`,
-      gau,
-      jiraKey: gau,
-      title,
-      requester,
-      team: squadNames[this.activeSquad],
-      priority,
-      category,
-      treatmentOrder: 1,
-      status: 'Pendente',
-      progress: 0
-    });
-
-    this.closeModal('modal-task');
     this.saveState();
   }
 };

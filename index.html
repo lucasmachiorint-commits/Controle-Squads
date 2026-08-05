@@ -755,7 +755,7 @@
 </div>
 
 <!-- MODAL: ADD / EDIT MEMBER -->
-<div class="modal-backdrop" id="modal-member">
+<div class="modal-backdrop hidden" id="modal-member" style="display: none;">
   <div class="glass-panel modal-content">
     <div class="modal-header">
       <h3 class="modal-title">Novo Membro da Squad</h3>
@@ -789,58 +789,8 @@
   </div>
 </div>
 
-<!-- MODAL: ADD / EDIT DEMAND -->
-<div class="modal-backdrop" id="modal-task">
-  <div class="glass-panel modal-content">
-    <div class="modal-header">
-      <h3 class="modal-title">Nova Demanda</h3>
-      <button class="btn btn-secondary" onclick="app.closeModal('modal-task')"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <form onsubmit="app.saveTask(event)">
-      <input type="hidden" id="task-id">
-      <div class="form-group">
-        <label class="form-label">GAU / Código Jira</label>
-        <input type="text" class="form-control" id="task-gau" placeholder="Ex: GAU-1024" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Título da Demanda</label>
-        <input type="text" class="form-control" id="task-title" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Solicitante</label>
-        <input type="text" class="form-control" id="task-requester" required>
-      </div>
-      <div class="grid grid-cols-2 gap-4 form-group">
-        <div>
-          <label class="form-label">Prioridade</label>
-          <select class="form-control" id="task-priority">
-            <option value="1 - Urgente">1 - Urgente</option>
-            <option value="2 - Alta" selected>2 - Alta</option>
-            <option value="3 - Média">3 - Média</option>
-            <option value="4 - Baixa">4 - Baixa</option>
-          </select>
-        </div>
-        <div>
-          <label class="form-label">Categoria</label>
-          <select class="form-control" id="task-category">
-            <option value="Ingestão">Ingestão</option>
-            <option value="Dashboard">Dashboard</option>
-            <option value="API">API</option>
-            <option value="Automação">Automação</option>
-            <option value="Processos" selected>Processos</option>
-          </select>
-        </div>
-      </div>
-      <div class="flex justify-end gap-3 mt-6">
-        <button type="button" class="btn btn-secondary" onclick="app.closeModal('modal-task')">Cancelar</button>
-        <button type="submit" class="btn btn-primary">Salvar Demanda</button>
-      </div>
-    </form>
-  </div>
-</div>
-
 <!-- MODAL: DETALHES COMPLETOS DA DEMANDA (JIRA CLOUD) -->
-<div class="modal-backdrop" id="modal-demand-details" onclick="if(event.target === this) app.closeModal('modal-demand-details', event)">
+<div class="modal-backdrop hidden" id="modal-demand-details" style="display: none;" onclick="if(event.target === this) app.closeModal('modal-demand-details', event)">
   <div class="glass-panel modal-content modal-demand-content">
     <!-- Cabeçalho do Modal: Badges e Botão Único de Fechar (X) -->
     <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px; margin-bottom: 16px;">
