@@ -175,7 +175,7 @@ const app = {
   updateThemeUI(theme) {
     const icon = document.getElementById('theme-toggle-icon');
     if (theme === 'light') {
-      if (icon) icon.className = 'fa-solid fa-moon text-indigo-400 text-lg';
+      if (icon) icon.className = 'fa-solid fa-moon text-indigo-600 text-lg';
     } else {
       if (icon) icon.className = 'fa-solid fa-sun text-amber-400 text-lg';
     }

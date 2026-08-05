@@ -1192,14 +1192,18 @@ body {
 }
 
 body.light-theme .theme-toggle-icon-btn {
-  background: #ffffff;
-  border-color: #cbd5e1;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08) !important;
+}
+
+body.light-theme #theme-toggle-icon {
+  color: #4f46e5 !important; /* Indigo 600 - Excelente contraste sobre fundo claro */
 }
 
 body.light-theme .theme-toggle-icon-btn:hover {
-  background: #f1f5f9;
-  border-color: #94a3b8;
+  background: #f1f5f9 !important;
+  border-color: #94a3b8 !important;
 }
 
 /* ==========================================================================
