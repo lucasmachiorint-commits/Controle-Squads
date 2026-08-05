@@ -220,7 +220,7 @@
         <div class="table-header-box mb-6">
           <div class="search-box w-full">
             <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            <input type="search" class="input-field py-3 text-xs" id="search-triage" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderTriageView()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other">
+            <input type="search" name="search_query_filter_no_autocomplete" class="input-field py-3 text-xs" id="search-triage" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderTriageView()" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other">
           </div>
         </div>
 
@@ -322,11 +322,11 @@
           <div id="dash-custom-date-container" class="hidden" style="display: flex; gap: 8px; width: 100%;">
             <div style="flex: 1;">
               <label style="color: #94a3b8; display: block; font-size: 10px; margin-bottom: 8px; font-weight: 700;">De (Data Inicial):</label>
-              <input type="date" id="dash-date-from" style="width: 100%; padding: 9px 10px; font-size: 11px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #34d399; border-radius: 8px; outline: none;" onchange="app.renderDashboardView()" autocomplete="off" data-lpignore="true" data-1p-ignore="true" data-form-type="other" />
+              <input type="date" name="dash_date_from_filter" id="dash-date-from" style="width: 100%; padding: 9px 10px; font-size: 11px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #34d399; border-radius: 8px; outline: none;" onchange="app.renderDashboardView()" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" />
             </div>
             <div style="flex: 1;">
               <label style="color: #94a3b8; display: block; font-size: 10px; margin-bottom: 8px; font-weight: 700;">Até (Data Final):</label>
-              <input type="date" id="dash-date-to" style="width: 100%; padding: 9px 10px; font-size: 11px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #34d399; border-radius: 8px; outline: none;" onchange="app.renderDashboardView()" autocomplete="off" data-lpignore="true" data-1p-ignore="true" data-form-type="other" />
+              <input type="date" name="dash_date_to_filter" id="dash-date-to" style="width: 100%; padding: 9px 10px; font-size: 11px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #34d399; border-radius: 8px; outline: none;" onchange="app.renderDashboardView()" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" />
             </div>
           </div>
         </div>
@@ -497,7 +497,7 @@
 
         <div class="search-box" style="width:100%; margin-bottom:24px;">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="search" class="input-field" style="padding:12px 14px 12px 44px; font-size:12px;" id="search-board" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderBoardView()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other">
+          <input type="search" name="search_query_filter_no_autocomplete" class="input-field" style="padding:12px 14px 12px 44px; font-size:12px;" id="search-board" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderBoardView()" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other">
         </div>
 
         <div class="table-responsive">
@@ -552,7 +552,7 @@
 
         <div class="search-box" style="width:100%; margin-bottom:24px;">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="search" class="input-field" style="padding:12px 14px 12px 44px; font-size:12px;" id="search-backlog" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderBacklogView()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other">
+          <input type="search" name="search_query_filter_no_autocomplete" class="input-field" style="padding:12px 14px 12px 44px; font-size:12px;" id="search-backlog" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderBacklogView()" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other">
         </div>
 
         <div class="table-responsive">
@@ -607,7 +607,7 @@
 
         <div class="search-box" style="width:100%; margin-bottom:24px;">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="search" class="input-field" style="padding:12px 14px 12px 44px; font-size:12px;" id="search-concluidos" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderCompletedView()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other">
+          <input type="search" name="search_query_filter_no_autocomplete" class="input-field" style="padding:12px 14px 12px 44px; font-size:12px;" id="search-concluidos" placeholder="Buscar por título, GAU ou solicitante..." onkeyup="app.renderCompletedView()" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other">
         </div>
 
         <div class="table-responsive">
