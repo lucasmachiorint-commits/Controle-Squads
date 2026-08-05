@@ -527,6 +527,7 @@
       }
 
       modal.classList.remove('hidden');
+      modal.classList.add('open', 'active');
       modal.style.setProperty('display', 'flex', 'important');
       modal.style.setProperty('z-index', '99999', 'important');
     },
@@ -535,6 +536,7 @@
       const modal = document.getElementById('modal-rpa-edit');
       if (modal) {
         modal.classList.add('hidden');
+        modal.classList.remove('open', 'active');
         modal.style.setProperty('display', 'none', 'important');
       }
     },
@@ -650,6 +652,7 @@
 
       this.renderNotesList(item);
       modal.classList.remove('hidden');
+      modal.classList.add('open', 'active');
       modal.style.setProperty('display', 'flex', 'important');
       modal.style.setProperty('z-index', '99999', 'important');
     },
@@ -679,6 +682,7 @@
       const modal = document.getElementById('modal-rpa-details');
       if (modal) {
         modal.classList.add('hidden');
+        modal.classList.remove('open', 'active');
         modal.style.setProperty('display', 'none', 'important');
       }
     },
