@@ -3314,7 +3314,11 @@ const app = {
         date: nowIso,
         author: this.userName || 'Usuário',
         text: initial_note
-      }] : [];
+      }] : [{
+        date: nowIso,
+        author: this.userName || 'Usuário',
+        text: title
+      }];
 
       targetItem = {
         id: 'rpa-' + Date.now(),
@@ -3360,7 +3364,8 @@ const app = {
     } catch (_) {}
 
     this.closeRpaPendencyModal();
-    this.renderRpaPendenciesView();
+    await this.renderRpaPendenciesView();
+    alert('✅ Pendência de Robô cadastrada/atualizada com sucesso!');
   },
 
   openRpaPendencyDetailsModal(id) {
