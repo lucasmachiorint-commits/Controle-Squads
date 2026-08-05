@@ -1575,4 +1575,147 @@ body.light-theme .status-select-dropdown option {
   color: #0f172a !important;
 }
 
+/* ============================================================
+   @MEDIA PRINT — Impressão Direta (window.print)
+   ============================================================ */
+
+.no-print {
+  /* Classe utilitária para ocultar na impressão */
+}
+
+@media print {
+  /* 1. OCULTAR ELEMENTOS INTERATIVOS E DE NAVEGAÇÃO */
+  .no-print,
+  .sidebar,
+  .top-header,
+  .sidebar-footer,
+  #cs-auth-overlay,
+  #modal-user-edit,
+  #modal-jira-config,
+  #modal-details,
+  .modal-backdrop,
+  .btn-export,
+  .btn-primary[onclick*="triggerJiraSync"],
+  .btn-secondary[onclick*="clearAllCards"],
+  .btn-secondary[onclick*="openJiraConfigModal"],
+  .btn[onclick*="exportPDF"],
+  .btn[onclick*="exportExcel"],
+  .btn[onclick*="toggleTheme"],
+  .theme-toggle-icon-btn,
+  #btn-sync-jira,
+  #btn-clear-cards,
+  #btn-jira-config,
+  #btn-theme-toggle,
+  .search-box,
+  input[type="search"],
+  .header-center-actions {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* 2. LAYOUT: Container principal ocupa 100% sem margem da sidebar */
+  body,
+  html {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 11pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .main-wrapper {
+    margin-left: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: #ffffff !important;
+  }
+
+  /* 3. PRESERVAR CORES DOS CARDS E TABELAS */
+  .glass-card,
+  .glass-panel,
+  .triage-banner-panel,
+  .triage-table-panel,
+  .metric-card,
+  .detail-card,
+  .mini-metric-card {
+    box-shadow: none !important;
+    border: 1px solid #d1d5db !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 4. TABELAS: Garantir legibilidade */
+  .custom-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  .custom-table th,
+  .custom-table td {
+    border: 1px solid #d1d5db !important;
+    padding: 6px 8px !important;
+    font-size: 9pt !important;
+    color: #0f172a !important;
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .custom-table thead th {
+    background: #f1f5f9 !important;
+    font-weight: 700 !important;
+  }
+
+  /* 5. TIPOGRAFIA */
+  h1, h2, h3, h4, h5, h6 {
+    color: #0f172a !important;
+    page-break-after: avoid !important;
+  }
+
+  p, span, label, td, th {
+    color: #1e293b !important;
+  }
+
+  /* 6. LINKS */
+  a {
+    color: #0f172a !important;
+    text-decoration: none !important;
+  }
+
+  /* 7. GRÁFICOS CANVAS */
+  canvas {
+    max-width: 100% !important;
+    height: auto !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* 8. PAGINAÇÃO */
+  .view-container {
+    page-break-before: auto !important;
+  }
+
+  /* 9. SPRINT BANNER */
+  .sprint-banner-dados {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    break-inside: avoid !important;
+  }
+
+  /* 10. MÉTRICAS COLORIDAS */
+  .mini-metric-card.metric-box-emerald,
+  .mini-metric-card.metric-box-amber,
+  .mini-metric-card.metric-box-blue,
+  .mini-metric-card.metric-box-purple {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
 

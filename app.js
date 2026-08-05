@@ -2931,54 +2931,31 @@ const app = {
     XLSX.writeFile(wb, `${viewLabel}_${this.activeSquad}_${new Date().toISOString().split('T')[0]}.xlsx`);
   },
 
-  // Exportar Visão Atual para PDF
+  // Exportar Visão Atual para PDF (via Impressão Nativa do Navegador)
   exportPDF() {
-    let element = null;
-    let fileName = `Controle_Squads_${this.activeView}_${new Date().toISOString().split('T')[0]}.pdf`;
+    document.body.classList.add('printing-mode');
+
+    const originalTitle = document.title;
+    const dateStr = new Date().toISOString().split('T')[0];
 
     if (this.activeView === 'dashboard') {
-      element = document.getElementById('view-dashboard');
-      fileName = `Dashboard_Consolidado_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.title = `Dashboard_Consolidado_${dateStr}`;
     } else if (this.activeView === 'board') {
-      element = document.getElementById('view-board');
-      fileName = `Em_Andamento_${this.activeSquad}_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.title = `Em_Andamento_${this.activeSquad}_${dateStr}`;
     } else if (this.activeView === 'backlog') {
-      element = document.getElementById('view-backlog');
-      fileName = `Backlog_${this.activeSquad}_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.title = `Backlog_${this.activeSquad}_${dateStr}`;
     } else if (this.activeView === 'concluidos') {
-      element = document.getElementById('view-concluidos');
-      fileName = `Concluidos_${this.activeSquad}_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.title = `Concluidos_${this.activeSquad}_${dateStr}`;
     } else if (this.activeView === 'gestao-acessos') {
-      element = document.getElementById('view-gestao-acessos');
-      fileName = `Gestao_Acessos_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.title = `Gestao_Acessos_${dateStr}`;
     } else {
-      element = document.querySelector('.view-container:not(.hidden)') || document.body;
+      document.title = `Mesa_Triagem_${dateStr}`;
     }
 
-    if (!element) {
-      alert('Não foi possível encontrar a visão ativa para exportação PDF.');
-      return;
-    }
+    window.print();
 
-    if (typeof html2pdf === 'undefined') {
-      alert('A biblioteca de exportação PDF ainda está sendo carregada. Tente novamente em alguns segundos.');
-      return;
-    }
-
-    const opt = {
-      margin: [8, 8, 8, 8],
-      filename: fileName,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#090d16' },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-    };
-
-    html2pdf().set(opt).from(element).save().then(() => {
-      console.log('✅ PDF exportado com sucesso:', fileName);
-    }).catch(err => {
-      console.error('Erro ao gerar PDF:', err);
-      alert('Ocorreu um erro ao gerar o PDF: ' + (err.message || err));
-    });
+    document.body.classList.remove('printing-mode');
+    document.title = originalTitle;
   },
 
   // Modais Handlers

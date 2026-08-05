@@ -21,9 +21,6 @@
     
     <!-- SheetJS (Excel Upload/Export) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
-    <!-- html2pdf.js (PDF Export) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <!-- Custom Theme Stylesheet -->
     <link rel="stylesheet" href="style.css?v=1.9.0">
@@ -265,7 +262,7 @@
           </div>
           <div class="flex items-center gap-2">
             <button type="button" class="btn btn-secondary btn-export" onclick="app.exportPDF()">
-              <i class="fa-solid fa-file-pdf" style="color:#ef4444; margin-right:6px;"></i> Exportar PDF
+              <i class="fa-solid fa-print" style="color:#6366f1; margin-right:6px;"></i> Imprimir / PDF
             </button>
           </div>
         </div>
@@ -493,7 +490,7 @@
               <i class="fa-solid fa-file-excel" style="color:#34d399; margin-right:6px;"></i> Exportar Excel
             </button>
             <button type="button" class="btn btn-secondary btn-export" onclick="app.exportPDF()">
-              <i class="fa-solid fa-file-pdf" style="color:#ef4444; margin-right:6px;"></i> Exportar PDF
+              <i class="fa-solid fa-print" style="color:#6366f1; margin-right:6px;"></i> Imprimir / PDF
             </button>
           </div>
         </div>
@@ -548,7 +545,7 @@
               <i class="fa-solid fa-file-excel" style="color:#34d399; margin-right:6px;"></i> Exportar Excel
             </button>
             <button type="button" class="btn btn-secondary btn-export" onclick="app.exportPDF()">
-              <i class="fa-solid fa-file-pdf" style="color:#ef4444; margin-right:6px;"></i> Exportar PDF
+              <i class="fa-solid fa-print" style="color:#6366f1; margin-right:6px;"></i> Imprimir / PDF
             </button>
           </div>
         </div>
@@ -603,7 +600,7 @@
               <i class="fa-solid fa-file-excel" style="color:#34d399; margin-right:6px;"></i> Exportar Excel
             </button>
             <button type="button" class="btn btn-secondary btn-export" onclick="app.exportPDF()">
-              <i class="fa-solid fa-file-pdf" style="color:#ef4444; margin-right:6px;"></i> Exportar PDF
+              <i class="fa-solid fa-print" style="color:#6366f1; margin-right:6px;"></i> Imprimir / PDF
             </button>
           </div>
         </div>
@@ -723,9 +720,9 @@
               <i class="fa-solid fa-rotate-right text-purple-400"></i>
               <span>Atualizar</span>
             </button>
-            <button type="button" class="btn btn-secondary text-xs py-2 px-3.5 flex items-center gap-1.5" onclick="app.exportPDF()" title="Exportar visão em PDF">
-              <i class="fa-solid fa-file-pdf text-rose-400"></i>
-              <span>Exportar PDF</span>
+            <button type="button" class="btn btn-secondary text-xs py-2 px-3.5 flex items-center gap-1.5" onclick="app.exportPDF()" title="Imprimir ou salvar visão em PDF">
+              <i class="fa-solid fa-print text-indigo-400"></i>
+              <span>Imprimir / PDF</span>
             </button>
           </div>
         </div>
