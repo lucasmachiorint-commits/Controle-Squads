@@ -1,43 +1,46 @@
 /* ==========================================================================
    Controle de Squads - Módulo Isolado de Pendências RPA (rpa-pendencies.js)
-   Multi-Select de Robôs Afetados com Lista Padronizada (v1.1.0)
+   Refatoração de UX: Dropdown Popover Customizado de Robôs (v1.2.0)
    100% Autônomo, Resiliente com Fallback REST Supabase + LocalStorage
    ========================================================================== */
 
 (function () {
   'use strict';
 
-  // 1. LISTA OFICIAL DE ROBÔS (AGRUPADOS POR CATEGORIA)
-  const ROBOTS_LIST = [
-    // PAGAMENTOS NÃO BAIXADOS
-    { id: 'ID 05', name: 'ID05 - Baixa Manual Lote', category: 'PAGAMENTOS NÃO BAIXADOS' },
-    { id: 'ID 06', name: 'ID06 - Demandas de BKO', category: 'PAGAMENTOS NÃO BAIXADOS' },
-    { id: 'ID 08', name: 'ID08 - Arquivo Reembolso', category: 'PAGAMENTOS NÃO BAIXADOS' },
-    { id: 'ID 09', name: 'ID09 - Importação Reembolso Zord', category: 'PAGAMENTOS NÃO BAIXADOS' },
-    { id: 'ID 10', name: 'ID10 - Status Reembolso Zord', category: 'PAGAMENTOS NÃO BAIXADOS' },
-    { id: 'ID 11', name: 'ID11 - Triagem Sucesso Zord', category: 'PAGAMENTOS NÃO BAIXADOS' },
-    { id: 'ID 13', name: 'ID13 - Atualização Jira', category: 'PAGAMENTOS NÃO BAIXADOS' },
-    { id: 'ID 29', name: 'ID29 - Pendência Tesouraria', category: 'PAGAMENTOS NÃO BAIXADOS' },
-
-    // CANCELAMENTO DYNAMICS
-    { id: 'ID 12', name: 'ID12 - Rejeitados Jira', category: 'CANCELAMENTO DYNAMICS' },
-    { id: 'ID 14', name: 'ID14 - Extração Tarefas Dynamics', category: 'CANCELAMENTO DYNAMICS' },
-    { id: 'ID 15', name: 'ID15 - Pendência Recompra', category: 'CANCELAMENTO DYNAMICS' },
-    { id: 'ID 16', name: 'ID16 - Cancelamento Jira', category: 'CANCELAMENTO DYNAMICS' },
-    { id: 'ID 18', name: 'ID18 - Cancelamento Dynamics', category: 'CANCELAMENTO DYNAMICS' },
-    { id: 'ID 19', name: 'ID19 - Cancelamento SAP', category: 'CANCELAMENTO DYNAMICS' },
-    { id: 'ID 20', name: 'ID20 - Cancelamento CAPTA', category: 'CANCELAMENTO DYNAMICS' },
-
-    // AMORTIZAÇÃO NOTAS DE CRÉDITO
-    { id: 'ID 26', name: 'ID26 - Amortização Dispatcher', category: 'AMORTIZAÇÃO NOTAS DE CRÉDITO' },
-    { id: 'ID 27', name: 'ID27 - Amortização Performer 1', category: 'AMORTIZAÇÃO NOTAS DE CRÉDITO' },
-    { id: 'ID 28', name: 'ID28 - Amortização Performer 2', category: 'AMORTIZAÇÃO NOTAS DE CRÉDITO' },
-    { id: 'ID XX', name: 'IDXX - Amortização Reembolso', category: 'AMORTIZAÇÃO NOTAS DE CRÉDITO' }
-  ];
+  // 1. ESTRUTURA DOS DADOS DOS ROBÔS (AGRUPADOS POR CATEGORIA)
+  const ROBOT_CATEGORIES = {
+    'PAGAMENTOS NÃO BAIXADOS': [
+      'ID05 - Baixa Manual Lote',
+      'ID06 - Demandas de BKO',
+      'ID08 - Arquivo Reembolso',
+      'ID09 - Importação Reembolso Zord',
+      'ID10 - Status Reembolso Zord',
+      'ID11 - Triagem Sucesso Zord',
+      'ID13 - Atualização Jira',
+      'ID29 - Pendência Tesouraria'
+    ],
+    'CANCELAMENTO DYNAMICS': [
+      'ID12 - Rejeitados Jira',
+      'ID14 - Extração Tarefas Dynamics',
+      'ID15 - Pendência Recompra',
+      'ID16 - Cancelamento Jira',
+      'ID18 - Cancelamento Dynamics',
+      'ID19 - Cancelamento SAP',
+      'ID20 - Cancelamento CAPTA'
+    ],
+    'AMORTIZAÇÃO NOTAS DE CRÉDITO': [
+      'ID26 - Amortização Dispatcher',
+      'ID27 - Amortização Performer 1',
+      'ID28 - Amortização Performer 2',
+      'IDXX - Amortização Reembolso'
+    ]
+  };
 
   const RpaPendenciesModule = {
     pendencies: [],
     activeId: null,
+    selectedRobots: [],
+    dropdownOpen: false,
 
     // Inicialização do Módulo
     init() {
@@ -45,6 +48,7 @@
       this.fetchPendencies();
       this.setupNavigationHook();
       this.registerGlobalAliases();
+      this.setupClickOutsideListener();
     },
 
     registerGlobalAliases() {
@@ -60,6 +64,15 @@
         window.app.closeRpaPendencyDetailsModal = function () { self.closeDetailsModal(); };
         window.app.renderRpaPendenciesView = function () { self.renderView(); };
       }
+    },
+
+    setupClickOutsideListener() {
+      document.addEventListener('click', (e) => {
+        const wrapper = document.getElementById('rpa-robot-multiselect-wrapper');
+        if (wrapper && !wrapper.contains(e.target)) {
+          this.closeRobotDropdown();
+        }
+      });
     },
 
     // Auto-Verificação e Leitura no Supabase via REST Client
@@ -180,7 +193,7 @@
                 <table class="custom-table w-full text-left">
                   <thead>
                     <tr>
-                      <th style="width: 25%;">ROBÔ(S) AFETADO(S)</th>
+                      <th style="width: 26%;">ROBÔ(S) AFETADO(S)</th>
                       <th style="min-width: 200px;">DESCRIÇÃO / OCORRÊNCIA</th>
                       <th style="width: 14%;">RESPONSÁVEL</th>
                       <th style="width: 12%;">SEVERIDADE</th>
@@ -205,11 +218,11 @@
         }
       }
 
-      // Injetar Modal Completo de Cadastro / Edição com Multi-Select de Robôs
+      // Injetar Modal Completo de Cadastro / Edição com Dropdown Multi-Select
       if (!document.getElementById('modal-rpa-edit')) {
         const editModalHtml = `
           <div class="modal-backdrop hidden" id="modal-rpa-edit" style="z-index: 99999; backdrop-filter: blur(8px); display: none;">
-            <div class="modal-content" style="max-width: 540px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.7); border-radius: 16px; padding: 24px;">
+            <div class="modal-content" style="max-width: 540px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.7); border-radius: 16px; padding: 24px; overflow: visible;">
               <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold text-lg">
@@ -228,14 +241,25 @@
               <form onsubmit="RpaPendenciesModule.savePendency(event)">
                 <input type="hidden" id="rpa-edit-id" />
 
-                <!-- CAMPO MULTI-SELECT DE ROBÔS AFETADOS -->
-                <div class="form-group mb-3">
-                  <div class="flex items-center justify-between mb-1">
-                    <label class="form-label text-xs text-slate-300 font-bold margin-0">Robô(s) Afetado(s) *</label>
-                    <span class="text-[10px] text-amber-400 font-semibold" id="rpa-robots-summary">Nenhum robô selecionado</span>
+                <!-- DROPDOWN MULTI-SELECT DE ROBÔS ELEGANTE -->
+                <div class="form-group mb-3 relative" id="rpa-robot-multiselect-wrapper">
+                  <label class="form-label text-xs text-slate-300 font-bold block mb-1">Robô(s) Afetado(s) *</label>
+
+                  <!-- Campo Fechado / Trigger -->
+                  <div id="rpa-robot-select-trigger" 
+                       class="bg-slate-800/90 border border-slate-700 rounded-lg p-2 text-slate-100 flex flex-wrap gap-1.5 items-center min-h-[42px] cursor-pointer hover:border-slate-500 transition-colors"
+                       onclick="RpaPendenciesModule.toggleRobotDropdown(event)">
+                    <div id="rpa-robot-selected-tags" class="flex flex-wrap gap-1.5 items-center flex-1">
+                      <!-- Renderizado via renderRobotTags() -->
+                    </div>
+                    <i class="fa-solid fa-chevron-down text-slate-400 text-xs ms-auto px-1"></i>
                   </div>
-                  <div class="max-h-[160px] overflow-y-auto p-2.5 rounded-xl border border-white/15 bg-slate-900/90 text-xs text-slate-200" id="rpa-robots-checkbox-container">
-                    <!-- Gerado dinamicamente via renderRobotCheckboxes() -->
+
+                  <!-- Lista Suspensa Popover -->
+                  <div id="rpa-robot-select-popover" 
+                       class="hidden absolute left-0 right-0 z-50 mt-1 max-h-60 overflow-y-auto bg-slate-900 border border-slate-700 rounded-lg shadow-2xl p-2 space-y-2"
+                       style="box-shadow: 0 20px 40px rgba(0,0,0,0.8);">
+                    <!-- Renderizado via renderRobotPopover() -->
                   </div>
                 </div>
 
@@ -378,66 +402,115 @@
       return tmp.firstElementChild;
     },
 
-    // 4. Renderizador do Multi-Select de Robôs no Modal
-    renderRobotCheckboxes(selectedRobotsStr = '') {
-      const container = document.getElementById('rpa-robots-checkbox-container');
-      if (!container) return;
+    // 4. Lógica do Dropdown Multi-Select de Robôs (RobotMultiSelect)
+    toggleRobotDropdown(e) {
+      if (e) e.stopPropagation();
+      this.dropdownOpen = !this.dropdownOpen;
 
-      const selectedSet = new Set(
-        (selectedRobotsStr || '')
-          .split(',')
-          .map(s => s.trim())
-          .filter(Boolean)
-      );
-
-      const categories = [
-        'PAGAMENTOS NÃO BAIXADOS',
-        'CANCELAMENTO DYNAMICS',
-        'AMORTIZAÇÃO NOTAS DE CRÉDITO'
-      ];
-
-      let html = '';
-
-      categories.forEach(cat => {
-        const catBots = ROBOTS_LIST.filter(b => b.category === cat);
-        if (!catBots.length) return;
-
-        html += `<div class="text-[10px] font-bold text-amber-400 uppercase tracking-wider mt-2 mb-1 border-b border-white/10 pb-0.5">${cat}</div>`;
-        catBots.forEach(bot => {
-          const isChecked = selectedSet.has(bot.name) || selectedSet.has(bot.id);
-          html += `
-            <label class="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-white/10 cursor-pointer transition-colors text-xs text-slate-200">
-              <input type="checkbox" name="rpa_robot_checkbox" value="${bot.name}" class="rounded border-slate-700 text-amber-500 focus:ring-amber-500 bg-slate-900" ${isChecked ? 'checked' : ''} onchange="RpaPendenciesModule.updateRobotSummary()">
-              <span>${bot.name}</span>
-            </label>
-          `;
-        });
-      });
-
-      container.innerHTML = html;
-      this.updateRobotSummary();
-    },
-
-    updateRobotSummary() {
-      const summaryEl = document.getElementById('rpa-robots-summary');
-      if (!summaryEl) return;
-
-      const checked = Array.from(document.querySelectorAll('input[name="rpa_robot_checkbox"]:checked')).map(c => c.value);
-      if (!checked.length) {
-        summaryEl.textContent = 'Nenhum robô selecionado';
-        summaryEl.className = 'text-[10px] text-amber-400 font-semibold';
-      } else if (checked.length === 1) {
-        summaryEl.textContent = checked[0];
-        summaryEl.className = 'text-[10px] text-emerald-400 font-bold';
-      } else {
-        summaryEl.textContent = `${checked.length} robôs selecionados (${checked[0].split(' - ')[0]}, ${checked[1].split(' - ')[0]}...)`;
-        summaryEl.className = 'text-[10px] text-emerald-400 font-bold';
+      const popover = document.getElementById('rpa-robot-select-popover');
+      if (popover) {
+        if (this.dropdownOpen) {
+          popover.classList.remove('hidden');
+          this.renderRobotPopover();
+        } else {
+          popover.classList.add('hidden');
+        }
       }
     },
 
+    closeRobotDropdown() {
+      this.dropdownOpen = false;
+      const popover = document.getElementById('rpa-robot-select-popover');
+      if (popover) popover.classList.add('hidden');
+    },
+
+    toggleRobotSelection(robotName, e) {
+      if (e) e.stopPropagation();
+      const idx = this.selectedRobots.indexOf(robotName);
+      if (idx >= 0) {
+        this.selectedRobots.splice(idx, 1);
+      } else {
+        this.selectedRobots.push(robotName);
+      }
+      this.renderRobotTags();
+      this.renderRobotPopover();
+    },
+
+    removeRobot(robotName, e) {
+      if (e) e.stopPropagation();
+      const idx = this.selectedRobots.indexOf(robotName);
+      if (idx >= 0) {
+        this.selectedRobots.splice(idx, 1);
+      }
+      this.renderRobotTags();
+      if (this.dropdownOpen) this.renderRobotPopover();
+    },
+
+    renderRobotTags() {
+      const container = document.getElementById('rpa-robot-selected-tags');
+      if (!container) return;
+
+      if (!this.selectedRobots.length) {
+        container.innerHTML = `<span class="text-slate-400 text-xs py-0.5">Selecione um ou mais robôs na lista...</span>`;
+        return;
+      }
+
+      container.innerHTML = this.selectedRobots.map(botName => {
+        // Escapa aspas para evitar erros em strings JS
+        const safeName = botName.replace(/'/g, "\\'");
+        return `
+          <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-2.5 py-1 rounded-md flex items-center gap-1.5 font-medium">
+            🤖 ${botName}
+            <button type="button" onclick="RpaPendenciesModule.removeRobot('${safeName}', event)" class="hover:text-emerald-200 ms-1 font-bold text-xs">✕</button>
+          </span>
+        `;
+      }).join('');
+    },
+
+    renderRobotPopover() {
+      const popover = document.getElementById('rpa-robot-select-popover');
+      if (!popover) return;
+
+      let html = '';
+
+      Object.keys(ROBOT_CATEGORIES).forEach(category => {
+        const bots = ROBOT_CATEGORIES[category];
+        html += `
+          <div class="mb-2">
+            <div class="text-[10px] font-bold text-amber-400 uppercase tracking-wider px-2 py-1 border-b border-white/10 mb-1">
+              ${category}
+            </div>
+            <div class="space-y-0.5">
+        `;
+
+        bots.forEach(botName => {
+          const isSelected = this.selectedRobots.includes(botName);
+          const safeName = botName.replace(/'/g, "\\'");
+          const bgClass = isSelected ? 'bg-slate-800/90 border border-emerald-500/30' : 'hover:bg-slate-800/60';
+          const icon = isSelected
+            ? `<i class="fa-solid fa-check text-emerald-400 text-xs font-bold"></i>`
+            : `<i class="fa-regular fa-square text-slate-600 text-xs"></i>`;
+
+          html += `
+            <div class="${bgClass} p-2 rounded-md transition-colors flex items-center justify-between cursor-pointer"
+                 onclick="RpaPendenciesModule.toggleRobotSelection('${safeName}', event)">
+              <span class="text-xs ${isSelected ? 'text-emerald-300 font-bold' : 'text-slate-200'}">🤖 ${botName}</span>
+              ${icon}
+            </div>
+          `;
+        });
+
+        html += `
+            </div>
+          </div>
+        `;
+      });
+
+      popover.innerHTML = html;
+    },
+
     getSelectedRobotsString() {
-      const checked = Array.from(document.querySelectorAll('input[name="rpa_robot_checkbox"]:checked')).map(c => c.value);
-      return checked.join(', ');
+      return this.selectedRobots.join(', ');
     },
 
     // 5. Hook Limpo na Navegação do App
@@ -545,11 +618,11 @@
         else if (item.status === 'AGUARDANDO_PARCEIRO') statusBadge = `<span class="badge bg-purple-500/20 text-purple-300 border border-purple-500/40 px-2.5 py-1 font-extrabold text-[11px]">Aguardando Parceiro</span>`;
         else if (item.status === 'RESOLVIDO') statusBadge = `<span class="badge bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 font-extrabold text-[11px]">Resolvido</span>`;
 
-        // Renderizar robôs selecionados em badges limpas
+        // Renderizar robôs selecionados em badges limpas na tabela
         const robotList = (item.robo_name || '').split(',').map(s => s.trim()).filter(Boolean);
         const robotBadges = robotList.map(r => `
           <span class="inline-flex items-center gap-1 bg-slate-800/90 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-md mb-1 me-1">
-            <i class="fa-solid fa-robot text-[9px]"></i> ${r}
+            🤖 ${r}
           </span>
         `).join('');
 
@@ -605,14 +678,12 @@
       const statusEl = document.getElementById('rpa-edit-status');
       const noteEl = document.getElementById('rpa-edit-note');
 
-      let currentRoboStr = '';
-
       if (id) {
         const item = this.pendencies.find(i => i.id === id);
         if (item) {
           if (titleEl) titleEl.textContent = 'Editar Ocorrência RPA';
           if (idEl) idEl.value = item.id;
-          currentRoboStr = item.robo_name || '';
+          this.selectedRobots = item.robo_name ? item.robo_name.split(',').map(s => s.trim()).filter(Boolean) : [];
           if (titleInput) titleInput.value = item.title;
           if (respEl) respEl.value = item.responsible;
           if (sevEl) sevEl.value = item.severity;
@@ -622,7 +693,7 @@
       } else {
         if (titleEl) titleEl.textContent = 'Cadastrar Ocorrência RPA';
         if (idEl) idEl.value = '';
-        currentRoboStr = '';
+        this.selectedRobots = [];
         if (titleInput) titleInput.value = '';
         if (respEl) respEl.value = 'Redesign';
         if (sevEl) sevEl.value = 'MEDIA';
@@ -630,7 +701,8 @@
         if (noteEl) noteEl.value = '';
       }
 
-      this.renderRobotCheckboxes(currentRoboStr);
+      this.dropdownOpen = false;
+      this.renderRobotTags();
 
       modal.classList.remove('hidden');
       modal.classList.add('open', 'active');
@@ -645,6 +717,7 @@
         modal.classList.remove('open', 'active');
         modal.style.setProperty('display', 'none', 'important');
       }
+      this.closeRobotDropdown();
     },
 
     async savePendency(e) {
@@ -659,7 +732,7 @@
       const initial_note = document.getElementById('rpa-edit-note')?.value.trim();
 
       if (!robo_name) {
-        alert('Por favor, selecione ao menos um Robô Afetado.');
+        alert('Por favor, selecione ao menos um Robô Afetado na lista.');
         return;
       }
       if (!title) {
