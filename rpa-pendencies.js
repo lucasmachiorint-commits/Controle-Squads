@@ -202,10 +202,10 @@
                 <!-- 1. ROBÔ(S) AFETADO(S) -->
                 <div class="form-group mb-4">
                   <label class="form-label">Robô(s) Afetado(s) <span class="required-asterisk">*</span></label>
-                  <div class="form-control" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 44px; padding: 6px 12px; cursor: text;">
-                    <div id="rpa-robot-pills-container" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px;"></div>
+                  <div class="w-full bg-[#111827] border border-emerald-500/40 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 rounded-xl p-2.5 transition-all flex flex-wrap items-center gap-2 min-h-[46px]">
+                    <div id="rpa-robot-pills-container" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px;"></div>
                     <select id="rpa-robot-adder-select" 
-                            style="background: transparent; border: none; outline: none; color: #94a3b8; font-size: 13px; font-family: inherit; cursor: pointer; flex: 1; min-width: 140px; height: 26px; padding: 0;"
+                            class="bg-transparent text-xs text-gray-400 focus:outline-none cursor-pointer flex-1 min-w-[150px] h-6 py-0 border-none appearance-none font-normal"
                             onchange="RpaPendenciesModule.addRobot(this.value); this.value = '';">
                       <option value="" disabled selected class="bg-[#111827] text-gray-400">+ Selecionar Robô...</option>
                       <optgroup label="PAGAMENTOS NÃO BAIXADOS" class="bg-[#111827] text-gray-400 font-bold">
@@ -247,10 +247,10 @@
                 <div class="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <label class="form-label">Responsável <span class="required-asterisk">*</span></label>
-                    <div class="form-control" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 44px; padding: 6px 12px; cursor: text;">
-                      <div id="rpa-resp-pills-container" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px;"></div>
+                    <div class="w-full bg-[#111827] border border-emerald-500/40 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 rounded-xl p-2.5 transition-all flex flex-wrap items-center gap-2 min-h-[46px]">
+                      <div id="rpa-resp-pills-container" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px;"></div>
                       <select id="rpa-resp-adder-select" 
-                              style="background: transparent; border: none; outline: none; color: #94a3b8; font-size: 13px; font-family: inherit; cursor: pointer; flex: 1; min-width: 120px; height: 26px; padding: 0;"
+                              class="bg-transparent text-xs text-gray-400 focus:outline-none cursor-pointer flex-1 min-w-[120px] h-6 py-0 border-none appearance-none font-normal"
                               onchange="RpaPendenciesModule.addResponsible(this.value); this.value = '';">
                         <option value="" disabled selected class="bg-[#111827] text-gray-400">+ Responsável...</option>
                         <option value="Redesign (Parceiro)" class="bg-[#111827] text-gray-200">Redesign (Parceiro)</option>
@@ -411,10 +411,10 @@
       container.innerHTML = this.selectedRobots.map(robot => {
         const safeName = robot.replace(/'/g, "\\'");
         return `
-          <span style="background: rgba(0, 230, 153, 0.12); border: 1px solid rgba(0, 230, 153, 0.3); color: #00E699; font-size: 12px; padding: 2px 8px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap;">
+          <span class="bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs px-3 py-1 rounded-full flex items-center gap-1.5 font-medium shrink-0 shadow-sm">
             🤖 ${robot}
-            <button type="button" onclick="RpaPendenciesModule.removeRobot('${safeName}')" style="background: none; border: none; color: #00E699; opacity: 0.8; cursor: pointer; padding: 0; margin-left: 2px; font-size: 11px; display: inline-flex; align-items: center;" title="Remover">
-              <i class="fa-solid fa-xmark"></i>
+            <button type="button" onclick="RpaPendenciesModule.removeRobot('${safeName}')" class="text-emerald-400 hover:text-emerald-100 cursor-pointer text-xs ml-0.5 font-bold transition-colors" title="Remover">
+              ✕
             </button>
           </span>
         `;
@@ -449,10 +449,10 @@
       container.innerHTML = this.selectedResponsibles.map(rName => {
         const safeName = rName.replace(/'/g, "\\'");
         return `
-          <span style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35); color: #818cf8; font-size: 12px; padding: 2px 8px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap;">
+          <span class="bg-indigo-950/60 border border-indigo-500/50 text-indigo-300 text-xs px-3 py-1 rounded-full flex items-center gap-1.5 font-medium shrink-0 shadow-sm">
             👤 ${rName}
-            <button type="button" onclick="RpaPendenciesModule.removeResponsible('${safeName}')" style="background: none; border: none; color: #818cf8; opacity: 0.8; cursor: pointer; padding: 0; margin-left: 2px; font-size: 11px; display: inline-flex; align-items: center;" title="Remover">
-              <i class="fa-solid fa-xmark"></i>
+            <button type="button" onclick="RpaPendenciesModule.removeResponsible('${safeName}')" class="text-indigo-400 hover:text-indigo-100 cursor-pointer text-xs ml-0.5 font-bold transition-colors" title="Remover">
+              ✕
             </button>
           </span>
         `;
