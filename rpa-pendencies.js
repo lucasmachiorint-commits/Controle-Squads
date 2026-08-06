@@ -1,6 +1,6 @@
 /* ==========================================================================
    Controle de Squads - Módulo Isolado de Pendências RPA (rpa-pendencies.js)
-   Refatoração de UX: Dropdown Popover Customizado de Robôs (v1.2.0)
+   Padronização de UX/UI: Dropdown Retrátil (max-h-48, bg-[#111827], text-[11px]) (v1.2.1)
    100% Autônomo, Resiliente com Fallback REST Supabase + LocalStorage
    ========================================================================== */
 
@@ -67,7 +67,7 @@
     },
 
     setupClickOutsideListener() {
-      document.addEventListener('click', (e) => {
+      document.addEventListener('mousedown', (e) => {
         const wrapper = document.getElementById('rpa-robot-multiselect-wrapper');
         if (wrapper && !wrapper.contains(e.target)) {
           this.closeRobotDropdown();
@@ -218,7 +218,7 @@
         }
       }
 
-      // Injetar Modal Completo de Cadastro / Edição com Dropdown Multi-Select
+      // Injetar Modal Completo de Cadastro com Dropdown Retrátil Padronizado
       if (!document.getElementById('modal-rpa-edit')) {
         const editModalHtml = `
           <div class="modal-backdrop hidden" id="modal-rpa-edit" style="z-index: 99999; backdrop-filter: blur(8px); display: none;">
@@ -241,24 +241,24 @@
               <form onsubmit="RpaPendenciesModule.savePendency(event)">
                 <input type="hidden" id="rpa-edit-id" />
 
-                <!-- DROPDOWN MULTI-SELECT DE ROBÔS ELEGANTE -->
+                <!-- DROPDOWN MULTI-SELECT RETRÁTIL DE ROBÔS -->
                 <div class="form-group mb-3 relative" id="rpa-robot-multiselect-wrapper">
                   <label class="form-label text-xs text-slate-300 font-bold block mb-1">Robô(s) Afetado(s) *</label>
 
-                  <!-- Campo Fechado / Trigger -->
+                  <!-- Container do Input (Estado Fechado) -->
                   <div id="rpa-robot-select-trigger" 
-                       class="bg-slate-800/90 border border-slate-700 rounded-lg p-2 text-slate-100 flex flex-wrap gap-1.5 items-center min-h-[42px] cursor-pointer hover:border-slate-500 transition-colors"
+                       class="w-full bg-[#111827] border border-[#1f2937] rounded-lg px-3 py-2 text-xs text-gray-200 flex items-center justify-between cursor-pointer min-h-[38px] hover:border-slate-600 transition-colors"
                        onclick="RpaPendenciesModule.toggleRobotDropdown(event)">
-                    <div id="rpa-robot-selected-tags" class="flex flex-wrap gap-1.5 items-center flex-1">
+                    <div id="rpa-robot-selected-tags" class="flex flex-wrap gap-1 items-center flex-1 pr-2">
                       <!-- Renderizado via renderRobotTags() -->
                     </div>
-                    <i class="fa-solid fa-chevron-down text-slate-400 text-xs ms-auto px-1"></i>
+                    <span class="text-xs text-gray-400 ms-auto pl-1 transition-transform duration-200" id="rpa-robot-indicator">▼</span>
                   </div>
 
-                  <!-- Lista Suspensa Popover -->
+                  <!-- Caixa Suspensa Retrátil (Dropdown Popover - hidden por padrão) -->
                   <div id="rpa-robot-select-popover" 
-                       class="hidden absolute left-0 right-0 z-50 mt-1 max-h-60 overflow-y-auto bg-slate-900 border border-slate-700 rounded-lg shadow-2xl p-2 space-y-2"
-                       style="box-shadow: 0 20px 40px rgba(0,0,0,0.8);">
+                       class="hidden absolute left-0 right-0 top-full mt-1 z-50 bg-[#111827] border border-[#1f2937] rounded-lg shadow-xl p-2 max-h-48 overflow-y-auto custom-scrollbar space-y-1"
+                       style="box-shadow: 0 15px 35px rgba(0,0,0,0.8);">
                     <!-- Renderizado via renderRobotPopover() -->
                   </div>
                 </div>
@@ -402,18 +402,22 @@
       return tmp.firstElementChild;
     },
 
-    // 4. Lógica do Dropdown Multi-Select de Robôs (RobotMultiSelect)
+    // 4. Lógica do Dropdown Retrátil de Robôs
     toggleRobotDropdown(e) {
       if (e) e.stopPropagation();
       this.dropdownOpen = !this.dropdownOpen;
 
       const popover = document.getElementById('rpa-robot-select-popover');
+      const indicator = document.getElementById('rpa-robot-indicator');
+
       if (popover) {
         if (this.dropdownOpen) {
           popover.classList.remove('hidden');
+          if (indicator) indicator.style.transform = 'rotate(180deg)';
           this.renderRobotPopover();
         } else {
           popover.classList.add('hidden');
+          if (indicator) indicator.style.transform = 'rotate(0deg)';
         }
       }
     },
@@ -421,7 +425,9 @@
     closeRobotDropdown() {
       this.dropdownOpen = false;
       const popover = document.getElementById('rpa-robot-select-popover');
+      const indicator = document.getElementById('rpa-robot-indicator');
       if (popover) popover.classList.add('hidden');
+      if (indicator) indicator.style.transform = 'rotate(0deg)';
     },
 
     toggleRobotSelection(robotName, e) {
@@ -451,17 +457,16 @@
       if (!container) return;
 
       if (!this.selectedRobots.length) {
-        container.innerHTML = `<span class="text-slate-400 text-xs py-0.5">Selecione um ou mais robôs na lista...</span>`;
+        container.innerHTML = `<span class="text-gray-400 text-xs py-0.5">Selecione um ou mais robôs na lista...</span>`;
         return;
       }
 
       container.innerHTML = this.selectedRobots.map(botName => {
-        // Escapa aspas para evitar erros em strings JS
         const safeName = botName.replace(/'/g, "\\'");
         return `
-          <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-2.5 py-1 rounded-md flex items-center gap-1.5 font-medium">
+          <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[11px] px-2 py-0.5 rounded flex items-center gap-1 font-medium">
             🤖 ${botName}
-            <button type="button" onclick="RpaPendenciesModule.removeRobot('${safeName}', event)" class="hover:text-emerald-200 ms-1 font-bold text-xs">✕</button>
+            <button type="button" onclick="RpaPendenciesModule.removeRobot('${safeName}', event)" class="hover:text-emerald-200 ms-0.5 font-bold text-[10px]">✕</button>
           </span>
         `;
       }).join('');
@@ -476,8 +481,8 @@
       Object.keys(ROBOT_CATEGORIES).forEach(category => {
         const bots = ROBOT_CATEGORIES[category];
         html += `
-          <div class="mb-2">
-            <div class="text-[10px] font-bold text-amber-400 uppercase tracking-wider px-2 py-1 border-b border-white/10 mb-1">
+          <div class="mb-1.5">
+            <div class="text-[10px] uppercase font-semibold text-gray-400 tracking-wider pt-2 pb-1 px-2 border-b border-gray-800/50 mb-1">
               ${category}
             </div>
             <div class="space-y-0.5">
@@ -486,15 +491,15 @@
         bots.forEach(botName => {
           const isSelected = this.selectedRobots.includes(botName);
           const safeName = botName.replace(/'/g, "\\'");
-          const bgClass = isSelected ? 'bg-slate-800/90 border border-emerald-500/30' : 'hover:bg-slate-800/60';
+          const bgClass = isSelected ? 'bg-[#1f2937] text-white font-semibold' : 'text-gray-300 hover:bg-[#1f2937] hover:text-white';
           const icon = isSelected
-            ? `<i class="fa-solid fa-check text-emerald-400 text-xs font-bold"></i>`
-            : `<i class="fa-regular fa-square text-slate-600 text-xs"></i>`;
+            ? `<span class="text-emerald-400 text-xs font-bold">✓</span>`
+            : ``;
 
           html += `
-            <div class="${bgClass} p-2 rounded-md transition-colors flex items-center justify-between cursor-pointer"
+            <div class="${bgClass} px-2 py-1.5 rounded cursor-pointer flex items-center justify-between transition-colors text-xs"
                  onclick="RpaPendenciesModule.toggleRobotSelection('${safeName}', event)">
-              <span class="text-xs ${isSelected ? 'text-emerald-300 font-bold' : 'text-slate-200'}">🤖 ${botName}</span>
+              <span>🤖 ${botName}</span>
               ${icon}
             </div>
           `;
