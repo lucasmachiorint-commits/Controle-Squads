@@ -24,7 +24,7 @@ const app = {
   activeView: 'triagem',
   userRole: 'consulta', // 'admin' ou 'consulta'
   userEmail: '',
-  userName: 'Visitante',
+  userName: '',
   authUserId: null,
   realtimeChannel: null,
   
@@ -137,14 +137,13 @@ const app = {
     
     const hasSession = await this.checkSession();
     if (!hasSession) {
-      console.log('[APP INIT] Nenhuma sessão Supabase Auth prévia. Entrando em modo Visitante (Consulta).');
-      this.authUserId = 'guest';
-      this.userEmail = 'visitante@squads.local';
-      this.userName = 'Visitante';
+      console.log('[APP INIT] Nenhuma sessão Supabase Auth prévia. Exibindo tela de autenticação obrigatória.');
+      this.authUserId = null;
+      this.userEmail = '';
+      this.userName = '';
       this.userRole = 'consulta';
-      this.userStatus = 'ATIVO';
-      this.hideAuthOverlay();
-      this.updateUserBadgeUI();
+      this.userStatus = 'PENDENTE';
+      this.showAuthOverlay();
     }
 
     this.loadLocalState();
@@ -598,12 +597,16 @@ const app = {
     const infoEl = document.getElementById('user-display-info');
     const iconEl = document.getElementById('user-role-icon');
     if (infoEl) {
-      if (this.userRole === 'admin') {
-        infoEl.textContent = `Admin: ${this.userName}`;
+      if (!this.authUserId) {
+        infoEl.textContent = 'Clique para Entrar';
+        infoEl.style.color = '#fbbf24';
+        if (iconEl) iconEl.className = 'fa-solid fa-right-to-bracket text-amber-400';
+      } else if (this.userRole === 'admin') {
+        infoEl.textContent = `Admin: ${this.userName || (this.userEmail ? this.userEmail.split('@')[0] : 'Usuário')}`;
         infoEl.style.color = '#34d399';
         if (iconEl) iconEl.className = 'fa-solid fa-user-shield text-emerald-400';
       } else {
-        infoEl.textContent = `Consulta: ${this.userName}`;
+        infoEl.textContent = `Consulta: ${this.userName || (this.userEmail ? this.userEmail.split('@')[0] : 'Usuário')}`;
         infoEl.style.color = '#38bdf8';
         if (iconEl) iconEl.className = 'fa-solid fa-eye text-sky-400';
       }
