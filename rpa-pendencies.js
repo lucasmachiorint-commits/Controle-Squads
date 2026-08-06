@@ -252,11 +252,11 @@
                       <select id="rpa-resp-adder-select" 
                               class="bg-transparent text-xs text-gray-400 focus:outline-none cursor-pointer flex-1 min-w-[120px] h-6 py-0 border-none appearance-none font-normal"
                               onchange="RpaPendenciesModule.addResponsible(this.value); this.value = '';">
-                        <option value="" disabled selected class="bg-[#111827] text-gray-400">+ Responsável...</option>
+                        <option value="" disabled selected class="bg-[#111827] text-gray-400">+ Selecionar Responsável...</option>
                         <option value="Redesign (Parceiro)" class="bg-[#111827] text-gray-200">Redesign (Parceiro)</option>
                         <option value="Caio (Interno)" class="bg-[#111827] text-gray-200">Caio (Interno)</option>
                         <option value="Time Skytel" class="bg-[#111827] text-gray-200">Time Skytel</option>
-                        <option value="Outro Responsável" class="bg-[#111827] text-gray-200">Outro Responsável</option>
+                        <option value="Ambos / Squad RPA" class="bg-[#111827] text-gray-200">Ambos / Squad RPA</option>
                       </select>
                     </div>
                   </div>
