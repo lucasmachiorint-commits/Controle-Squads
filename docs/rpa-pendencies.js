@@ -224,16 +224,17 @@
           <div class="modal-backdrop hidden" id="modal-rpa-edit" style="z-index: 99999; backdrop-filter: blur(8px); display: none;">
             <div class="modal-content relative" style="max-width: 540px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.7); border-radius: 16px; padding: 24px; overflow: visible;">
               
-              <!-- Botão Fechar no Canto Superior Direito (Extremidade) -->
+              <!-- Botão Fechar com Caixa de Contorno (Outline) no Canto Superior Direito -->
               <button type="button" 
                       onclick="RpaPendenciesModule.closeModal()" 
-                      class="absolute top-4 right-4 text-gray-400 hover:text-white hover:bg-gray-800/60 rounded-lg p-1.5 transition-colors cursor-pointer text-lg leading-none flex items-center justify-center w-8 h-8" 
-                      aria-label="Fechar">
-                ✕
+                      class="absolute top-4 right-4 bg-transparent border border-[#374151] hover:border-emerald-500 text-gray-400 hover:text-emerald-400 rounded-lg w-8 h-8 flex items-center justify-center transition-all cursor-pointer text-sm font-semibold" 
+                      title="Fechar" 
+                      aria-label="Fechar modal">
+                <i class="fa-solid fa-xmark"></i>
               </button>
 
-              <!-- Cabeçalho Limpo -->
-              <div class="mb-5 pr-8">
+              <!-- Cabeçalho -->
+              <div class="mb-5 pr-10">
                 <h3 class="text-lg font-bold text-gray-100 flex items-center gap-2">
                   ⚠️ <span id="rpa-modal-edit-title">Cadastrar Ocorrência RPA</span>
                 </h3>
@@ -327,11 +328,12 @@
             <div class="modal-content relative" style="max-width: 640px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.7); border-radius: 16px; padding: 24px;">
               <button type="button" 
                       onclick="RpaPendenciesModule.closeDetailsModal()" 
-                      class="absolute top-4 right-4 text-gray-400 hover:text-white hover:bg-gray-800/60 rounded-lg p-1.5 transition-colors cursor-pointer text-lg leading-none flex items-center justify-center w-8 h-8" 
-                      aria-label="Fechar">
-                ✕
+                      class="absolute top-4 right-4 bg-transparent border border-[#374151] hover:border-emerald-500 text-gray-400 hover:text-emerald-400 rounded-lg w-8 h-8 flex items-center justify-center transition-all cursor-pointer text-sm font-semibold" 
+                      title="Fechar" 
+                      aria-label="Fechar modal">
+                <i class="fa-solid fa-xmark"></i>
               </button>
-              <div class="mb-4 border-b border-white/10 pb-3 pr-8">
+              <div class="mb-4 border-b border-white/10 pb-3 pr-10">
                 <h3 class="text-base font-extrabold text-white tracking-tight" id="rpa-detail-robo-title">Robô: --</h3>
                 <p class="text-xs text-slate-400 mt-1">Histórico de Ocorrências e Cobranças</p>
               </div>
