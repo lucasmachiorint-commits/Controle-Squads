@@ -274,69 +274,81 @@
               <form onsubmit="RpaPendenciesModule.savePendency(event)">
                 <input type="hidden" id="rpa-edit-id" />
 
-                <!-- 1. ROBÔ(S) AFETADO(S): PÍLULAS + SELECT ADICIONADOR HARMONIZADO -->
+                <!-- 1. ROBÔ(S) AFETADO(S): FRAME UNIFICADO COM TAGS DENTRO DO QUADRO -->
                 <div class="form-group mb-4">
-                  <label class="text-xs font-semibold text-gray-300 mb-1.5 block">Robô(s) Afetado(s) *</label>
-                  
-                  <div id="rpa-robot-pills-container" class="flex flex-wrap gap-1.5 mb-2">
-                    <!-- Gerado via renderRobotPills() -->
-                  </div>
+                  <label class="block text-xs font-semibold text-gray-300 mb-1">
+                    Robô(s) Afetado(s) <span class="required-asterisk">*</span>
+                  </label>
 
-                  <select id="rpa-robot-adder-select" 
-                          class="rpa-custom-select"
-                          onchange="RpaPendenciesModule.addRobot(this.value); this.value = '';">
-                    <option value="">+ Selecionar Robô...</option>
-                    <optgroup label="PAGAMENTOS NÃO BAIXADOS">
-                      <option value="ID05 - Baixa Manual Lote">ID05 - Baixa Manual Lote</option>
-                      <option value="ID06 - Demandas de BKO">ID06 - Demandas de BKO</option>
-                      <option value="ID08 - Arquivo Reembolso">ID08 - Arquivo Reembolso</option>
-                      <option value="ID09 - Importação Reembolso Zord">ID09 - Importação Reembolso Zord</option>
-                      <option value="ID10 - Status Reembolso Zord">ID10 - Status Reembolso Zord</option>
-                      <option value="ID11 - Triagem Sucesso Zord">ID11 - Triagem Sucesso Zord</option>
-                      <option value="ID13 - Atualização Jira">ID13 - Atualização Jira</option>
-                      <option value="ID29 - Pendência Tesouraria">ID29 - Pendência Tesouraria</option>
-                    </optgroup>
-                    <optgroup label="CANCELAMENTO DYNAMICS">
-                      <option value="ID12 - Rejeitados Jira">ID12 - Rejeitados Jira</option>
-                      <option value="ID14 - Extração Tarefas Dynamics">ID14 - Extração Tarefas Dynamics</option>
-                      <option value="ID15 - Pendência Recompra">ID15 - Pendência Recompra</option>
-                      <option value="ID16 - Cancelamento Jira">ID16 - Cancelamento Jira</option>
-                      <option value="ID18 - Cancelamento Dynamics">ID18 - Cancelamento Dynamics</option>
-                      <option value="ID19 - Cancelamento SAP">ID19 - Cancelamento SAP</option>
-                      <option value="ID20 - Cancelamento CAPTA">ID20 - Cancelamento CAPTA</option>
-                    </optgroup>
-                    <optgroup label="AMORTIZAÇÃO NOTAS DE CRÉDITO">
-                      <option value="ID26 - Amortização Dispatcher">ID26 - Amortização Dispatcher</option>
-                      <option value="ID27 - Amortização Performer 1">ID27 - Amortização Performer 1</option>
-                      <option value="ID28 - Amortização Performer 2">ID28 - Amortização Performer 2</option>
-                      <option value="IDXX - Amortização Reembolso">IDXX - Amortização Reembolso</option>
-                    </optgroup>
-                  </select>
+                  <!-- Quadro Único do Campo -->
+                  <div class="w-full bg-[#111827] border border-[#1f2937] focus-within:border-emerald-500 rounded-lg p-2 transition-all flex flex-wrap items-center gap-1.5 min-h-[42px]">
+                    
+                    <!-- Tags selecionadas DENTRO da caixa -->
+                    <div id="rpa-robot-pills-container" class="flex flex-wrap items-center gap-1.5">
+                      <!-- Gerado via renderRobotPills() -->
+                    </div>
+
+                    <!-- Dropdown sem borda acoplado no final do fluxo interno -->
+                    <select id="rpa-robot-adder-select" 
+                            class="bg-transparent text-xs text-gray-400 focus:outline-none cursor-pointer flex-1 min-w-[140px] h-6 py-0 my-0 border-none"
+                            onchange="RpaPendenciesModule.addRobot(this.value); this.value = '';">
+                      <option value="" disabled selected class="bg-[#111827] text-gray-400">+ Selecionar Robô...</option>
+                      <optgroup label="PAGAMENTOS NÃO BAIXADOS" class="bg-[#111827] text-gray-400 font-bold">
+                        <option value="ID05 - Baixa Manual Lote" class="bg-[#111827] text-gray-200">ID05 - Baixa Manual Lote</option>
+                        <option value="ID06 - Demandas de BKO" class="bg-[#111827] text-gray-200">ID06 - Demandas de BKO</option>
+                        <option value="ID08 - Arquivo Reembolso" class="bg-[#111827] text-gray-200">ID08 - Arquivo Reembolso</option>
+                        <option value="ID09 - Importação Reembolso Zord" class="bg-[#111827] text-gray-200">ID09 - Importação Reembolso Zord</option>
+                        <option value="ID10 - Status Reembolso Zord" class="bg-[#111827] text-gray-200">ID10 - Status Reembolso Zord</option>
+                        <option value="ID11 - Triagem Sucesso Zord" class="bg-[#111827] text-gray-200">ID11 - Triagem Sucesso Zord</option>
+                        <option value="ID13 - Atualização Jira" class="bg-[#111827] text-gray-200">ID13 - Atualização Jira</option>
+                        <option value="ID29 - Pendência Tesouraria" class="bg-[#111827] text-gray-200">ID29 - Pendência Tesouraria</option>
+                      </optgroup>
+                      <optgroup label="CANCELAMENTO DYNAMICS" class="bg-[#111827] text-gray-400 font-bold">
+                        <option value="ID12 - Rejeitados Jira" class="bg-[#111827] text-gray-200">ID12 - Rejeitados Jira</option>
+                        <option value="ID14 - Extração Tarefas Dynamics" class="bg-[#111827] text-gray-200">ID14 - Extração Tarefas Dynamics</option>
+                        <option value="ID15 - Pendência Recompra" class="bg-[#111827] text-gray-200">ID15 - Pendência Recompra</option>
+                        <option value="ID16 - Cancelamento Jira" class="bg-[#111827] text-gray-200">ID16 - Cancelamento Jira</option>
+                        <option value="ID18 - Cancelamento Dynamics" class="bg-[#111827] text-gray-200">ID18 - Cancelamento Dynamics</option>
+                        <option value="ID19 - Cancelamento SAP" class="bg-[#111827] text-gray-200">ID19 - Cancelamento SAP</option>
+                        <option value="ID20 - Cancelamento CAPTA" class="bg-[#111827] text-gray-200">ID20 - Cancelamento CAPTA</option>
+                      </optgroup>
+                      <optgroup label="AMORTIZAÇÃO NOTAS DE CRÉDITO" class="bg-[#111827] text-gray-400 font-bold">
+                        <option value="ID26 - Amortização Dispatcher" class="bg-[#111827] text-gray-200">ID26 - Amortização Dispatcher</option>
+                        <option value="ID27 - Amortização Performer 1" class="bg-[#111827] text-gray-200">ID27 - Amortização Performer 1</option>
+                        <option value="ID28 - Amortização Performer 2" class="bg-[#111827] text-gray-200">ID28 - Amortização Performer 2</option>
+                        <option value="IDXX - Amortização Reembolso" class="bg-[#111827] text-gray-200">IDXX - Amortização Reembolso</option>
+                      </optgroup>
+                    </select>
+                  </div>
                 </div>
 
                 <div class="form-group mb-4">
-                  <label class="text-xs font-semibold text-gray-300 mb-1.5 block">Título / Resumo do Problema *</label>
+                  <label class="text-xs font-semibold text-gray-300 mb-1.5 block">Título / Resumo do Problema <span class="required-asterisk">*</span></label>
                   <input type="text" class="rpa-custom-input" id="rpa-edit-title" placeholder="Ex: Timeout na API bancária durante execução" required />
                 </div>
 
-                <!-- 2. RESPONSÁVEL(IS): PÍLULAS + SELECT ADICIONADOR HARMONIZADO -->
+                <!-- 2. RESPONSÁVEL(IS): FRAME UNIFICADO COM TAGS DENTRO DO QUADRO -->
                 <div class="grid grid-cols-2 gap-3 mb-4">
                   <div>
-                    <label class="text-xs font-semibold text-gray-300 mb-1.5 block">Responsável *</label>
-                    
-                    <div id="rpa-resp-pills-container" class="flex flex-wrap gap-1.5 mb-2">
-                      <!-- Gerado via renderRespPills() -->
-                    </div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">
+                      Responsável <span class="required-asterisk">*</span>
+                    </label>
 
-                    <select id="rpa-resp-adder-select" 
-                            class="rpa-custom-select"
-                            onchange="RpaPendenciesModule.addResponsible(this.value); this.value = '';">
-                      <option value="">+ Responsável...</option>
-                      <option value="Redesign (Parceiro)">Redesign (Parceiro)</option>
-                      <option value="Caio (Interno)">Caio (Interno)</option>
-                      <option value="Time Skytel">Time Skytel</option>
-                      <option value="Outro Responsável">Outro Responsável</option>
-                    </select>
+                    <div class="w-full bg-[#111827] border border-[#1f2937] focus-within:border-emerald-500 rounded-lg p-2 transition-all flex flex-wrap items-center gap-1.5 min-h-[42px]">
+                      <div id="rpa-resp-pills-container" class="flex flex-wrap items-center gap-1.5">
+                        <!-- Gerado via renderRespPills() -->
+                      </div>
+
+                      <select id="rpa-resp-adder-select" 
+                              class="bg-transparent text-xs text-gray-400 focus:outline-none cursor-pointer flex-1 min-w-[120px] h-6 py-0 my-0 border-none"
+                              onchange="RpaPendenciesModule.addResponsible(this.value); this.value = '';">
+                        <option value="" disabled selected class="bg-[#111827] text-gray-400">+ Responsável...</option>
+                        <option value="Redesign (Parceiro)" class="bg-[#111827] text-gray-200">Redesign (Parceiro)</option>
+                        <option value="Caio (Interno)" class="bg-[#111827] text-gray-200">Caio (Interno)</option>
+                        <option value="Time Skytel" class="bg-[#111827] text-gray-200">Time Skytel</option>
+                        <option value="Outro Responsável" class="bg-[#111827] text-gray-200">Outro Responsável</option>
+                      </select>
+                    </div>
                   </div>
 
                   <div>
@@ -482,17 +494,16 @@
       if (!container) return;
 
       if (!this.selectedRobots.length) {
-        container.innerHTML = `<span class="text-gray-500 text-[11px] italic">Nenhum robô adicionado</span>`;
+        container.innerHTML = '';
         return;
       }
 
-      container.innerHTML = this.selectedRobots.map(botName => {
-        const safeName = botName.replace(/'/g, "\\'");
+      container.innerHTML = this.selectedRobots.map(robot => {
+        const safeName = robot.replace(/'/g, "\\'");
         return `
-          <span class="inline-flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[11px] px-2.5 py-1 rounded-full font-medium shadow-sm transition-all hover:bg-emerald-500/20">
-            <i class="fa-solid fa-robot text-[10px]"></i>
-            <span>${botName}</span>
-            <button type="button" onclick="RpaPendenciesModule.removeRobot('${safeName}')" class="text-emerald-400/70 hover:text-emerald-300 ml-0.5 p-0.5 rounded-full flex items-center justify-center transition-colors" title="Remover">
+          <span class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] px-2 py-0.5 rounded flex items-center gap-1 font-medium shrink-0">
+            🤖 ${robot}
+            <button type="button" onclick="RpaPendenciesModule.removeRobot('${safeName}')" class="text-emerald-400/70 hover:text-emerald-200 cursor-pointer text-xs ml-0.5 font-bold" title="Remover">
               <i class="fa-solid fa-xmark text-[10px]"></i>
             </button>
           </span>
@@ -521,17 +532,16 @@
       if (!container) return;
 
       if (!this.selectedResponsibles.length) {
-        container.innerHTML = `<span class="text-gray-500 text-[11px] italic">Nenhum responsável adicionado</span>`;
+        container.innerHTML = '';
         return;
       }
 
       container.innerHTML = this.selectedResponsibles.map(rName => {
         const safeName = rName.replace(/'/g, "\\'");
         return `
-          <span class="inline-flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/25 text-indigo-300 text-[11px] px-2.5 py-1 rounded-full font-medium shadow-sm transition-all hover:bg-indigo-500/20">
-            <i class="fa-solid fa-user text-[10px]"></i>
-            <span>${rName}</span>
-            <button type="button" onclick="RpaPendenciesModule.removeResponsible('${safeName}')" class="text-indigo-300/70 hover:text-indigo-200 ml-0.5 p-0.5 rounded-full flex items-center justify-center transition-colors" title="Remover">
+          <span class="bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-[11px] px-2 py-0.5 rounded flex items-center gap-1 font-medium shrink-0">
+            👤 ${rName}
+            <button type="button" onclick="RpaPendenciesModule.removeResponsible('${safeName}')" class="text-indigo-300/70 hover:text-indigo-200 cursor-pointer text-xs ml-0.5 font-bold" title="Remover">
               <i class="fa-solid fa-xmark text-[10px]"></i>
             </button>
           </span>
