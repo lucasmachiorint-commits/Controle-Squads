@@ -171,9 +171,12 @@
           </div>
         `;
 
-        const dpoView = document.getElementById('view-dpo-sync') || document.getElementById('view-gestao-acessos');
-        if (dpoView && dpoView.parentNode) {
-          dpoView.parentNode.insertBefore(this.parseHTML(viewHtml), dpoView);
+        const mainWrapper = document.querySelector('.main-wrapper') || document.querySelector('main');
+        const gestaoView = document.getElementById('view-gestao-acessos') || document.getElementById('view-dashboard');
+        if (gestaoView && gestaoView.parentNode) {
+          gestaoView.parentNode.insertBefore(this.parseHTML(viewHtml), gestaoView);
+        } else if (mainWrapper) {
+          mainWrapper.appendChild(this.parseHTML(viewHtml));
         } else {
           document.body.appendChild(this.parseHTML(viewHtml));
         }
