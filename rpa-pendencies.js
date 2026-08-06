@@ -205,9 +205,9 @@
                 <!-- 1. ROBÔ(S) AFETADO(S) -->
                 <div class="form-group mb-4">
                   <label class="form-label" style="font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; display: block;">Robô(s) Afetado(s) <span class="required-asterisk" style="color: #f43f5e;">*</span></label>
-                  <div class="w-full bg-[#111827] rounded-2xl p-2.5 transition-all flex flex-wrap items-center gap-2 min-h-[48px]" style="border: 1.5px solid #059669; box-shadow: 0 0 14px rgba(5, 150, 105, 0.35);">
+                  <div class="tag-select-container w-full bg-[#111827] rounded-2xl p-2.5 transition-all flex flex-wrap items-center gap-2 min-h-[48px]" style="border: 1.5px solid #059669; box-shadow: 0 0 14px rgba(5, 150, 105, 0.35); background-color: #111827; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
                     <div id="rpa-robot-pills-container" style="display: contents;"></div>
-                    <select id="rpa-robot-adder-select" 
+                    <select id="rpa-robot-adder-select" class="tag-select-dropdown" 
                             style="background: transparent; border: none; outline: none; color: #94a3b8; font-size: 12px; font-family: inherit; cursor: pointer; flex: 1; min-width: 150px; height: 26px; padding: 0; appearance: none; -webkit-appearance: none;"
                             onchange="RpaPendenciesModule.addRobot(this.value); this.value = '';">
                       <option value="" disabled selected class="bg-[#111827] text-gray-400">+ Selecionar Robô...</option>
@@ -250,9 +250,9 @@
                 <div class="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <label class="form-label" style="font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; display: block;">Responsável <span class="required-asterisk" style="color: #f43f5e;">*</span></label>
-                    <div class="w-full bg-[#111827] rounded-2xl p-2.5 transition-all flex flex-wrap items-center gap-2 min-h-[48px]" style="border: 1.5px solid #6366f1; box-shadow: 0 0 14px rgba(99, 102, 241, 0.35);">
+                    <div class="tag-select-container tag-select-container-indigo w-full bg-[#111827] rounded-2xl p-2.5 transition-all flex flex-wrap items-center gap-2 min-h-[48px]" style="border: 1.5px solid #6366f1; box-shadow: 0 0 14px rgba(99, 102, 241, 0.35); background-color: #111827; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
                       <div id="rpa-resp-pills-container" style="display: contents;"></div>
-                      <select id="rpa-resp-adder-select" 
+                      <select id="rpa-resp-adder-select" class="tag-select-dropdown" 
                               style="background: transparent; border: none; outline: none; color: #94a3b8; font-size: 12px; font-family: inherit; cursor: pointer; flex: 1; min-width: 120px; height: 26px; padding: 0; appearance: none; -webkit-appearance: none;"
                               onchange="RpaPendenciesModule.addResponsible(this.value); this.value = '';">
                         <option value="" disabled selected class="bg-[#111827] text-gray-400">+ Selecionar Responsável...</option>
