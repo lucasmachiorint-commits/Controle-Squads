@@ -130,7 +130,8 @@ async function fetchJiraAndSaveJson() {
   };
 
   fs.writeFileSync('docs/jira-data.json', JSON.stringify(payload, null, 2), 'utf8');
-  console.log(`✅ SUCESSO! ${cards.length} cards gravados com sucesso em docs/jira-data.json.`);
+  fs.writeFileSync('jira-data.json', JSON.stringify(payload, null, 2), 'utf8');
+  console.log(`✅ SUCESSO! ${cards.length} cards gravados com sucesso em docs/jira-data.json e jira-data.json.`);
 }
 
 fetchJiraAndSaveJson();
