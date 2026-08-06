@@ -276,9 +276,10 @@
                   <div>
                     <label class="form-label text-xs text-slate-300 font-bold">Responsável *</label>
                     <select class="form-control text-xs py-2.5" id="rpa-edit-responsible" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;">
-                      <option value="Redesign">Redesign (Parceiro)</option>
+                      <option value="Redesign (Parceiro)">Redesign (Parceiro)</option>
                       <option value="Caio (Interno)">Caio (Interno)</option>
-                      <option value="Ambos">Ambos</option>
+                      <option value="Redesign ; Caio">Redesign ; Caio</option>
+                      <option value="Ambos / Squad RPA">Ambos / Squad RPA</option>
                     </select>
                   </div>
                   <div>
@@ -606,10 +607,10 @@
 
       tbody.innerHTML = filtered.map(item => {
         let respBadge = `<span class="badge bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2.5 py-1 font-bold text-[11px] rounded-lg">${item.responsible}</span>`;
-        if (item.responsible === 'Caio (Interno)') {
+        if ((item.responsible || '').includes('Caio (Interno)')) {
           respBadge = `<span class="badge bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 font-bold text-[11px] rounded-lg">Caio (Interno)</span>`;
-        } else if (item.responsible === 'Ambos') {
-          respBadge = `<span class="badge bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-1 font-bold text-[11px] rounded-lg">Ambos</span>`;
+        } else if ((item.responsible || '').includes('Redesign ; Caio') || (item.responsible || '').includes('Ambos')) {
+          respBadge = `<span class="badge bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-1 font-bold text-[11px] rounded-lg">${item.responsible}</span>`;
         }
 
         let sevBadge = `<span class="badge bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 px-2 py-0.5 font-bold text-[10px]">⚡ Média</span>`;
@@ -689,7 +690,12 @@
           if (idEl) idEl.value = item.id;
           this.selectedRobots = item.robo_name ? item.robo_name.split(',').map(s => s.trim()).filter(Boolean) : [];
           if (titleInput) titleInput.value = item.title;
-          if (respEl) respEl.value = item.responsible;
+          if (respEl) {
+            let rVal = item.responsible || 'Redesign (Parceiro)';
+            if (rVal === 'Redesign') rVal = 'Redesign (Parceiro)';
+            if (rVal === 'Ambos') rVal = 'Ambos / Squad RPA';
+            respEl.value = rVal;
+          }
           if (sevEl) sevEl.value = item.severity;
           if (statusEl) statusEl.value = item.status;
           if (noteEl) noteEl.value = item.description || '';
@@ -699,7 +705,7 @@
         if (idEl) idEl.value = '';
         this.selectedRobots = [];
         if (titleInput) titleInput.value = '';
-        if (respEl) respEl.value = 'Redesign';
+        if (respEl) respEl.value = 'Redesign (Parceiro)';
         if (sevEl) sevEl.value = 'MEDIA';
         if (statusEl) statusEl.value = 'ABERTO';
         if (noteEl) noteEl.value = '';
