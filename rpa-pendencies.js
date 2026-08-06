@@ -15,77 +15,10 @@
 
     // Inicialização do Módulo
     init() {
-      this.injectStyles();
       this.injectUI();
       this.fetchPendencies();
       this.setupNavigationHook();
       this.registerGlobalAliases();
-    },
-
-    // Injeção de Estilos CSS do Design System Harmonizado
-    injectStyles() {
-      if (document.getElementById('rpa-module-styles')) return;
-
-      const styleEl = document.createElement('style');
-      styleEl.id = 'rpa-module-styles';
-      styleEl.textContent = `
-        /* Custom Select Escuro Harmonizado NATIVO */
-        .rpa-custom-select {
-          width: 100% !important;
-          background-color: #111827 !important;
-          color: #f3f4f6 !important;
-          border: 1px solid #1f2937 !important;
-          border-radius: 0.5rem !important; /* rounded-lg */
-          padding: 0.5rem 2.2rem 0.5rem 0.75rem !important;
-          font-size: 0.75rem !important; /* text-xs */
-          font-family: inherit !important;
-          height: 38px !important;
-          min-height: 38px !important;
-          outline: none !important;
-          cursor: pointer !important;
-          appearance: none !important;
-          -webkit-appearance: none !important;
-          -moz-appearance: none !important;
-          background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%9ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
-          background-position: right 0.75rem center !important;
-          background-repeat: no-repeat !important;
-          background-size: 1.2em 1.2em !important;
-          transition: all 0.15s ease-in-out !important;
-        }
-
-        .rpa-custom-select:focus {
-          border-color: #10b981 !important; /* emerald-500 */
-          box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important;
-        }
-
-        .rpa-custom-select option,
-        .rpa-custom-select optgroup {
-          background-color: #111827 !important;
-          color: #f3f4f6 !important;
-          padding: 8px 12px !important;
-          font-size: 12px !important;
-        }
-
-        /* Custom Input Escuro Harmonizado */
-        .rpa-custom-input {
-          width: 100% !important;
-          background-color: #111827 !important;
-          color: #f3f4f6 !important;
-          border: 1px solid #1f2937 !important;
-          border-radius: 0.5rem !important;
-          padding: 0.5rem 0.75rem !important;
-          font-size: 0.75rem !important;
-          font-family: inherit !important;
-          outline: none !important;
-          transition: all 0.15s ease-in-out !important;
-        }
-
-        .rpa-custom-input:focus {
-          border-color: #10b981 !important;
-          box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important;
-        }
-      `;
-      document.head.appendChild(styleEl);
     },
 
     registerGlobalAliases() {
