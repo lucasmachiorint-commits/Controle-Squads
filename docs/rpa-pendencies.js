@@ -1,46 +1,17 @@
 /* ==========================================================================
    Controle de Squads - Módulo Isolado de Pendências RPA (rpa-pendencies.js)
-   Padronização de UX/UI: Dropdown Retrátil (max-h-48, bg-[#111827], text-[11px]) (v1.2.1)
+   Tags Removíveis + Select Adicionador NATIVO para Robôs e Responsáveis (v1.4.0)
    100% Autônomo, Resiliente com Fallback REST Supabase + LocalStorage
    ========================================================================== */
 
 (function () {
   'use strict';
 
-  // 1. ESTRUTURA DOS DADOS DOS ROBÔS (AGRUPADOS POR CATEGORIA)
-  const ROBOT_CATEGORIES = {
-    'PAGAMENTOS NÃO BAIXADOS': [
-      'ID05 - Baixa Manual Lote',
-      'ID06 - Demandas de BKO',
-      'ID08 - Arquivo Reembolso',
-      'ID09 - Importação Reembolso Zord',
-      'ID10 - Status Reembolso Zord',
-      'ID11 - Triagem Sucesso Zord',
-      'ID13 - Atualização Jira',
-      'ID29 - Pendência Tesouraria'
-    ],
-    'CANCELAMENTO DYNAMICS': [
-      'ID12 - Rejeitados Jira',
-      'ID14 - Extração Tarefas Dynamics',
-      'ID15 - Pendência Recompra',
-      'ID16 - Cancelamento Jira',
-      'ID18 - Cancelamento Dynamics',
-      'ID19 - Cancelamento SAP',
-      'ID20 - Cancelamento CAPTA'
-    ],
-    'AMORTIZAÇÃO NOTAS DE CRÉDITO': [
-      'ID26 - Amortização Dispatcher',
-      'ID27 - Amortização Performer 1',
-      'ID28 - Amortização Performer 2',
-      'IDXX - Amortização Reembolso'
-    ]
-  };
-
   const RpaPendenciesModule = {
     pendencies: [],
     activeId: null,
     selectedRobots: [],
-    dropdownOpen: false,
+    selectedResponsibles: [],
 
     // Inicialização do Módulo
     init() {
@@ -48,7 +19,6 @@
       this.fetchPendencies();
       this.setupNavigationHook();
       this.registerGlobalAliases();
-      this.setupClickOutsideListener();
     },
 
     registerGlobalAliases() {
@@ -66,15 +36,6 @@
       }
     },
 
-    setupClickOutsideListener() {
-      document.addEventListener('mousedown', (e) => {
-        const wrapper = document.getElementById('rpa-robot-multiselect-wrapper');
-        if (wrapper && !wrapper.contains(e.target)) {
-          this.closeRobotDropdown();
-        }
-      });
-    },
-
     // Auto-Verificação e Leitura no Supabase via REST Client
     async fetchPendencies() {
       try {
@@ -89,7 +50,7 @@
               id: item.id,
               robo_name: item.robo_name || 'Robô sem nome',
               title: item.title || 'Sem título',
-              responsible: item.responsible || 'Redesign',
+              responsible: item.responsible || 'Redesign (Parceiro)',
               status: item.status || 'ABERTO',
               severity: item.severity || 'MEDIA',
               description: item.description || item.title || '',
@@ -195,9 +156,9 @@
                     <tr>
                       <th style="width: 26%;">ROBÔ(S) AFETADO(S)</th>
                       <th style="min-width: 200px;">DESCRIÇÃO / OCORRÊNCIA</th>
-                      <th style="width: 14%;">RESPONSÁVEL</th>
-                      <th style="width: 12%;">SEVERIDADE</th>
-                      <th style="width: 13%;">STATUS</th>
+                      <th style="width: 16%;">RESPONSÁVEL(IS)</th>
+                      <th style="width: 11%;">SEVERIDADE</th>
+                      <th style="width: 12%;">STATUS</th>
                       <th style="width: 140px; text-align: right;">AÇÕES</th>
                     </tr>
                   </thead>
@@ -218,7 +179,7 @@
         }
       }
 
-      // Injetar Modal Completo de Cadastro com Dropdown Retrátil Padronizado
+      // Injetar Modal Completo com Tags + Selects Adicionadores
       if (!document.getElementById('modal-rpa-edit')) {
         const editModalHtml = `
           <div class="modal-backdrop hidden" id="modal-rpa-edit" style="z-index: 99999; backdrop-filter: blur(8px); display: none;">
@@ -246,26 +207,44 @@
               <form onsubmit="RpaPendenciesModule.savePendency(event)">
                 <input type="hidden" id="rpa-edit-id" />
 
-                <!-- DROPDOWN MULTI-SELECT RETRÁTIL DE ROBÔS -->
-                <div class="form-group mb-3 relative" id="rpa-robot-multiselect-wrapper">
+                <!-- 1. ROBÔ(S) AFETADO(S): PÍLULAS + SELECT ADICIONADOR -->
+                <div class="form-group mb-3">
                   <label class="form-label text-xs text-slate-300 font-bold block mb-1">Robô(s) Afetado(s) *</label>
-
-                  <!-- Container do Input (Estado Fechado) -->
-                  <div id="rpa-robot-select-trigger" 
-                       class="w-full bg-[#111827] border border-[#1f2937] rounded-lg px-3 py-2 text-xs text-gray-200 flex items-center justify-between cursor-pointer min-h-[38px] hover:border-slate-600 transition-colors"
-                       onclick="RpaPendenciesModule.toggleRobotDropdown(event)">
-                    <div id="rpa-robot-selected-tags" class="flex flex-wrap gap-1 items-center flex-1 pr-2">
-                      <!-- Renderizado via renderRobotTags() -->
-                    </div>
-                    <span class="text-xs text-gray-400 ms-auto pl-1 transition-transform duration-200" id="rpa-robot-indicator">▼</span>
+                  
+                  <div id="rpa-robot-pills-container" class="flex flex-wrap gap-1.5 mb-2">
+                    <!-- Gerado via renderRobotPills() -->
                   </div>
 
-                  <!-- Caixa Suspensa Retrátil (Dropdown Popover - hidden por padrão) -->
-                  <div id="rpa-robot-select-popover" 
-                       class="hidden absolute left-0 right-0 top-full mt-1 z-50 bg-[#111827] border border-[#1f2937] rounded-lg shadow-xl p-2 max-h-48 overflow-y-auto custom-scrollbar space-y-1"
-                       style="box-shadow: 0 15px 35px rgba(0,0,0,0.8);">
-                    <!-- Renderizado via renderRobotPopover() -->
-                  </div>
+                  <select id="rpa-robot-adder-select" 
+                          class="w-full bg-[#111827] border border-[#1f2937] rounded-lg px-3 py-2 text-xs text-gray-200 cursor-pointer min-h-[38px] focus:border-emerald-500 focus:outline-none"
+                          onchange="RpaPendenciesModule.addRobot(this.value); this.value = '';">
+                    <option value="">+ Selecionar Robô...</option>
+                    <optgroup label="PAGAMENTOS NÃO BAIXADOS">
+                      <option value="ID05 - Baixa Manual Lote">ID05 - Baixa Manual Lote</option>
+                      <option value="ID06 - Demandas de BKO">ID06 - Demandas de BKO</option>
+                      <option value="ID08 - Arquivo Reembolso">ID08 - Arquivo Reembolso</option>
+                      <option value="ID09 - Importação Reembolso Zord">ID09 - Importação Reembolso Zord</option>
+                      <option value="ID10 - Status Reembolso Zord">ID10 - Status Reembolso Zord</option>
+                      <option value="ID11 - Triagem Sucesso Zord">ID11 - Triagem Sucesso Zord</option>
+                      <option value="ID13 - Atualização Jira">ID13 - Atualização Jira</option>
+                      <option value="ID29 - Pendência Tesouraria">ID29 - Pendência Tesouraria</option>
+                    </optgroup>
+                    <optgroup label="CANCELAMENTO DYNAMICS">
+                      <option value="ID12 - Rejeitados Jira">ID12 - Rejeitados Jira</option>
+                      <option value="ID14 - Extração Tarefas Dynamics">ID14 - Extração Tarefas Dynamics</option>
+                      <option value="ID15 - Pendência Recompra">ID15 - Pendência Recompra</option>
+                      <option value="ID16 - Cancelamento Jira">ID16 - Cancelamento Jira</option>
+                      <option value="ID18 - Cancelamento Dynamics">ID18 - Cancelamento Dynamics</option>
+                      <option value="ID19 - Cancelamento SAP">ID19 - Cancelamento SAP</option>
+                      <option value="ID20 - Cancelamento CAPTA">ID20 - Cancelamento CAPTA</option>
+                    </optgroup>
+                    <optgroup label="AMORTIZAÇÃO NOTAS DE CRÉDITO">
+                      <option value="ID26 - Amortização Dispatcher">ID26 - Amortização Dispatcher</option>
+                      <option value="ID27 - Amortização Performer 1">ID27 - Amortização Performer 1</option>
+                      <option value="ID28 - Amortização Performer 2">ID28 - Amortização Performer 2</option>
+                      <option value="IDXX - Amortização Reembolso">IDXX - Amortização Reembolso</option>
+                    </optgroup>
+                  </select>
                 </div>
 
                 <div class="form-group mb-3">
@@ -273,16 +252,26 @@
                   <input type="text" class="form-control text-xs py-2.5" id="rpa-edit-title" placeholder="Ex: Timeout na API bancária durante execução" required style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
                 </div>
 
+                <!-- 2. RESPONSÁVEL(IS): PÍLULAS + SELECT ADICIONADOR -->
                 <div class="grid grid-cols-2 gap-3 mb-3">
                   <div>
-                    <label class="form-label text-xs text-slate-300 font-bold">Responsável *</label>
-                    <select class="form-control text-xs py-2.5" id="rpa-edit-responsible" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;">
+                    <label class="form-label text-xs text-slate-300 font-bold block mb-1">Responsável *</label>
+                    
+                    <div id="rpa-resp-pills-container" class="flex flex-wrap gap-1.5 mb-2">
+                      <!-- Gerado via renderRespPills() -->
+                    </div>
+
+                    <select id="rpa-resp-adder-select" 
+                            class="w-full bg-[#111827] border border-[#1f2937] rounded-lg px-3 py-2 text-xs text-gray-200 cursor-pointer min-h-[38px] focus:border-emerald-500 focus:outline-none"
+                            onchange="RpaPendenciesModule.addResponsible(this.value); this.value = '';">
+                      <option value="">+ Responsável...</option>
                       <option value="Redesign (Parceiro)">Redesign (Parceiro)</option>
                       <option value="Caio (Interno)">Caio (Interno)</option>
-                      <option value="Redesign ; Caio">Redesign ; Caio</option>
-                      <option value="Ambos / Squad RPA">Ambos / Squad RPA</option>
+                      <option value="Time Skytel">Time Skytel</option>
+                      <option value="Outro Responsável">Outro Responsável</option>
                     </select>
                   </div>
+
                   <div>
                     <label class="form-label text-xs text-slate-300 font-bold">Severidade *</label>
                     <select class="form-control text-xs py-2.5" id="rpa-edit-severity" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;">
@@ -404,120 +393,85 @@
       return tmp.firstElementChild;
     },
 
-    // 4. Lógica do Dropdown Retrátil de Robôs
-    toggleRobotDropdown(e) {
-      if (e) e.stopPropagation();
-      this.dropdownOpen = !this.dropdownOpen;
-
-      const popover = document.getElementById('rpa-robot-select-popover');
-      const indicator = document.getElementById('rpa-robot-indicator');
-
-      if (popover) {
-        if (this.dropdownOpen) {
-          popover.classList.remove('hidden');
-          if (indicator) indicator.style.transform = 'rotate(180deg)';
-          this.renderRobotPopover();
-        } else {
-          popover.classList.add('hidden');
-          if (indicator) indicator.style.transform = 'rotate(0deg)';
-        }
-      }
-    },
-
-    closeRobotDropdown() {
-      this.dropdownOpen = false;
-      const popover = document.getElementById('rpa-robot-select-popover');
-      const indicator = document.getElementById('rpa-robot-indicator');
-      if (popover) popover.classList.add('hidden');
-      if (indicator) indicator.style.transform = 'rotate(0deg)';
-    },
-
-    toggleRobotSelection(robotName, e) {
-      if (e) e.stopPropagation();
-      const idx = this.selectedRobots.indexOf(robotName);
-      if (idx >= 0) {
-        this.selectedRobots.splice(idx, 1);
-      } else {
+    // 4. Lógica de Pílulas + Selects Adicionadores
+    addRobot(robotName) {
+      if (!robotName) return;
+      if (!this.selectedRobots.includes(robotName)) {
         this.selectedRobots.push(robotName);
+        this.renderRobotPills();
       }
-      this.renderRobotTags();
-      this.renderRobotPopover();
     },
 
-    removeRobot(robotName, e) {
-      if (e) e.stopPropagation();
+    removeRobot(robotName) {
       const idx = this.selectedRobots.indexOf(robotName);
       if (idx >= 0) {
         this.selectedRobots.splice(idx, 1);
+        this.renderRobotPills();
       }
-      this.renderRobotTags();
-      if (this.dropdownOpen) this.renderRobotPopover();
     },
 
-    renderRobotTags() {
-      const container = document.getElementById('rpa-robot-selected-tags');
+    renderRobotPills() {
+      const container = document.getElementById('rpa-robot-pills-container');
       if (!container) return;
 
       if (!this.selectedRobots.length) {
-        container.innerHTML = `<span class="text-gray-400 text-xs py-0.5">Selecione um ou mais robôs na lista...</span>`;
+        container.innerHTML = `<span class="text-gray-500 text-[11px] italic">Nenhum robô adicionado</span>`;
         return;
       }
 
       container.innerHTML = this.selectedRobots.map(botName => {
         const safeName = botName.replace(/'/g, "\\'");
         return `
-          <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[11px] px-2 py-0.5 rounded flex items-center gap-1 font-medium">
+          <span class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] px-2.5 py-1 rounded-full flex items-center gap-1.5 font-medium">
             🤖 ${botName}
-            <button type="button" onclick="RpaPendenciesModule.removeRobot('${safeName}', event)" class="hover:text-emerald-200 ms-0.5 font-bold text-[10px]">✕</button>
+            <button type="button" onclick="RpaPendenciesModule.removeRobot('${safeName}')" class="hover:text-emerald-200 cursor-pointer ms-0.5 font-bold text-[10px]">✕</button>
           </span>
         `;
       }).join('');
     },
 
-    renderRobotPopover() {
-      const popover = document.getElementById('rpa-robot-select-popover');
-      if (!popover) return;
+    addResponsible(respName) {
+      if (!respName) return;
+      if (!this.selectedResponsibles.includes(respName)) {
+        this.selectedResponsibles.push(respName);
+        this.renderRespPills();
+      }
+    },
 
-      let html = '';
+    removeResponsible(respName) {
+      const idx = this.selectedResponsibles.indexOf(respName);
+      if (idx >= 0) {
+        this.selectedResponsibles.splice(idx, 1);
+        this.renderRespPills();
+      }
+    },
 
-      Object.keys(ROBOT_CATEGORIES).forEach(category => {
-        const bots = ROBOT_CATEGORIES[category];
-        html += `
-          <div class="mb-1.5">
-            <div class="text-[10px] uppercase font-semibold text-gray-400 tracking-wider pt-2 pb-1 px-2 border-b border-gray-800/50 mb-1">
-              ${category}
-            </div>
-            <div class="space-y-0.5">
+    renderRespPills() {
+      const container = document.getElementById('rpa-resp-pills-container');
+      if (!container) return;
+
+      if (!this.selectedResponsibles.length) {
+        container.innerHTML = `<span class="text-gray-500 text-[11px] italic">Nenhum responsável adicionado</span>`;
+        return;
+      }
+
+      container.innerHTML = this.selectedResponsibles.map(rName => {
+        const safeName = rName.replace(/'/g, "\\'");
+        return `
+          <span class="bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-[11px] px-2.5 py-1 rounded-full flex items-center gap-1.5 font-medium">
+            👤 ${rName}
+            <button type="button" onclick="RpaPendenciesModule.removeResponsible('${safeName}')" class="hover:text-indigo-200 cursor-pointer ms-0.5 font-bold text-[10px]">✕</button>
+          </span>
         `;
-
-        bots.forEach(botName => {
-          const isSelected = this.selectedRobots.includes(botName);
-          const safeName = botName.replace(/'/g, "\\'");
-          const bgClass = isSelected ? 'bg-[#1f2937] text-white font-semibold' : 'text-gray-300 hover:bg-[#1f2937] hover:text-white';
-          const icon = isSelected
-            ? `<span class="text-emerald-400 text-xs font-bold">✓</span>`
-            : ``;
-
-          html += `
-            <div class="${bgClass} px-2 py-1.5 rounded cursor-pointer flex items-center justify-between transition-colors text-xs"
-                 onclick="RpaPendenciesModule.toggleRobotSelection('${safeName}', event)">
-              <span>🤖 ${botName}</span>
-              ${icon}
-            </div>
-          `;
-        });
-
-        html += `
-            </div>
-          </div>
-        `;
-      });
-
-      popover.innerHTML = html;
+      }).join('');
     },
 
     getSelectedRobotsString() {
       return this.selectedRobots.join(', ');
+    },
+
+    getSelectedResponsiblesString() {
+      return this.selectedResponsibles.length ? this.selectedResponsibles.join(' ; ') : 'Redesign (Parceiro)';
     },
 
     // 5. Hook Limpo na Navegação do App
@@ -608,12 +562,13 @@
       };
 
       tbody.innerHTML = filtered.map(item => {
-        let respBadge = `<span class="badge bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2.5 py-1 font-bold text-[11px] rounded-lg">${item.responsible}</span>`;
-        if ((item.responsible || '').includes('Caio (Interno)')) {
-          respBadge = `<span class="badge bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 font-bold text-[11px] rounded-lg">Caio (Interno)</span>`;
-        } else if ((item.responsible || '').includes('Redesign ; Caio') || (item.responsible || '').includes('Ambos')) {
-          respBadge = `<span class="badge bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-1 font-bold text-[11px] rounded-lg">${item.responsible}</span>`;
-        }
+        // Renderizar responsáveis em badges
+        const respList = (item.responsible || '').split(/;|;/).map(s => s.trim()).filter(Boolean);
+        const respBadges = respList.map(r => `
+          <span class="inline-flex items-center gap-1 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold px-2 py-0.5 rounded-md mb-1 me-1">
+            👤 ${r}
+          </span>
+        `).join('');
 
         let sevBadge = `<span class="badge bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 px-2 py-0.5 font-bold text-[10px]">⚡ Média</span>`;
         if (item.severity === 'CRITICA') sevBadge = `<span class="badge bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2 py-0.5 font-bold text-[10px]">🚨 Crítica</span>`;
@@ -647,7 +602,11 @@
               <span class="font-semibold text-slate-200 text-xs block">${item.title}</span>
               <span class="text-[10px] text-slate-400"><i class="fa-solid fa-clock me-1"></i>Atualizado em ${lastUpdate} · ${notesCount} nota(s)</span>
             </td>
-            <td style="padding: 14px 16px;">${respBadge}</td>
+            <td style="padding: 14px 16px;">
+              <div class="flex flex-wrap items-center">
+                ${respBadges || `<span class="text-slate-400 text-xs">${item.responsible}</span>`}
+              </div>
+            </td>
             <td style="padding: 14px 16px;">${sevBadge}</td>
             <td style="padding: 14px 16px;">${statusBadge}</td>
             <td style="padding: 14px 16px; text-align: right;">
@@ -680,7 +639,6 @@
       const titleEl = document.getElementById('rpa-modal-edit-title');
       const idEl = document.getElementById('rpa-edit-id');
       const titleInput = document.getElementById('rpa-edit-title');
-      const respEl = document.getElementById('rpa-edit-responsible');
       const sevEl = document.getElementById('rpa-edit-severity');
       const statusEl = document.getElementById('rpa-edit-status');
       const noteEl = document.getElementById('rpa-edit-note');
@@ -691,13 +649,8 @@
           if (titleEl) titleEl.textContent = 'Editar Ocorrência RPA';
           if (idEl) idEl.value = item.id;
           this.selectedRobots = item.robo_name ? item.robo_name.split(',').map(s => s.trim()).filter(Boolean) : [];
+          this.selectedResponsibles = item.responsible ? item.responsible.split(/;|;/).map(s => s.trim()).filter(Boolean) : ['Redesign (Parceiro)'];
           if (titleInput) titleInput.value = item.title;
-          if (respEl) {
-            let rVal = item.responsible || 'Redesign (Parceiro)';
-            if (rVal === 'Redesign') rVal = 'Redesign (Parceiro)';
-            if (rVal === 'Ambos') rVal = 'Ambos / Squad RPA';
-            respEl.value = rVal;
-          }
           if (sevEl) sevEl.value = item.severity;
           if (statusEl) statusEl.value = item.status;
           if (noteEl) noteEl.value = item.description || '';
@@ -706,15 +659,15 @@
         if (titleEl) titleEl.textContent = 'Cadastrar Ocorrência RPA';
         if (idEl) idEl.value = '';
         this.selectedRobots = [];
+        this.selectedResponsibles = ['Redesign (Parceiro)'];
         if (titleInput) titleInput.value = '';
-        if (respEl) respEl.value = 'Redesign (Parceiro)';
         if (sevEl) sevEl.value = 'MEDIA';
         if (statusEl) statusEl.value = 'ABERTO';
         if (noteEl) noteEl.value = '';
       }
 
-      this.dropdownOpen = false;
-      this.renderRobotTags();
+      this.renderRobotPills();
+      this.renderRespPills();
 
       modal.classList.remove('hidden');
       modal.classList.add('open', 'active');
@@ -729,7 +682,6 @@
         modal.classList.remove('open', 'active');
         modal.style.setProperty('display', 'none', 'important');
       }
-      this.closeRobotDropdown();
     },
 
     async savePendency(e) {
@@ -737,14 +689,14 @@
 
       const id = document.getElementById('rpa-edit-id')?.value;
       const robo_name = this.getSelectedRobotsString();
+      const responsible = this.getSelectedResponsiblesString();
       const title = document.getElementById('rpa-edit-title')?.value.trim();
-      const responsible = document.getElementById('rpa-edit-responsible')?.value;
       const severity = document.getElementById('rpa-edit-severity')?.value;
       const status = document.getElementById('rpa-edit-status')?.value;
       const initial_note = document.getElementById('rpa-edit-note')?.value.trim();
 
       if (!robo_name) {
-        alert('Por favor, selecione ao menos um Robô Afetado na lista.');
+        alert('Por favor, selecione ao menos um Robô Afetado.');
         return;
       }
       if (!title) {
