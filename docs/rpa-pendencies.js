@@ -1,6 +1,6 @@
 /* ==========================================================================
    Controle de Squads - Módulo Isolado de Pendências RPA (rpa-pendencies.js)
-   Tags Removíveis + Select Adicionador NATIVO para Robôs e Responsáveis (v1.4.0)
+   Design System Harmonizado Impeccable (v1.5.0)
    100% Autônomo, Resiliente com Fallback REST Supabase + LocalStorage
    ========================================================================== */
 
@@ -15,10 +15,77 @@
 
     // Inicialização do Módulo
     init() {
+      this.injectStyles();
       this.injectUI();
       this.fetchPendencies();
       this.setupNavigationHook();
       this.registerGlobalAliases();
+    },
+
+    // Injeção de Estilos CSS do Design System Harmonizado
+    injectStyles() {
+      if (document.getElementById('rpa-module-styles')) return;
+
+      const styleEl = document.createElement('style');
+      styleEl.id = 'rpa-module-styles';
+      styleEl.textContent = `
+        /* Custom Select Escuro Harmonizado NATIVO */
+        .rpa-custom-select {
+          width: 100% !important;
+          background-color: #111827 !important;
+          color: #f3f4f6 !important;
+          border: 1px solid #1f2937 !important;
+          border-radius: 0.5rem !important; /* rounded-lg */
+          padding: 0.5rem 2.2rem 0.5rem 0.75rem !important;
+          font-size: 0.75rem !important; /* text-xs */
+          font-family: inherit !important;
+          height: 38px !important;
+          min-height: 38px !important;
+          outline: none !important;
+          cursor: pointer !important;
+          appearance: none !important;
+          -webkit-appearance: none !important;
+          -moz-appearance: none !important;
+          background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%9ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+          background-position: right 0.75rem center !important;
+          background-repeat: no-repeat !important;
+          background-size: 1.2em 1.2em !important;
+          transition: all 0.15s ease-in-out !important;
+        }
+
+        .rpa-custom-select:focus {
+          border-color: #10b981 !important; /* emerald-500 */
+          box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important;
+        }
+
+        .rpa-custom-select option,
+        .rpa-custom-select optgroup {
+          background-color: #111827 !important;
+          color: #f3f4f6 !important;
+          padding: 8px 12px !important;
+          font-size: 12px !important;
+        }
+
+        /* Custom Input Escuro Harmonizado */
+        .rpa-custom-input {
+          width: 100% !important;
+          background-color: #111827 !important;
+          color: #f3f4f6 !important;
+          border: 1px solid #1f2937 !important;
+          border-radius: 0.5rem !important;
+          padding: 0.5rem 0.75rem !important;
+          font-size: 0.75rem !important;
+          font-family: inherit !important;
+          outline: none !important;
+          transition: all 0.15s ease-in-out !important;
+        }
+
+        .rpa-custom-input:focus {
+          border-color: #10b981 !important;
+          box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important;
+        }
+      `;
+      document.head.appendChild(styleEl);
     },
 
     registerGlobalAliases() {
@@ -179,13 +246,13 @@
         }
       }
 
-      // Injetar Modal Completo com Tags + Selects Adicionadores
+      // Injetar Modal Completo com Tags + Selects Adicionadores HARMONIZADOS
       if (!document.getElementById('modal-rpa-edit')) {
         const editModalHtml = `
           <div class="modal-backdrop hidden" id="modal-rpa-edit" style="z-index: 99999; backdrop-filter: blur(8px); display: none;">
-            <div class="modal-content relative" style="max-width: 540px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.7); border-radius: 16px; padding: 24px; overflow: visible;">
+            <div class="modal-content relative" style="max-width: 540px; background: #0f172a; border: 1px solid #1f2937; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75); border-radius: 16px; padding: 24px; overflow: visible;">
               
-              <!-- Botão Fechar com Caixa de Contorno (Outline) no Canto Superior Direito -->
+              <!-- Botão Fechar no Canto Superior Direito -->
               <button type="button" 
                       onclick="RpaPendenciesModule.closeModal()" 
                       class="absolute top-4 right-4 bg-transparent border border-[#374151] hover:border-emerald-500 text-gray-400 hover:text-emerald-400 rounded-lg w-8 h-8 flex items-center justify-center transition-all cursor-pointer text-sm font-semibold" 
@@ -207,16 +274,16 @@
               <form onsubmit="RpaPendenciesModule.savePendency(event)">
                 <input type="hidden" id="rpa-edit-id" />
 
-                <!-- 1. ROBÔ(S) AFETADO(S): PÍLULAS + SELECT ADICIONADOR -->
-                <div class="form-group mb-3">
-                  <label class="form-label text-xs text-slate-300 font-bold block mb-1">Robô(s) Afetado(s) *</label>
+                <!-- 1. ROBÔ(S) AFETADO(S): PÍLULAS + SELECT ADICIONADOR HARMONIZADO -->
+                <div class="form-group mb-4">
+                  <label class="text-xs font-semibold text-gray-300 mb-1.5 block">Robô(s) Afetado(s) *</label>
                   
                   <div id="rpa-robot-pills-container" class="flex flex-wrap gap-1.5 mb-2">
                     <!-- Gerado via renderRobotPills() -->
                   </div>
 
                   <select id="rpa-robot-adder-select" 
-                          class="w-full bg-[#111827] border border-[#1f2937] rounded-lg px-3 py-2 text-xs text-gray-200 cursor-pointer min-h-[38px] focus:border-emerald-500 focus:outline-none"
+                          class="rpa-custom-select"
                           onchange="RpaPendenciesModule.addRobot(this.value); this.value = '';">
                     <option value="">+ Selecionar Robô...</option>
                     <optgroup label="PAGAMENTOS NÃO BAIXADOS">
@@ -247,22 +314,22 @@
                   </select>
                 </div>
 
-                <div class="form-group mb-3">
-                  <label class="form-label text-xs text-slate-300 font-bold">Título / Resumo do Problema *</label>
-                  <input type="text" class="form-control text-xs py-2.5" id="rpa-edit-title" placeholder="Ex: Timeout na API bancária durante execução" required style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
+                <div class="form-group mb-4">
+                  <label class="text-xs font-semibold text-gray-300 mb-1.5 block">Título / Resumo do Problema *</label>
+                  <input type="text" class="rpa-custom-input" id="rpa-edit-title" placeholder="Ex: Timeout na API bancária durante execução" required />
                 </div>
 
-                <!-- 2. RESPONSÁVEL(IS): PÍLULAS + SELECT ADICIONADOR -->
-                <div class="grid grid-cols-2 gap-3 mb-3">
+                <!-- 2. RESPONSÁVEL(IS): PÍLULAS + SELECT ADICIONADOR HARMONIZADO -->
+                <div class="grid grid-cols-2 gap-3 mb-4">
                   <div>
-                    <label class="form-label text-xs text-slate-300 font-bold block mb-1">Responsável *</label>
+                    <label class="text-xs font-semibold text-gray-300 mb-1.5 block">Responsável *</label>
                     
                     <div id="rpa-resp-pills-container" class="flex flex-wrap gap-1.5 mb-2">
                       <!-- Gerado via renderRespPills() -->
                     </div>
 
                     <select id="rpa-resp-adder-select" 
-                            class="w-full bg-[#111827] border border-[#1f2937] rounded-lg px-3 py-2 text-xs text-gray-200 cursor-pointer min-h-[38px] focus:border-emerald-500 focus:outline-none"
+                            class="rpa-custom-select"
                             onchange="RpaPendenciesModule.addResponsible(this.value); this.value = '';">
                       <option value="">+ Responsável...</option>
                       <option value="Redesign (Parceiro)">Redesign (Parceiro)</option>
@@ -273,8 +340,8 @@
                   </div>
 
                   <div>
-                    <label class="form-label text-xs text-slate-300 font-bold">Severidade *</label>
-                    <select class="form-control text-xs py-2.5" id="rpa-edit-severity" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;">
+                    <label class="text-xs font-semibold text-gray-300 mb-1.5 block">Severidade *</label>
+                    <select class="rpa-custom-select" id="rpa-edit-severity">
                       <option value="MEDIA">⚡ Média</option>
                       <option value="BAIXA">🟢 Baixa</option>
                       <option value="ALTA">🔥 Alta</option>
@@ -284,8 +351,8 @@
                 </div>
 
                 <div class="form-group mb-4">
-                  <label class="form-label text-xs text-slate-300 font-bold">Status Inicial *</label>
-                  <select class="form-control text-xs py-2.5" id="rpa-edit-status" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;">
+                  <label class="text-xs font-semibold text-gray-300 mb-1.5 block">Status Inicial *</label>
+                  <select class="rpa-custom-select" id="rpa-edit-status">
                     <option value="ABERTO">Em Aberto</option>
                     <option value="EM_ANALISE">Em Análise</option>
                     <option value="AGUARDANDO_PARCEIRO">Aguardando Parceiro</option>
@@ -293,9 +360,9 @@
                   </select>
                 </div>
 
-                <div class="form-group mb-4">
-                  <label class="form-label text-xs text-slate-300 font-bold">Nota Inicial / Detalhes do Incidente</label>
-                  <textarea class="form-control text-xs py-2.5" id="rpa-edit-note" rows="3" placeholder="Descreva o impacto ou motivo do chamado..." style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; resize: vertical;"></textarea>
+                <div class="form-group mb-5">
+                  <label class="text-xs font-semibold text-gray-300 mb-1.5 block">Nota Inicial / Detalhes do Incidente</label>
+                  <textarea class="rpa-custom-input" id="rpa-edit-note" rows="3" placeholder="Descreva o impacto ou motivo do chamado..." style="resize: vertical;"></textarea>
                 </div>
 
                 <div class="flex items-center justify-end pt-3 border-t border-white/10">
@@ -314,7 +381,7 @@
       if (!document.getElementById('modal-rpa-details')) {
         const detailsModalHtml = `
           <div class="modal-backdrop hidden" id="modal-rpa-details" style="z-index: 99999; backdrop-filter: blur(8px); display: none;">
-            <div class="modal-content relative" style="max-width: 640px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.7); border-radius: 16px; padding: 24px;">
+            <div class="modal-content relative" style="max-width: 640px; background: #0f172a; border: 1px solid #1f2937; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75); border-radius: 16px; padding: 24px;">
               <button type="button" 
                       onclick="RpaPendenciesModule.closeDetailsModal()" 
                       class="absolute top-4 right-4 bg-transparent border border-[#374151] hover:border-emerald-500 text-gray-400 hover:text-emerald-400 rounded-lg w-8 h-8 flex items-center justify-center transition-all cursor-pointer text-sm font-semibold" 
@@ -348,7 +415,7 @@
 
               <div class="flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-900/50 border border-white/10 mb-4">
                 <label class="text-xs font-bold text-slate-300">Alterar Status da Ocorrência:</label>
-                <select id="rpa-detail-status-change" class="form-control text-xs py-1.5 px-3" style="max-width: 200px; background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;" onchange="RpaPendenciesModule.updateStatus(this.value)">
+                <select id="rpa-detail-status-change" class="rpa-custom-select" style="max-width: 200px;" onchange="RpaPendenciesModule.updateStatus(this.value)">
                   <option value="ABERTO">Em Aberto</option>
                   <option value="EM_ANALISE">Em Análise</option>
                   <option value="AGUARDANDO_PARCEIRO">Aguardando Parceiro</option>
@@ -361,7 +428,7 @@
                   <i class="fa-solid fa-comment-dots me-1.5"></i> Registrar Cobrança / Evolução
                 </label>
                 <div class="flex gap-2 mb-3">
-                  <textarea id="rpa-detail-new-text" rows="2" placeholder="Digite uma nova atualização ou data de cobrança..." class="form-control text-xs p-2.5 flex-1" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; resize: vertical;"></textarea>
+                  <textarea id="rpa-detail-new-text" rows="2" placeholder="Digite uma nova atualização ou data de cobrança..." class="rpa-custom-input flex-1" style="resize: vertical;"></textarea>
                   <button type="button" class="btn btn-primary text-xs px-4 py-2 self-end shrink-0" onclick="RpaPendenciesModule.addNote()">
                     <i class="fa-solid fa-paper-plane me-1"></i> Registrar
                   </button>
@@ -422,9 +489,12 @@
       container.innerHTML = this.selectedRobots.map(botName => {
         const safeName = botName.replace(/'/g, "\\'");
         return `
-          <span class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] px-2.5 py-1 rounded-full flex items-center gap-1.5 font-medium">
-            🤖 ${botName}
-            <button type="button" onclick="RpaPendenciesModule.removeRobot('${safeName}')" class="hover:text-emerald-200 cursor-pointer ms-0.5 font-bold text-[10px]">✕</button>
+          <span class="inline-flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[11px] px-2.5 py-1 rounded-full font-medium shadow-sm transition-all hover:bg-emerald-500/20">
+            <i class="fa-solid fa-robot text-[10px]"></i>
+            <span>${botName}</span>
+            <button type="button" onclick="RpaPendenciesModule.removeRobot('${safeName}')" class="text-emerald-400/70 hover:text-emerald-300 ml-0.5 p-0.5 rounded-full flex items-center justify-center transition-colors" title="Remover">
+              <i class="fa-solid fa-xmark text-[10px]"></i>
+            </button>
           </span>
         `;
       }).join('');
@@ -458,9 +528,12 @@
       container.innerHTML = this.selectedResponsibles.map(rName => {
         const safeName = rName.replace(/'/g, "\\'");
         return `
-          <span class="bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-[11px] px-2.5 py-1 rounded-full flex items-center gap-1.5 font-medium">
-            👤 ${rName}
-            <button type="button" onclick="RpaPendenciesModule.removeResponsible('${safeName}')" class="hover:text-indigo-200 cursor-pointer ms-0.5 font-bold text-[10px]">✕</button>
+          <span class="inline-flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/25 text-indigo-300 text-[11px] px-2.5 py-1 rounded-full font-medium shadow-sm transition-all hover:bg-indigo-500/20">
+            <i class="fa-solid fa-user text-[10px]"></i>
+            <span>${rName}</span>
+            <button type="button" onclick="RpaPendenciesModule.removeResponsible('${safeName}')" class="text-indigo-300/70 hover:text-indigo-200 ml-0.5 p-0.5 rounded-full flex items-center justify-center transition-colors" title="Remover">
+              <i class="fa-solid fa-xmark text-[10px]"></i>
+            </button>
           </span>
         `;
       }).join('');
