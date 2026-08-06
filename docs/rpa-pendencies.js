@@ -1,10 +1,39 @@
 /* ==========================================================================
    Controle de Squads - Módulo Isolado de Pendências RPA (rpa-pendencies.js)
-   Garantia Total de Conexão dos Modais (onclick / window.app / DOM Direct)
+   Multi-Select de Robôs Afetados com Lista Padronizada (v1.1.0)
+   100% Autônomo, Resiliente com Fallback REST Supabase + LocalStorage
    ========================================================================== */
 
 (function () {
   'use strict';
+
+  // 1. LISTA OFICIAL DE ROBÔS (AGRUPADOS POR CATEGORIA)
+  const ROBOTS_LIST = [
+    // PAGAMENTOS NÃO BAIXADOS
+    { id: 'ID 05', name: 'ID05 - Baixa Manual Lote', category: 'PAGAMENTOS NÃO BAIXADOS' },
+    { id: 'ID 06', name: 'ID06 - Demandas de BKO', category: 'PAGAMENTOS NÃO BAIXADOS' },
+    { id: 'ID 08', name: 'ID08 - Arquivo Reembolso', category: 'PAGAMENTOS NÃO BAIXADOS' },
+    { id: 'ID 09', name: 'ID09 - Importação Reembolso Zord', category: 'PAGAMENTOS NÃO BAIXADOS' },
+    { id: 'ID 10', name: 'ID10 - Status Reembolso Zord', category: 'PAGAMENTOS NÃO BAIXADOS' },
+    { id: 'ID 11', name: 'ID11 - Triagem Sucesso Zord', category: 'PAGAMENTOS NÃO BAIXADOS' },
+    { id: 'ID 13', name: 'ID13 - Atualização Jira', category: 'PAGAMENTOS NÃO BAIXADOS' },
+    { id: 'ID 29', name: 'ID29 - Pendência Tesouraria', category: 'PAGAMENTOS NÃO BAIXADOS' },
+
+    // CANCELAMENTO DYNAMICS
+    { id: 'ID 12', name: 'ID12 - Rejeitados Jira', category: 'CANCELAMENTO DYNAMICS' },
+    { id: 'ID 14', name: 'ID14 - Extração Tarefas Dynamics', category: 'CANCELAMENTO DYNAMICS' },
+    { id: 'ID 15', name: 'ID15 - Pendência Recompra', category: 'CANCELAMENTO DYNAMICS' },
+    { id: 'ID 16', name: 'ID16 - Cancelamento Jira', category: 'CANCELAMENTO DYNAMICS' },
+    { id: 'ID 18', name: 'ID18 - Cancelamento Dynamics', category: 'CANCELAMENTO DYNAMICS' },
+    { id: 'ID 19', name: 'ID19 - Cancelamento SAP', category: 'CANCELAMENTO DYNAMICS' },
+    { id: 'ID 20', name: 'ID20 - Cancelamento CAPTA', category: 'CANCELAMENTO DYNAMICS' },
+
+    // AMORTIZAÇÃO NOTAS DE CRÉDITO
+    { id: 'ID 26', name: 'ID26 - Amortização Dispatcher', category: 'AMORTIZAÇÃO NOTAS DE CRÉDITO' },
+    { id: 'ID 27', name: 'ID27 - Amortização Performer 1', category: 'AMORTIZAÇÃO NOTAS DE CRÉDITO' },
+    { id: 'ID 28', name: 'ID28 - Amortização Performer 2', category: 'AMORTIZAÇÃO NOTAS DE CRÉDITO' },
+    { id: 'ID XX', name: 'IDXX - Amortização Reembolso', category: 'AMORTIZAÇÃO NOTAS DE CRÉDITO' }
+  ];
 
   const RpaPendenciesModule = {
     pendencies: [],
@@ -18,7 +47,6 @@
       this.registerGlobalAliases();
     },
 
-    // 1. Registro de Aliases Globais no window.app para evitar quebras em qualquer onclick
     registerGlobalAliases() {
       const self = this;
       window.RpaPendenciesModule = self;
@@ -34,7 +62,7 @@
       }
     },
 
-    // 2. Auto-Verificação e Leitura no Supabase via REST Client
+    // Auto-Verificação e Leitura no Supabase via REST Client
     async fetchPendencies() {
       try {
         if (window.supabaseClient) {
@@ -86,7 +114,7 @@
       } catch (_) {}
     },
 
-    // 3. Injeção Resiliente da UI (View Limpa + Botão Subnav + Modais)
+    // Injeção Dinâmica da UI (View Limpa + Subnav + Modais)
     injectUI() {
       // Injetar Botão "Pendências RPA" no Subnav das Squads
       document.querySelectorAll('.view-container').forEach(container => {
@@ -102,7 +130,7 @@
         }
       });
 
-      // Injetar View Limpa da Tabela de Pendências se não existir
+      // Injetar View Limpa da Tabela de Pendências
       if (!document.getElementById('view-rpa-pendencies')) {
         const viewHtml = `
           <div class="view-container" id="view-rpa-pendencies">
@@ -152,11 +180,11 @@
                 <table class="custom-table w-full text-left">
                   <thead>
                     <tr>
-                      <th style="width: 18%;">ROBÔ AFETADO</th>
+                      <th style="width: 25%;">ROBÔ(S) AFETADO(S)</th>
                       <th style="min-width: 200px;">DESCRIÇÃO / OCORRÊNCIA</th>
-                      <th style="width: 15%;">RESPONSÁVEL</th>
+                      <th style="width: 14%;">RESPONSÁVEL</th>
                       <th style="width: 12%;">SEVERIDADE</th>
-                      <th style="width: 14%;">STATUS</th>
+                      <th style="width: 13%;">STATUS</th>
                       <th style="width: 140px; text-align: right;">AÇÕES</th>
                     </tr>
                   </thead>
@@ -177,11 +205,11 @@
         }
       }
 
-      // Injetar Modal Completo de Cadastro / Edição se não existir
+      // Injetar Modal Completo de Cadastro / Edição com Multi-Select de Robôs
       if (!document.getElementById('modal-rpa-edit')) {
         const editModalHtml = `
           <div class="modal-backdrop hidden" id="modal-rpa-edit" style="z-index: 99999; backdrop-filter: blur(8px); display: none;">
-            <div class="modal-content" style="max-width: 520px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.7); border-radius: 16px; padding: 24px;">
+            <div class="modal-content" style="max-width: 540px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.7); border-radius: 16px; padding: 24px;">
               <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold text-lg">
@@ -200,9 +228,15 @@
               <form onsubmit="RpaPendenciesModule.savePendency(event)">
                 <input type="hidden" id="rpa-edit-id" />
 
+                <!-- CAMPO MULTI-SELECT DE ROBÔS AFETADOS -->
                 <div class="form-group mb-3">
-                  <label class="form-label text-xs text-slate-300 font-bold">Nome do Robô Afetado *</label>
-                  <input type="text" class="form-control text-xs py-2.5" id="rpa-edit-robo" placeholder="Ex: Robô de Conciliação Extratos" required style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
+                  <div class="flex items-center justify-between mb-1">
+                    <label class="form-label text-xs text-slate-300 font-bold margin-0">Robô(s) Afetado(s) *</label>
+                    <span class="text-[10px] text-amber-400 font-semibold" id="rpa-robots-summary">Nenhum robô selecionado</span>
+                  </div>
+                  <div class="max-h-[160px] overflow-y-auto p-2.5 rounded-xl border border-white/15 bg-slate-900/90 text-xs text-slate-200" id="rpa-robots-checkbox-container">
+                    <!-- Gerado dinamicamente via renderRobotCheckboxes() -->
+                  </div>
                 </div>
 
                 <div class="form-group mb-3">
@@ -258,7 +292,7 @@
         document.body.appendChild(this.parseHTML(editModalHtml));
       }
 
-      // Injetar Modal de Detalhes & Histórico se não existir
+      // Injetar Modal de Detalhes & Histórico
       if (!document.getElementById('modal-rpa-details')) {
         const detailsModalHtml = `
           <div class="modal-backdrop hidden" id="modal-rpa-details" style="z-index: 99999; backdrop-filter: blur(8px); display: none;">
@@ -344,7 +378,69 @@
       return tmp.firstElementChild;
     },
 
-    // 4. Hook Limpo na Navegação do App (Sem Alterar o app.js)
+    // 4. Renderizador do Multi-Select de Robôs no Modal
+    renderRobotCheckboxes(selectedRobotsStr = '') {
+      const container = document.getElementById('rpa-robots-checkbox-container');
+      if (!container) return;
+
+      const selectedSet = new Set(
+        (selectedRobotsStr || '')
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean)
+      );
+
+      const categories = [
+        'PAGAMENTOS NÃO BAIXADOS',
+        'CANCELAMENTO DYNAMICS',
+        'AMORTIZAÇÃO NOTAS DE CRÉDITO'
+      ];
+
+      let html = '';
+
+      categories.forEach(cat => {
+        const catBots = ROBOTS_LIST.filter(b => b.category === cat);
+        if (!catBots.length) return;
+
+        html += `<div class="text-[10px] font-bold text-amber-400 uppercase tracking-wider mt-2 mb-1 border-b border-white/10 pb-0.5">${cat}</div>`;
+        catBots.forEach(bot => {
+          const isChecked = selectedSet.has(bot.name) || selectedSet.has(bot.id);
+          html += `
+            <label class="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-white/10 cursor-pointer transition-colors text-xs text-slate-200">
+              <input type="checkbox" name="rpa_robot_checkbox" value="${bot.name}" class="rounded border-slate-700 text-amber-500 focus:ring-amber-500 bg-slate-900" ${isChecked ? 'checked' : ''} onchange="RpaPendenciesModule.updateRobotSummary()">
+              <span>${bot.name}</span>
+            </label>
+          `;
+        });
+      });
+
+      container.innerHTML = html;
+      this.updateRobotSummary();
+    },
+
+    updateRobotSummary() {
+      const summaryEl = document.getElementById('rpa-robots-summary');
+      if (!summaryEl) return;
+
+      const checked = Array.from(document.querySelectorAll('input[name="rpa_robot_checkbox"]:checked')).map(c => c.value);
+      if (!checked.length) {
+        summaryEl.textContent = 'Nenhum robô selecionado';
+        summaryEl.className = 'text-[10px] text-amber-400 font-semibold';
+      } else if (checked.length === 1) {
+        summaryEl.textContent = checked[0];
+        summaryEl.className = 'text-[10px] text-emerald-400 font-bold';
+      } else {
+        summaryEl.textContent = `${checked.length} robôs selecionados (${checked[0].split(' - ')[0]}, ${checked[1].split(' - ')[0]}...)`;
+        summaryEl.className = 'text-[10px] text-emerald-400 font-bold';
+      }
+    },
+
+    getSelectedRobotsString() {
+      const checked = Array.from(document.querySelectorAll('input[name="rpa_robot_checkbox"]:checked')).map(c => c.value);
+      return checked.join(', ');
+    },
+
+    // 5. Hook Limpo na Navegação do App
     setupNavigationHook() {
       const checkAndToggleTab = () => {
         const squad = (window.app?.activeSquad || '').toString().toLowerCase();
@@ -395,7 +491,7 @@
       }
     },
 
-    // 5. Renderização da Tabela de Pendências
+    // 6. Renderização da Tabela de Pendências
     renderView() {
       const tbody = document.getElementById('rpa-pendencies-tbody');
       if (!tbody) return;
@@ -449,15 +545,22 @@
         else if (item.status === 'AGUARDANDO_PARCEIRO') statusBadge = `<span class="badge bg-purple-500/20 text-purple-300 border border-purple-500/40 px-2.5 py-1 font-extrabold text-[11px]">Aguardando Parceiro</span>`;
         else if (item.status === 'RESOLVIDO') statusBadge = `<span class="badge bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 font-extrabold text-[11px]">Resolvido</span>`;
 
+        // Renderizar robôs selecionados em badges limpas
+        const robotList = (item.robo_name || '').split(',').map(s => s.trim()).filter(Boolean);
+        const robotBadges = robotList.map(r => `
+          <span class="inline-flex items-center gap-1 bg-slate-800/90 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-md mb-1 me-1">
+            <i class="fa-solid fa-robot text-[9px]"></i> ${r}
+          </span>
+        `).join('');
+
         const notesCount = (item.history_notes || []).length;
         const lastUpdate = formatDate(item.updated_at || item.created_at);
 
         return `
           <tr class="hover:bg-white/5 transition-all">
             <td style="padding: 14px 16px;">
-              <div class="flex items-center gap-2">
-                <i class="fa-solid fa-robot text-amber-400"></i>
-                <span class="font-extrabold text-white text-xs">${item.robo_name}</span>
+              <div class="flex flex-wrap items-center">
+                ${robotBadges || `<span class="text-slate-400 text-xs">${item.robo_name}</span>`}
               </div>
             </td>
             <td style="padding: 14px 16px;">
@@ -485,7 +588,7 @@
       }).join('');
     },
 
-    // 6. Handlers de Abertura / Fechamento Garantidos de Modais
+    // 7. Handlers de Modais e Formulários
     openModal(id = null) {
       let modal = document.getElementById('modal-rpa-edit');
       if (!modal) {
@@ -496,19 +599,20 @@
 
       const titleEl = document.getElementById('rpa-modal-edit-title');
       const idEl = document.getElementById('rpa-edit-id');
-      const roboEl = document.getElementById('rpa-edit-robo');
       const titleInput = document.getElementById('rpa-edit-title');
       const respEl = document.getElementById('rpa-edit-responsible');
       const sevEl = document.getElementById('rpa-edit-severity');
       const statusEl = document.getElementById('rpa-edit-status');
       const noteEl = document.getElementById('rpa-edit-note');
 
+      let currentRoboStr = '';
+
       if (id) {
         const item = this.pendencies.find(i => i.id === id);
         if (item) {
           if (titleEl) titleEl.textContent = 'Editar Ocorrência RPA';
           if (idEl) idEl.value = item.id;
-          if (roboEl) roboEl.value = item.robo_name;
+          currentRoboStr = item.robo_name || '';
           if (titleInput) titleInput.value = item.title;
           if (respEl) respEl.value = item.responsible;
           if (sevEl) sevEl.value = item.severity;
@@ -518,13 +622,15 @@
       } else {
         if (titleEl) titleEl.textContent = 'Cadastrar Ocorrência RPA';
         if (idEl) idEl.value = '';
-        if (roboEl) roboEl.value = '';
+        currentRoboStr = '';
         if (titleInput) titleInput.value = '';
         if (respEl) respEl.value = 'Redesign';
         if (sevEl) sevEl.value = 'MEDIA';
         if (statusEl) statusEl.value = 'ABERTO';
         if (noteEl) noteEl.value = '';
       }
+
+      this.renderRobotCheckboxes(currentRoboStr);
 
       modal.classList.remove('hidden');
       modal.classList.add('open', 'active');
@@ -545,15 +651,19 @@
       if (e && e.preventDefault) e.preventDefault();
 
       const id = document.getElementById('rpa-edit-id')?.value;
-      const robo_name = document.getElementById('rpa-edit-robo')?.value.trim();
+      const robo_name = this.getSelectedRobotsString();
       const title = document.getElementById('rpa-edit-title')?.value.trim();
       const responsible = document.getElementById('rpa-edit-responsible')?.value;
       const severity = document.getElementById('rpa-edit-severity')?.value;
       const status = document.getElementById('rpa-edit-status')?.value;
       const initial_note = document.getElementById('rpa-edit-note')?.value.trim();
 
-      if (!robo_name || !title) {
-        alert('Por favor, preencha o Nome do Robô e o Título da ocorrência.');
+      if (!robo_name) {
+        alert('Por favor, selecione ao menos um Robô Afetado.');
+        return;
+      }
+      if (!title) {
+        alert('Por favor, preencha o Título da ocorrência.');
         return;
       }
 
@@ -629,7 +739,7 @@
       }
       if (!modal) return;
 
-      document.getElementById('rpa-detail-robo-title').textContent = `Robô: ${item.robo_name}`;
+      document.getElementById('rpa-detail-robo-title').textContent = `Robô(s): ${item.robo_name}`;
       document.getElementById('rpa-detail-resp').textContent = item.responsible;
       document.getElementById('rpa-detail-date').textContent = new Date(item.created_at).toLocaleDateString('pt-BR');
       document.getElementById('rpa-detail-status-change').value = item.status;
