@@ -222,20 +222,24 @@
       if (!document.getElementById('modal-rpa-edit')) {
         const editModalHtml = `
           <div class="modal-backdrop hidden" id="modal-rpa-edit" style="z-index: 99999; backdrop-filter: blur(8px); display: none;">
-            <div class="modal-content" style="max-width: 540px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.7); border-radius: 16px; padding: 24px; overflow: visible;">
-              <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold text-lg">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                  </div>
-                  <div>
-                    <h3 class="text-base font-extrabold text-white tracking-tight" id="rpa-modal-edit-title">Cadastrar Ocorrência RPA</h3>
-                    <p class="text-xs text-slate-400">Controle de Incidentes e Cobrança em Produção</p>
-                  </div>
-                </div>
-                <button type="button" class="text-slate-400 hover:text-white transition-colors" onclick="RpaPendenciesModule.closeModal()">
-                  <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
+            <div class="modal-content relative" style="max-width: 540px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.7); border-radius: 16px; padding: 24px; overflow: visible;">
+              
+              <!-- Botão Fechar no Canto Superior Direito (Extremidade) -->
+              <button type="button" 
+                      onclick="RpaPendenciesModule.closeModal()" 
+                      class="absolute top-4 right-4 text-gray-400 hover:text-white hover:bg-gray-800/60 rounded-lg p-1.5 transition-colors cursor-pointer text-lg leading-none flex items-center justify-center w-8 h-8" 
+                      aria-label="Fechar">
+                ✕
+              </button>
+
+              <!-- Cabeçalho Limpo -->
+              <div class="mb-5 pr-8">
+                <h3 class="text-lg font-bold text-gray-100 flex items-center gap-2">
+                  ⚠️ <span id="rpa-modal-edit-title">Cadastrar Ocorrência RPA</span>
+                </h3>
+                <p class="text-xs text-gray-400 mt-1">
+                  Controle de Incidentes e Cobrança em Produção
+                </p>
               </div>
 
               <form onsubmit="RpaPendenciesModule.savePendency(event)">
@@ -303,8 +307,7 @@
                   <textarea class="form-control text-xs py-2.5" id="rpa-edit-note" rows="3" placeholder="Descreva o impacto ou motivo do chamado..." style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; resize: vertical;"></textarea>
                 </div>
 
-                <div class="flex items-center justify-end gap-2 pt-3 border-t border-white/10">
-                  <button type="button" class="btn btn-secondary text-xs px-4 py-2" onclick="RpaPendenciesModule.closeModal()">Cancelar</button>
+                <div class="flex items-center justify-end pt-3 border-t border-white/10">
                   <button type="submit" class="btn btn-primary text-xs px-5 py-2">
                     <i class="fa-solid fa-floppy-disk me-1.5"></i> Salvar Pendência
                   </button>
@@ -320,20 +323,16 @@
       if (!document.getElementById('modal-rpa-details')) {
         const detailsModalHtml = `
           <div class="modal-backdrop hidden" id="modal-rpa-details" style="z-index: 99999; backdrop-filter: blur(8px); display: none;">
-            <div class="modal-content" style="max-width: 640px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.7); border-radius: 16px; padding: 24px;">
-              <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-bold text-lg">
-                    <i class="fa-solid fa-robot"></i>
-                  </div>
-                  <div>
-                    <h3 class="text-base font-extrabold text-white tracking-tight" id="rpa-detail-robo-title">Robô: --</h3>
-                    <p class="text-xs text-slate-400">Histórico de Ocorrências e Cobranças</p>
-                  </div>
-                </div>
-                <button type="button" class="text-slate-400 hover:text-white transition-colors" onclick="RpaPendenciesModule.closeDetailsModal()">
-                  <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
+            <div class="modal-content relative" style="max-width: 640px; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.7); border-radius: 16px; padding: 24px;">
+              <button type="button" 
+                      onclick="RpaPendenciesModule.closeDetailsModal()" 
+                      class="absolute top-4 right-4 text-gray-400 hover:text-white hover:bg-gray-800/60 rounded-lg p-1.5 transition-colors cursor-pointer text-lg leading-none flex items-center justify-center w-8 h-8" 
+                      aria-label="Fechar">
+                ✕
+              </button>
+              <div class="mb-4 border-b border-white/10 pb-3 pr-8">
+                <h3 class="text-base font-extrabold text-white tracking-tight" id="rpa-detail-robo-title">Robô: --</h3>
+                <p class="text-xs text-slate-400 mt-1">Histórico de Ocorrências e Cobranças</p>
               </div>
 
               <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4 p-3 rounded-xl bg-slate-900/80 border border-slate-700/50 text-xs">
