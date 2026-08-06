@@ -180,8 +180,10 @@
       }
 
       // Injetar Modal Completo com Tags + Selects Adicionadores HARMONIZADOS (Design System Glass Panel)
-      if (!document.getElementById('modal-rpa-edit')) {
-        const editModalHtml = `
+      const oldModal = document.getElementById('modal-rpa-edit');
+      if (oldModal) oldModal.remove();
+
+      const editModalHtml = `
           <div class="modal-backdrop hidden" id="modal-rpa-edit" style="display: none;">
             <div class="glass-panel modal-content" style="max-width: 560px;">
               
@@ -298,11 +300,11 @@
             </div>
           </div>
         `;
-        document.body.appendChild(this.parseHTML(editModalHtml));
-      }
+      document.body.appendChild(this.parseHTML(editModalHtml));
 
       // Injetar Modal de Detalhes & Histórico
-      if (!document.getElementById('modal-rpa-details')) {
+      const oldDetailsModal = document.getElementById('modal-rpa-details');
+      if (oldDetailsModal) oldDetailsModal.remove();
         const detailsModalHtml = `
           <div class="modal-backdrop hidden" id="modal-rpa-details" style="display: none;">
             <div class="glass-panel modal-content" style="max-width: 640px;">
