@@ -22,8 +22,15 @@
     <!-- SheetJS (Excel Upload/Export) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <!-- Tailwind CSS Engine -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=9.0.0">
+    <link rel="stylesheet" href="style.css?v=20260806_v6.0.0">
 </head>
 <body>
 
@@ -64,6 +71,10 @@
         <i class="fa-solid fa-robot text-pink-400"></i>
         <span>Squad de RPA</span>
       </a>
+      <a class="nav-item text-xs" id="nav-rpa-pendencies" onclick="app.selectSquadAndView('rpa', 'rpa-pendencies')" style="padding-left: 2rem;">
+        <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+        <span>Pendências RPA</span>
+      </a>
 
       <!-- 3. DASHBOARD CONSOLIDADO -->
       <div class="sidebar-section-title mt-2">DASHBOARD</div>
@@ -103,6 +114,10 @@
 
       <!-- 2. CENTRO: BOTÕES DE AÇÃO CENTRALIZADOS NO MENU SUPERIOR -->
       <div class="header-center-actions flex items-center justify-center gap-2.5 flex-nowrap">
+        <button class="btn btn-primary text-xs py-2 px-3.5 whitespace-nowrap bg-gradient-to-r from-emerald-500 to-teal-600 border-none text-slate-950 font-extrabold shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all cursor-pointer me-1" id="btn-new-rpa-pendency" onclick="RpaPendenciesModule.openModal()" title="Cadastrar nova ocorrência / pendência de robô RPA">
+          <i class="fa-solid fa-plus me-1.5"></i>
+          <span>Nova Pendência RPA</span>
+        </button>
         <button class="btn btn-secondary text-xs py-2 px-3.5 border-rose-500/30 hover:bg-rose-500/20 text-rose-300 admin-only whitespace-nowrap" id="btn-clear-cards" onclick="app.clearAllCards()">
           <i class="fa-solid fa-trash-can me-1.5 text-rose-400"></i>
           <span>Limpar Cards</span>
@@ -1053,10 +1068,10 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=9.0.0"></script>
-<script src="app-v9.js?v=9.0.0"></script>
+<script src="jira-sync.js?v=2.0.0"></script>
+<script src="app-v9.js?v=20260806_v6.0.0"></script>
 <!-- MÓDULO AUTÔNOMO ISOLADO DA SQUAD RPA -->
-<script src="rpa-pendencies.js?v=1.7.1"></script>
+<script src="rpa-pendencies.js?v=20260806_v6.0.0"></script>
 
 </body>
 </html>

@@ -24,7 +24,7 @@ const app = {
   activeView: 'triagem',
   userRole: 'consulta', // 'admin' ou 'consulta'
   userEmail: '',
-  userName: 'Visitante',
+  userName: '',
   authUserId: null,
   realtimeChannel: null,
   
@@ -137,14 +137,13 @@ const app = {
     
     const hasSession = await this.checkSession();
     if (!hasSession) {
-      console.log('[APP INIT] Nenhuma sessão Supabase Auth prévia. Entrando em modo Visitante (Consulta).');
-      this.authUserId = 'guest';
-      this.userEmail = 'visitante@squads.local';
-      this.userName = 'Visitante';
+      console.log('[APP INIT] Nenhuma sessão Supabase Auth prévia. Exibindo tela de autenticação obrigatória.');
+      this.authUserId = null;
+      this.userEmail = '';
+      this.userName = '';
       this.userRole = 'consulta';
-      this.userStatus = 'ATIVO';
-      this.hideAuthOverlay();
-      this.updateUserBadgeUI();
+      this.userStatus = 'PENDENTE';
+      this.showAuthOverlay();
     }
 
     this.loadLocalState();
@@ -598,12 +597,16 @@ const app = {
     const infoEl = document.getElementById('user-display-info');
     const iconEl = document.getElementById('user-role-icon');
     if (infoEl) {
-      if (this.userRole === 'admin') {
-        infoEl.textContent = `Admin: ${this.userName}`;
+      if (!this.authUserId) {
+        infoEl.textContent = 'Clique para Entrar';
+        infoEl.style.color = '#fbbf24';
+        if (iconEl) iconEl.className = 'fa-solid fa-right-to-bracket text-amber-400';
+      } else if (this.userRole === 'admin') {
+        infoEl.textContent = `Admin: ${this.userName || (this.userEmail ? this.userEmail.split('@')[0] : 'Usuário')}`;
         infoEl.style.color = '#34d399';
         if (iconEl) iconEl.className = 'fa-solid fa-user-shield text-emerald-400';
       } else {
-        infoEl.textContent = `Consulta: ${this.userName}`;
+        infoEl.textContent = `Consulta: ${this.userName || (this.userEmail ? this.userEmail.split('@')[0] : 'Usuário')}`;
         infoEl.style.color = '#38bdf8';
         if (iconEl) iconEl.className = 'fa-solid fa-eye text-sky-400';
       }
@@ -804,16 +807,35 @@ const app = {
     } else if (viewId === 'gestao-acessos') {
       const activeNav = document.getElementById('nav-gestao-acessos');
       if (activeNav) activeNav.classList.add('active');
+    } else if (viewId === 'rpa-pendencies') {
+      const activeNav = document.getElementById('nav-rpa-pendencies');
+      if (activeNav) activeNav.classList.add('active');
     } else {
-      // Para visões de squad (board, backlog, concluidos, rpa-pendencies)
+      // Para visões de squad (board, backlog, concluidos)
       const activeSquadNav = document.getElementById(`nav-squad-${this.activeSquad}`);
       if (activeSquadNav) activeSquadNav.classList.add('active');
+    }
+
+    // Exibir/Ocultar Botão de Nova Pendência RPA no Header
+    const btnNewRpa = document.getElementById('btn-new-rpa-pendency');
+    if (btnNewRpa) {
+      if (this.activeSquad === 'rpa' || viewId === 'rpa-pendencies') {
+        btnNewRpa.classList.remove('hidden');
+        btnNewRpa.style.setProperty('display', 'inline-flex', 'important');
+      } else {
+        btnNewRpa.classList.add('hidden');
+        btnNewRpa.style.setProperty('display', 'none', 'important');
+      }
     }
 
     // Alternar visibilidade das views
     document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active-view'));
     const targetView = document.getElementById(`view-${viewId}`);
     if (targetView) targetView.classList.add('active-view');
+
+    if (viewId === 'rpa-pendencies' && window.RpaPendenciesModule) {
+      window.RpaPendenciesModule.renderView();
+    }
 
     // Atualizar título da página
     const squadNames = { dados: 'Squad de Dados', operacoes: 'Squad de Operações', rpa: 'Squad de RPA' };

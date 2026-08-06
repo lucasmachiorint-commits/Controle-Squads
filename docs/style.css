@@ -1834,5 +1834,116 @@ body.light-theme .stat-card-number {
   color: #0f172a !important;
 }
 
+/* ==========================================================================
+   TagSelectContainer — Componente Multi-Select em Caixa Única (Vanilla CSS)
+   ========================================================================== */
+.tag-select-container {
+  width: 100% !important;
+  background-color: #111827 !important;
+  border: 1.5px solid #059669 !important;
+  box-shadow: 0 0 14px rgba(5, 150, 105, 0.35) !important;
+  border-radius: 16px !important;
+  padding: 10px 12px !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-height: 48px !important;
+  transition: all 0.2s ease !important;
+}
+
+.tag-select-container:focus-within {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.5) !important;
+}
+
+.tag-select-container-indigo {
+  border: 1.5px solid #6366f1 !important;
+  box-shadow: 0 0 14px rgba(99, 102, 241, 0.35) !important;
+}
+
+.tag-select-container-indigo:focus-within {
+  border-color: #818cf8 !important;
+  box-shadow: 0 0 18px rgba(129, 140, 248, 0.5) !important;
+}
+
+.tag-select-pills-wrapper {
+  display: contents !important;
+}
+
+.tag-select-pill-green {
+  background: rgba(6, 78, 59, 0.6) !important;
+  border: 1px solid rgba(16, 185, 129, 0.6) !important;
+  color: #34d399 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 4px 12px !important;
+  border-radius: 9999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  white-space: nowrap !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+.tag-select-pill-green button {
+  background: none !important;
+  border: none !important;
+  color: #34d399 !important;
+  opacity: 0.85 !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  margin-left: 2px !important;
+  font-size: 11px !important;
+  font-weight: bold !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.tag-select-pill-indigo {
+  background: rgba(49, 46, 129, 0.6) !important;
+  border: 1px solid rgba(99, 102, 241, 0.6) !important;
+  color: #818cf8 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 4px 12px !important;
+  border-radius: 9999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  white-space: nowrap !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+.tag-select-pill-indigo button {
+  background: none !important;
+  border: none !important;
+  color: #818cf8 !important;
+  opacity: 0.85 !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  margin-left: 2px !important;
+  font-size: 11px !important;
+  font-weight: bold !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.tag-select-dropdown {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  color: #94a3b8 !important;
+  font-size: 12px !important;
+  font-family: inherit !important;
+  cursor: pointer !important;
+  flex: 1 !important;
+  min-width: 150px !important;
+  height: 26px !important;
+  padding: 0 !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
 
 
