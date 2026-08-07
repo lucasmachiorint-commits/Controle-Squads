@@ -198,10 +198,10 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
 
       if (!this.selectedRobots.includes(val)) {
         this.selectedRobots.push(val);
-        this.renderRobotPills();
       }
 
       setTimeout(() => {
+        this.renderRobotPills();
         const selectEl = document.getElementById('rpa-robot-adder-select');
         if (selectEl) selectEl.selectedIndex = 0;
       }, 50);
@@ -250,10 +250,10 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
 
       if (!this.selectedResponsibles.includes(val)) {
         this.selectedResponsibles.push(val);
-        this.renderRespPills();
       }
 
       setTimeout(() => {
+        this.renderRespPills();
         const selectEl = document.getElementById('rpa-resp-adder-select');
         if (selectEl) selectEl.selectedIndex = 0;
       }, 50);
