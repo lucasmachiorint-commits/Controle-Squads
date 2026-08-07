@@ -35,6 +35,8 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       window.app.renderRpaPendenciesView = function () { self.renderView(); };
       window.app.addRpaTimelineUpdate = function () { self.addTimelineUpdate(); };
       window.app.removeRpaTimelineUpdate = function (idx) { self.removeTimelineUpdate(idx); };
+      window.app.printRpaReport = function () { self.printReport(); };
+      window.app.printRpaPDF = function () { self.printReport(); };
     }
   },
 
@@ -810,8 +812,132 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       this.renderView();
     },
 
-    printPDF() {
+    printReport() {
+      let printContainer = document.getElementById('rpa-print-report-container');
+      if (!printContainer) {
+        printContainer = document.createElement('div');
+        printContainer.id = 'rpa-print-report-container';
+        printContainer.className = 'rpa-print-only-container';
+        document.body.appendChild(printContainer);
+      }
+
+      const nowStr = new Date().toLocaleDateString('pt-BR') + ' às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      const items = this.pendencies || [];
+      const totalCount = items.length;
+      const openCount = items.filter(i => i.status !== 'RESOLVIDO').length;
+      const resolvedCount = items.filter(i => i.status === 'RESOLVIDO').length;
+      const authorStr = window.app?.userName || 'Administrador';
+
+      const cardsHtml = items.map((item, idx) => {
+        const robotList = (item.robo_name || '').split(',').map(s => s.trim()).filter(Boolean);
+        const robotPills = robotList.map(r => `<span class="rpa-print-pill-robot">🤖 ${r}</span>`).join(' ');
+
+        const respList = (item.responsible || '').split(/;|;/).map(s => s.trim()).filter(Boolean);
+        const respPills = respList.map(r => `<span class="rpa-print-pill-resp">👤 ${r}</span>`).join(' ');
+
+        let sevLabel = 'Média';
+        let sevClass = 'rpa-print-badge-medium';
+        if (item.severity === 'CRITICA') { sevLabel = '🚨 Crítica'; sevClass = 'rpa-print-badge-critical'; }
+        else if (item.severity === 'ALTA') { sevLabel = '🔥 Alta'; sevClass = 'rpa-print-badge-high'; }
+        else if (item.severity === 'BAIXA') { sevLabel = '🟢 Baixa'; sevClass = 'rpa-print-badge-low'; }
+
+        let statusLabel = 'Em Aberto';
+        let statusClass = 'rpa-print-badge-open';
+        if (item.status === 'EM_ANALISE') { statusLabel = 'Em Análise'; statusClass = 'rpa-print-badge-analysis'; }
+        else if (item.status === 'AGUARDANDO_PARCEIRO') { statusLabel = 'Aguardando Parceiro'; statusClass = 'rpa-print-badge-partner'; }
+        else if (item.status === 'RESOLVIDO') { statusLabel = 'Resolvido'; statusClass = 'rpa-print-badge-resolved'; }
+
+        const notes = item.history_notes || [];
+        let timelineRows = '';
+        if (Array.isArray(notes) && notes.length > 0) {
+          timelineRows = notes.map(n => {
+            const dStr = n.displayDate || (n.date ? (n.date.includes('/') ? n.date : new Date(n.date).toLocaleDateString('pt-BR')) : '');
+            return `
+              <div class="rpa-print-timeline-item">
+                <div class="rpa-print-timeline-header">
+                  <span class="rpa-print-timeline-date">📅 ${dStr}</span>
+                  <span class="rpa-print-timeline-author">por ${n.author || 'Usuário'}</span>
+                </div>
+                <div class="rpa-print-timeline-text">${n.text}</div>
+              </div>
+            `;
+          }).join('');
+        } else if (item.description) {
+          timelineRows = `<div class="rpa-print-timeline-text">${item.description}</div>`;
+        } else {
+          timelineRows = `<div style="color:#94a3b8; font-style:italic; font-size:11px;">Sem atualizações registradas</div>`;
+        }
+
+        return `
+          <div class="rpa-print-card">
+            <div class="rpa-print-card-header">
+              <div class="rpa-print-card-robots">${robotPills || item.robo_name}</div>
+              <div class="rpa-print-card-badges">
+                <span class="${sevClass}">${sevLabel}</span>
+                <span class="${statusClass}">${statusLabel}</span>
+              </div>
+            </div>
+
+            <h3 class="rpa-print-card-title">${idx + 1}. ${item.title}</h3>
+
+            <div class="rpa-print-card-resp-row">
+              <span class="rpa-print-label">Responsável(is):</span>
+              <div class="rpa-print-resps">${respPills || item.responsible}</div>
+            </div>
+
+            <div class="rpa-print-timeline-box">
+              <div class="rpa-print-timeline-title">🕒 Linha do Tempo de Evolução:</div>
+              ${timelineRows}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      printContainer.innerHTML = `
+        <div class="rpa-print-report-page">
+          <div class="rpa-print-header">
+            <div class="rpa-print-logo-row">
+              <div class="rpa-print-logo">
+                <span class="rpa-print-logo-icon">🌿</span> EmanaPay <span class="rpa-print-logo-sub">| Gestão de Squads & RPA</span>
+              </div>
+              <div class="rpa-print-meta">
+                <div><strong>Emissão:</strong> ${nowStr}</div>
+                <div><strong>Gerado por:</strong> ${authorStr}</div>
+              </div>
+            </div>
+            <h1 class="rpa-print-title">Relatório Executivo de Pendências de Robôs em Produção</h1>
+          </div>
+
+          <div class="rpa-print-kpi-grid">
+            <div class="rpa-print-kpi-box">
+              <div class="rpa-print-kpi-num text-amber-600">${totalCount}</div>
+              <div class="rpa-print-kpi-label">TOTAL DE PENDÊNCIAS</div>
+            </div>
+            <div class="rpa-print-kpi-box">
+              <div class="rpa-print-kpi-num text-rose-600">${openCount}</div>
+              <div class="rpa-print-kpi-label">EM ABERTO / CRÍTICAS</div>
+            </div>
+            <div class="rpa-print-kpi-box">
+              <div class="rpa-print-kpi-num text-emerald-600">${resolvedCount}</div>
+              <div class="rpa-print-kpi-label">RESOLVIDAS</div>
+            </div>
+          </div>
+
+          <div class="rpa-print-cards-list">
+            ${cardsHtml}
+          </div>
+
+          <div class="rpa-print-footer">
+            EmanaPay Control Squads - Documento Executivo de Acompanhamento RPA · Página 1
+          </div>
+        </div>
+      `;
+
       window.print();
+    },
+
+    printPDF() {
+      this.printReport();
     }
   };
 
