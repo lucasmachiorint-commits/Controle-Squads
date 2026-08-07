@@ -2970,6 +2970,113 @@ const app = {
 
     this.closeModal('modal-member');
     this.saveState();
+  },
+
+  // Módulo de Pendências RPA (Delegador Nativo Inquebrável)
+  openNewRpaPendencyModal(id = null) {
+    if (window.RpaPendenciesModule && window.RpaPendenciesModule.openModal) {
+      window.RpaPendenciesModule.openModal(id);
+    } else {
+      const modal = document.getElementById('modal-rpa-edit');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('open', 'active');
+        modal.style.cssText = 'display: flex !important; opacity: 1 !important; pointer-events: auto !important; z-index: 999999 !important; align-items: center; justify-content: center;';
+      }
+    }
+  },
+
+  openRpaPendencyModal(id = null) {
+    this.openNewRpaPendencyModal(id);
+  },
+
+  closeRpaPendencyModal() {
+    if (window.RpaPendenciesModule && window.RpaPendenciesModule.closeModal) {
+      window.RpaPendenciesModule.closeModal();
+    } else {
+      const modal = document.getElementById('modal-rpa-edit');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('open', 'active');
+        modal.style.cssText = 'display: none !important; opacity: 0 !important; pointer-events: none !important;';
+      }
+    }
+  },
+
+  openRpaPendencyDetailsModal(id) {
+    if (window.RpaPendenciesModule && window.RpaPendenciesModule.openDetailsModal) {
+      window.RpaPendenciesModule.openDetailsModal(id);
+    } else {
+      const modal = document.getElementById('modal-rpa-details');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('open', 'active');
+        modal.style.cssText = 'display: flex !important; opacity: 1 !important; pointer-events: auto !important; z-index: 999999 !important; align-items: center; justify-content: center;';
+      }
+    }
+  },
+
+  closeRpaPendencyDetailsModal() {
+    if (window.RpaPendenciesModule && window.RpaPendenciesModule.closeDetailsModal) {
+      window.RpaPendenciesModule.closeDetailsModal();
+    } else {
+      const modal = document.getElementById('modal-rpa-details');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('open', 'active');
+        modal.style.cssText = 'display: none !important; opacity: 0 !important; pointer-events: none !important;';
+      }
+    }
+  },
+
+  renderRpaPendenciesView() {
+    if (window.RpaPendenciesModule && window.RpaPendenciesModule.renderView) {
+      window.RpaPendenciesModule.renderView();
+    }
+  },
+
+  saveRpaPendency(e) {
+    if (window.RpaPendenciesModule && window.RpaPendenciesModule.savePendency) {
+      window.RpaPendenciesModule.savePendency(e);
+    }
+  },
+
+  addRpaRobot(val) {
+    if (window.RpaPendenciesModule && window.RpaPendenciesModule.addRobot) {
+      window.RpaPendenciesModule.addRobot(val);
+    }
+  },
+
+  removeRpaRobot(val) {
+    if (window.RpaPendenciesModule && window.RpaPendenciesModule.removeRobot) {
+      window.RpaPendenciesModule.removeRobot(val);
+    }
+  },
+
+  addRpaResponsible(val) {
+    if (window.RpaPendenciesModule && window.RpaPendenciesModule.addResponsible) {
+      window.RpaPendenciesModule.addResponsible(val);
+    }
+  },
+
+  removeRpaResponsible(val) {
+    if (window.RpaPendenciesModule && window.RpaPendenciesModule.removeResponsible) {
+      window.RpaPendenciesModule.removeResponsible(val);
+    }
+  },
+
+  deleteRpaPendency(id) {
+    if (window.RpaPendenciesModule && window.RpaPendenciesModule.deletePendency) {
+      window.RpaPendenciesModule.deletePendency(id);
+    }
+  },
+
+  printRpaPDF() {
+    if (window.RpaPendenciesModule && window.RpaPendenciesModule.printPDF) {
+      window.RpaPendenciesModule.printPDF();
+    } else {
+      window.print();
+    }
   }
 };
 
