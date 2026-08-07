@@ -134,8 +134,8 @@
                   </p>
                 </div>
                 <div class="flex items-center gap-2">
-                  <button type="button" class="btn btn-primary text-xs py-2 px-3.5" onclick="RpaPendenciesModule.openModal()">
-                    <i class="fa-solid fa-plus me-1.5"></i> Nova Pendência
+                  <button type="button" onclick="RpaPendenciesModule.openModal()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 rounded-lg text-xs transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-500/10 cursor-pointer">
+                    <i class="fa-solid fa-plus"></i> Nova Pendência RPA
                   </button>
                   <button type="button" class="btn btn-secondary text-xs py-2 px-3.5" onclick="RpaPendenciesModule.printPDF()">
                     <i class="fa-solid fa-print text-indigo-400 me-1.5"></i> Imprimir / PDF
