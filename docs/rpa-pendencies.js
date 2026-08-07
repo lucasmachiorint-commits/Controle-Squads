@@ -342,25 +342,22 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
         window.app.activeView = 'rpa-pendencies';
         document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active-view'));
         const rpaView = document.getElementById('view-rpa-pendencies');
-        if (rpaView) rpaView.classList.add('active-view');
-
-        const titleEl = document.getElementById('page-title');
-        if (titleEl) titleEl.textContent = 'Pendências - Squad de RPA';
-        
-        this.renderView();
-      }
-    },
-
     resetFilters() {
       const searchEl = document.getElementById('rpa-filter-search');
       const respEl = document.getElementById('rpa-filter-responsible');
       const statusEl = document.getElementById('rpa-filter-status');
+      const dateRefEl = document.getElementById('rpa-filter-date-ref');
       const dateEl = document.getElementById('rpa-filter-date');
+      const dateStartEl = document.getElementById('rpa-filter-date-start');
+      const dateEndEl = document.getElementById('rpa-filter-date-end');
 
       if (searchEl) searchEl.value = '';
       if (respEl) respEl.value = '';
       if (statusEl) statusEl.value = '';
+      if (dateRefEl) dateRefEl.value = 'created_at';
       if (dateEl) dateEl.value = '';
+      if (dateStartEl) dateStartEl.value = '';
+      if (dateEndEl) dateEndEl.value = '';
 
       this.renderView();
     },
@@ -369,7 +366,10 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       const search = (document.getElementById('rpa-filter-search')?.value || '').toLowerCase().trim();
       const respFilter = (document.getElementById('rpa-filter-responsible')?.value || '').trim();
       const statusFilter = (document.getElementById('rpa-filter-status')?.value || '').trim();
+      const dateRef = (document.getElementById('rpa-filter-date-ref')?.value || 'created_at').trim();
       const dateFilter = (document.getElementById('rpa-filter-date')?.value || '').trim();
+      const dateStartVal = document.getElementById('rpa-filter-date-start')?.value;
+      const dateEndVal = document.getElementById('rpa-filter-date-end')?.value;
 
       const now = new Date();
       const todayStr = now.toISOString().split('T')[0];
@@ -397,21 +397,32 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
         }
 
         // 4. Filtro por Data / Período
-        if (dateFilter) {
-          const rawDate = item.created_at || item.createdAt;
+        let rawDate = null;
+        if (dateRef === 'resolved_at') {
+          rawDate = item.resolved_at || item.updated_at || item.created_at;
+        } else {
+          rawDate = item.created_at || item.createdAt;
+        }
+
+        if (dateFilter || dateStartVal || dateEndVal) {
           if (!rawDate) return false;
           const itemDate = new Date(rawDate);
           if (isNaN(itemDate.getTime())) return false;
+          const itemDateStr = itemDate.toISOString().split('T')[0];
 
+          // Se tiver intervalo dinâmico De / Até preenchido
+          if (dateStartVal && itemDateStr < dateStartVal) return false;
+          if (dateEndVal && itemDateStr > dateEndVal) return false;
+
+          // Se tiver seletor de presets rápidos
           if (dateFilter === 'HOJE') {
-            const itemDateStr = itemDate.toISOString().split('T')[0];
             if (itemDateStr !== todayStr) return false;
           } else if (dateFilter === '7_DIAS') {
             const diffDays = (now.getTime() - itemDate.getTime()) / (1000 * 3600 * 24);
-            if (diffDays > 7) return false;
+            if (diffDays < 0 || diffDays > 7) return false;
           } else if (dateFilter === '30_DIAS') {
             const diffDays = (now.getTime() - itemDate.getTime()) / (1000 * 3600 * 24);
-            if (diffDays > 30) return false;
+            if (diffDays < 0 || diffDays > 30) return false;
           } else if (dateFilter === 'MES_ATUAL') {
             if (itemDate.getMonth() !== now.getMonth() || itemDate.getFullYear() !== now.getFullYear()) return false;
           }
@@ -455,42 +466,50 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       }
 
       const formatDate = (iso) => {
-        if (!iso) return '--';
-        try { return new Date(iso).toLocaleDateString('pt-BR'); } catch (_) { return iso; }
+        if (!iso) return '--/--/----';
+        try {
+          return new Date(iso).toLocaleDateString('pt-BR');
+        } catch (_) {
+          return iso;
+        }
       };
 
       tbody.innerHTML = filtered.map(item => {
-        // Renderizar responsáveis em badges
-        const respList = (item.responsible || '').split(/;|;/).map(s => s.trim()).filter(Boolean);
-        const respBadges = respList.map(r => `
-          <span class="inline-flex items-center gap-1 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold px-2 py-0.5 rounded-md mb-1 me-1">
-            👤 ${r}
-          </span>
-        `).join('');
-
-        let sevBadge = `<span class="badge bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 px-2 py-0.5 font-bold text-[10px]">⚡ Média</span>`;
-        if (item.severity === 'CRITICA') sevBadge = `<span class="badge bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2 py-0.5 font-bold text-[10px]">🚨 Crítica</span>`;
-        else if (item.severity === 'ALTA') sevBadge = `<span class="badge bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 font-bold text-[10px]">🔥 Alta</span>`;
-        else if (item.severity === 'BAIXA') sevBadge = `<span class="badge bg-slate-500/20 text-slate-300 border border-slate-500/30 px-2 py-0.5 font-bold text-[10px]">🟢 Baixa</span>`;
-
-        let statusBadge = `<span class="badge bg-rose-500/20 text-rose-300 border border-rose-500/40 px-2.5 py-1 font-extrabold text-[11px]">Em Aberto</span>`;
-        if (item.status === 'EM_ANALISE') statusBadge = `<span class="badge bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 font-extrabold text-[11px]">Em Análise</span>`;
-        else if (item.status === 'AGUARDANDO_PARCEIRO') statusBadge = `<span class="badge bg-purple-500/20 text-purple-300 border border-purple-500/40 px-2.5 py-1 font-extrabold text-[11px]">Aguardando Parceiro</span>`;
-        else if (item.status === 'RESOLVIDO') statusBadge = `<span class="badge bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 font-extrabold text-[11px]">Resolvido</span>`;
-
-        // Renderizar robôs selecionados em badges limpas na tabela
         const robotList = (item.robo_name || '').split(',').map(s => s.trim()).filter(Boolean);
         const robotBadges = robotList.map(r => `
-          <span class="inline-flex items-center gap-1 bg-slate-800/90 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-md mb-1 me-1">
-            🤖 ${r}
+          <span class="badge text-[10px] bg-amber-500/15 text-amber-300 border border-amber-500/30 font-semibold px-2 py-0.5 rounded me-1 mb-1 whitespace-nowrap">
+            <i class="fa-solid fa-robot me-1"></i>${r}
           </span>
         `).join('');
 
-        const notes = item.history_notes || [];
-        let latestUpdateText = '';
+        const respList = (item.responsible || '').split(/;|;/).map(s => s.trim()).filter(Boolean);
+        const respBadges = respList.map(r => `
+          <span class="badge text-[10px] bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 font-semibold px-2 py-0.5 rounded me-1 mb-1 whitespace-nowrap">
+            <i class="fa-solid fa-user me-1"></i>${r}
+          </span>
+        `).join('');
 
-        if (Array.isArray(notes) && notes.length > 0) {
-          const latest = notes[0];
+        let sevBadge = `<span class="badge text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold px-2.5 py-0.5 rounded-full"><i class="fa-solid fa-fire me-1"></i> MÉDIA</span>`;
+        if (item.severity === 'CRITICA') {
+          sevBadge = `<span class="badge text-[10px] bg-rose-600/30 text-rose-300 border border-rose-500/50 font-extrabold px-2.5 py-0.5 rounded-full animate-pulse"><i class="fa-solid fa-triangle-exclamation me-1"></i> CRÍTICA</span>`;
+        } else if (item.severity === 'ALTA') {
+          sevBadge = `<span class="badge text-[10px] bg-orange-500/20 text-orange-300 border border-orange-500/40 font-bold px-2.5 py-0.5 rounded-full"><i class="fa-solid fa-fire-flame-curved me-1"></i> ALTA</span>`;
+        } else if (item.severity === 'BAIXA') {
+          sevBadge = `<span class="badge text-[10px] bg-sky-500/20 text-sky-300 border border-sky-500/40 font-bold px-2.5 py-0.5 rounded-full"><i class="fa-solid fa-circle-down me-1"></i> BAIXA</span>`;
+        }
+
+        let statusBadge = `<span class="badge text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/40 font-extrabold px-2.5 py-1 rounded-md uppercase">EM ABERTO</span>`;
+        if (item.status === 'EM_ANALISE') {
+          statusBadge = `<span class="badge text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 font-extrabold px-2.5 py-1 rounded-md uppercase">EM ANÁLISE</span>`;
+        } else if (item.status === 'AGUARDANDO_PARCEIRO') {
+          statusBadge = `<span class="badge text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/40 font-extrabold px-2.5 py-1 rounded-md uppercase">AGUARDANDO PARCEIRO</span>`;
+        } else if (item.status === 'RESOLVIDO') {
+          statusBadge = `<span class="badge text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-extrabold px-2.5 py-1 rounded-md uppercase"><i class="fa-solid fa-check me-1"></i> RESOLVIDO</span>`;
+        }
+
+        let latestUpdateText = '';
+        if (Array.isArray(item.history_notes) && item.history_notes.length > 0) {
+          const latest = item.history_notes[0];
           let dStr = latest.displayDate;
           if (!dStr && latest.date) {
             try {
@@ -515,9 +534,18 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
               </div>
             </td>
             <td style="padding: 14px 16px; min-width: 260px;">
-              <span class="font-extrabold text-white text-xs block mb-1.5">${item.title}</span>
+              <span class="font-extrabold text-white text-xs block mb-1">${item.title}</span>
+              
+              <!-- DATAS DE CRIAÇÃO E CONCLUSÃO EXPLICITAS -->
+              <div class="flex flex-wrap items-center gap-3 text-[10px] text-slate-400 my-1 font-mono">
+                <span><i class="fa-solid fa-calendar-plus text-amber-400 me-1"></i>Criado: <strong class="text-slate-200">${formatDate(item.created_at)}</strong></span>
+                ${(item.status === 'RESOLVIDO' || item.resolved_at) ? `
+                  <span class="text-emerald-400 font-semibold"><i class="fa-solid fa-calendar-check text-emerald-400 me-1"></i>Concluído: <strong>${formatDate(item.resolved_at || item.updated_at)}</strong></span>
+                ` : ''}
+              </div>
+
               ${latestUpdateText ? `
-                <div class="text-[11px] text-emerald-300/90 bg-slate-900/90 border border-emerald-500/30 rounded-lg p-2.5 leading-relaxed shadow-sm">
+                <div class="text-[11px] text-emerald-300/90 bg-slate-900/90 border border-emerald-500/30 rounded-lg p-2.5 leading-relaxed shadow-sm mt-1.5">
                   <i class="fa-solid fa-comment-dots text-emerald-400 me-1.5 shrink-0"></i>${latestUpdateText}
                 </div>
               ` : `

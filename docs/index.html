@@ -30,7 +30,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=20260806_v6.24.0">
+    <link rel="stylesheet" href="style.css?v=20260806_v6.25.0">
 </head>
 <body>
 
@@ -698,46 +698,76 @@
           </div>
         </div>
 
-        <!-- BARRA DE FILTROS DINÂMICOS MULTICRITÉRIO -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-5 bg-slate-900/60 backdrop-blur-md p-3.5 rounded-xl border border-slate-800/80 shadow-lg">
-          <!-- BUSCA TEXTUAL -->
-          <div class="relative flex items-center">
-            <i class="fa-solid fa-magnifying-glass absolute left-3 text-slate-400 text-xs"></i>
-            <input type="search" id="rpa-filter-search" class="w-full bg-slate-950/80 border border-slate-800 text-white text-xs rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:border-emerald-500/50" placeholder="Buscar por robô ou ocorrência..." onkeyup="app.renderRpaPendenciesView()">
+        <!-- BARRA DE FILTROS DINÂMICOS MULTICRITÉRIO (COM DATA DE CRIAÇÃO E CONCLUSÃO) -->
+        <div class="bg-slate-900/60 backdrop-blur-md p-4 rounded-xl border border-slate-800/80 shadow-lg mb-5 flex flex-col gap-3">
+          <!-- LINHA 1: BUSCA, RESPONSÁVEL, STATUS E REFERÊNCIA DA DATA -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <!-- BUSCA TEXTUAL -->
+            <div class="relative flex items-center">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 text-slate-400 text-xs"></i>
+              <input type="search" id="rpa-filter-search" class="w-full bg-slate-950/80 border border-slate-800 text-white text-xs rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:border-emerald-500/50" placeholder="Buscar por robô ou ocorrência..." onkeyup="app.renderRpaPendenciesView()">
+            </div>
+
+            <!-- FILTRO RESPONSÁVEL -->
+            <div>
+              <select id="rpa-filter-responsible" class="w-full bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
+                <option value="">👤 Todos os Responsáveis</option>
+                <option value="Redesign (Parceiro)">Redesign (Parceiro)</option>
+                <option value="Caio (Interno)">Caio (Interno)</option>
+              </select>
+            </div>
+
+            <!-- FILTRO STATUS -->
+            <div>
+              <select id="rpa-filter-status" class="w-full bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
+                <option value="">📌 Todos os Status</option>
+                <option value="ABERTO">🚨 Em Aberto</option>
+                <option value="EM_ANALISE">🔍 Em Análise</option>
+                <option value="AGUARDANDO_PARCEIRO">🟣 Aguardando Parceiro</option>
+                <option value="RESOLVIDO">🟢 Resolvido</option>
+              </select>
+            </div>
+
+            <!-- CAMPO REFERÊNCIA DA DATA -->
+            <div>
+              <select id="rpa-filter-date-ref" class="w-full bg-slate-950/80 border border-slate-800 text-emerald-400 font-semibold text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
+                <option value="created_at">🗓️ Ref: Data de Criação</option>
+                <option value="resolved_at">✅ Ref: Data de Conclusão / Atz</option>
+              </select>
+            </div>
           </div>
 
-          <!-- FILTRO RESPONSÁVEL -->
-          <div>
-            <select id="rpa-filter-responsible" class="w-full bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
-              <option value="">👤 Todos os Responsáveis</option>
-              <option value="Redesign (Parceiro)">Redesign (Parceiro)</option>
-              <option value="Caio (Interno)">Caio (Interno)</option>
-            </select>
-          </div>
+          <!-- LINHA 2: OPÇÕES DE PERÍODO & FILTRO DINÂMICO DE DATA DE / ATÉ -->
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center pt-2 border-t border-slate-800/60">
+            <!-- SELETOR DE PERÍODO RÁPIDO -->
+            <div class="md:col-span-5">
+              <select id="rpa-filter-date" class="w-full bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
+                <option value="">📅 Período: Todas as Datas</option>
+                <option value="HOJE">Hoje</option>
+                <option value="7_DIAS">Esta Semana (Últimos 7 dias)</option>
+                <option value="30_DIAS">Este Mês (Últimos 30 dias)</option>
+                <option value="MES_ATUAL">Mês Atual</option>
+              </select>
+            </div>
 
-          <!-- FILTRO STATUS -->
-          <div>
-            <select id="rpa-filter-status" class="w-full bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
-              <option value="">📌 Todos os Status</option>
-              <option value="ABERTO">🚨 Em Aberto</option>
-              <option value="EM_ANALISE">🔍 Em Análise</option>
-              <option value="AGUARDANDO_PARCEIRO">🟣 Aguardando Parceiro</option>
-              <option value="RESOLVIDO">🟢 Resolvido</option>
-            </select>
-          </div>
+            <!-- INTERVALO DINÂMICO DE / ATÉ -->
+            <div id="rpa-custom-date-container" class="md:col-span-6 flex items-center gap-2">
+              <div class="flex items-center gap-1.5 flex-1">
+                <span class="text-[11px] text-slate-400 shrink-0 font-medium">De:</span>
+                <input type="date" id="rpa-filter-date-start" class="w-full bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
+              </div>
+              <div class="flex items-center gap-1.5 flex-1">
+                <span class="text-[11px] text-slate-400 shrink-0 font-medium">Até:</span>
+                <input type="date" id="rpa-filter-date-end" class="w-full bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
+              </div>
+            </div>
 
-          <!-- FILTRO DATA / PERÍODO -->
-          <div class="flex items-center gap-2">
-            <select id="rpa-filter-date" class="w-full bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
-              <option value="">📅 Todas as Datas</option>
-              <option value="HOJE">Hoje</option>
-              <option value="7_DIAS">Últimos 7 dias</option>
-              <option value="30_DIAS">Últimos 30 dias</option>
-              <option value="MES_ATUAL">Mês Atual</option>
-            </select>
-            <button type="button" onclick="app.resetRpaFilters()" class="btn btn-secondary text-[11px] py-2 px-2.5 shrink-0" title="Limpar Filtros">
-              <i class="fa-solid fa-filter-circle-xmark"></i>
-            </button>
+            <!-- BOTÃO LIMPAR FILTROS -->
+            <div class="md:col-span-1 flex justify-end">
+              <button type="button" onclick="app.resetRpaFilters()" class="btn btn-secondary text-[11px] py-1.5 px-3 w-full flex items-center justify-center gap-1 text-slate-300 hover:text-white" title="Limpar Todos os Filtros">
+                <i class="fa-solid fa-filter-circle-xmark"></i> Limpar
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1355,10 +1385,10 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=20260806_v6.24.0"></script>
-<script src="app.js?v=20260806_v6.24.0"></script>
+<script src="jira-sync.js?v=20260806_v6.25.0"></script>
+<script src="app.js?v=20260806_v6.25.0"></script>
 <!-- MÓDULO AUTÔNOMO ISOLADO DA SQUAD RPA -->
-<script src="rpa-pendencies.js?v=20260806_v6.24.0"></script>
+<script src="rpa-pendencies.js?v=20260806_v6.25.0"></script>
 
 </body>
 </html>
