@@ -203,38 +203,37 @@
                 <input type="hidden" id="rpa-edit-id" />
 
                 <!-- 1. ROBÔ(S) AFETADO(S) -->
-                <div class="form-group mb-4">
-                  <label class="form-label" style="font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; display: block;">Robô(s) Afetado(s) <span class="required-asterisk" style="color: #f43f5e;">*</span></label>
-                  <div class="tag-select-container w-full bg-[#111827] rounded-2xl p-2.5 transition-all flex flex-wrap items-center gap-2 min-h-[48px]" style="border: 1.5px solid #059669; box-shadow: 0 0 14px rgba(5, 150, 105, 0.35); background-color: #111827; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
+                <div class="w-full mb-4">
+                  <label class="block text-xs font-semibold text-gray-300 mb-1.5">Robô(s) Afetado(s) <span class="text-red-400">*</span></label>
+                  <div class="w-full bg-[#0f172a]/90 border border-emerald-500/50 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-500/20 rounded-xl p-2 transition-all flex flex-wrap items-center gap-1.5 min-h-[44px]">
                     <div id="rpa-robot-pills-container" style="display: contents;"></div>
-                    <select id="rpa-robot-adder-select" class="tag-select-dropdown" 
-                            style="background: transparent; border: none; outline: none; color: #94a3b8; font-size: 12px; font-family: inherit; cursor: pointer; flex: 1; min-width: 150px; height: 26px; padding: 0; appearance: none; -webkit-appearance: none;"
+                    <select id="rpa-robot-adder-select" class="bg-transparent text-xs text-gray-400 focus:outline-none cursor-pointer flex-1 min-w-[140px] h-6 py-0 border-none appearance-none font-normal" 
                             onchange="RpaPendenciesModule.addRobot(this.value); this.value = '';">
-                      <option value="" disabled selected class="bg-[#111827] text-gray-400">+ Selecionar Robô...</option>
-                      <optgroup label="PAGAMENTOS NÃO BAIXADOS" class="bg-[#111827] text-gray-400 font-bold">
-                        <option value="ID05 - Baixa Manual Lote" class="bg-[#111827] text-gray-200">ID05 - Baixa Manual Lote</option>
-                        <option value="ID06 - Demandas de BKO" class="bg-[#111827] text-gray-200">ID06 - Demandas de BKO</option>
-                        <option value="ID08 - Arquivo Reembolso" class="bg-[#111827] text-gray-200">ID08 - Arquivo Reembolso</option>
-                        <option value="ID09 - Importação Reembolso Zord" class="bg-[#111827] text-gray-200">ID09 - Importação Reembolso Zord</option>
-                        <option value="ID10 - Status Reembolso Zord" class="bg-[#111827] text-gray-200">ID10 - Status Reembolso Zord</option>
-                        <option value="ID11 - Triagem Sucesso Zord" class="bg-[#111827] text-gray-200">ID11 - Triagem Sucesso Zord</option>
-                        <option value="ID13 - Atualização Jira" class="bg-[#111827] text-gray-200">ID13 - Atualização Jira</option>
-                        <option value="ID29 - Pendência Tesouraria" class="bg-[#111827] text-gray-200">ID29 - Pendência Tesouraria</option>
+                      <option value="" disabled selected class="bg-[#0f172a] text-gray-400">+ Selecionar Robô...</option>
+                      <optgroup label="PAGAMENTOS NÃO BAIXADOS" class="bg-[#0f172a] text-gray-400 font-bold">
+                        <option value="ID05 - Baixa Manual Lote" class="bg-[#0f172a] text-gray-200">ID05 - Baixa Manual Lote</option>
+                        <option value="ID06 - Demandas de BKO" class="bg-[#0f172a] text-gray-200">ID06 - Demandas de BKO</option>
+                        <option value="ID08 - Arquivo Reembolso" class="bg-[#0f172a] text-gray-200">ID08 - Arquivo Reembolso</option>
+                        <option value="ID09 - Importação Reembolso Zord" class="bg-[#0f172a] text-gray-200">ID09 - Importação Reembolso Zord</option>
+                        <option value="ID10 - Status Reembolso Zord" class="bg-[#0f172a] text-gray-200">ID10 - Status Reembolso Zord</option>
+                        <option value="ID11 - Triagem Sucesso Zord" class="bg-[#0f172a] text-gray-200">ID11 - Triagem Sucesso Zord</option>
+                        <option value="ID13 - Atualização Jira" class="bg-[#0f172a] text-gray-200">ID13 - Atualização Jira</option>
+                        <option value="ID29 - Pendência Tesouraria" class="bg-[#0f172a] text-gray-200">ID29 - Pendência Tesouraria</option>
                       </optgroup>
-                      <optgroup label="CANCELAMENTO DYNAMICS" class="bg-[#111827] text-gray-400 font-bold">
-                        <option value="ID12 - Rejeitados Jira" class="bg-[#111827] text-gray-200">ID12 - Rejeitados Jira</option>
-                        <option value="ID14 - Extração Tarefas Dynamics" class="bg-[#111827] text-gray-200">ID14 - Extração Tarefas Dynamics</option>
-                        <option value="ID15 - Pendência Recompra" class="bg-[#111827] text-gray-200">ID15 - Pendência Recompra</option>
-                        <option value="ID16 - Cancelamento Jira" class="bg-[#111827] text-gray-200">ID16 - Cancelamento Jira</option>
-                        <option value="ID18 - Cancelamento Dynamics" class="bg-[#111827] text-gray-200">ID18 - Cancelamento Dynamics</option>
-                        <option value="ID19 - Cancelamento SAP" class="bg-[#111827] text-gray-200">ID19 - Cancelamento SAP</option>
-                        <option value="ID20 - Cancelamento CAPTA" class="bg-[#111827] text-gray-200">ID20 - Cancelamento CAPTA</option>
+                      <optgroup label="CANCELAMENTO DYNAMICS" class="bg-[#0f172a] text-gray-400 font-bold">
+                        <option value="ID12 - Rejeitados Jira" class="bg-[#0f172a] text-gray-200">ID12 - Rejeitados Jira</option>
+                        <option value="ID14 - Extração Tarefas Dynamics" class="bg-[#0f172a] text-gray-200">ID14 - Extração Tarefas Dynamics</option>
+                        <option value="ID15 - Pendência Recompra" class="bg-[#0f172a] text-gray-200">ID15 - Pendência Recompra</option>
+                        <option value="ID16 - Cancelamento Jira" class="bg-[#0f172a] text-gray-200">ID16 - Cancelamento Jira</option>
+                        <option value="ID18 - Cancelamento Dynamics" class="bg-[#0f172a] text-gray-200">ID18 - Cancelamento Dynamics</option>
+                        <option value="ID19 - Cancelamento SAP" class="bg-[#0f172a] text-gray-200">ID19 - Cancelamento SAP</option>
+                        <option value="ID20 - Cancelamento CAPTA" class="bg-[#0f172a] text-gray-200">ID20 - Cancelamento CAPTA</option>
                       </optgroup>
-                      <optgroup label="AMORTIZAÇÃO NOTAS DE CRÉDITO" class="bg-[#111827] text-gray-400 font-bold">
-                        <option value="ID26 - Amortização Dispatcher" class="bg-[#111827] text-gray-200">ID26 - Amortização Dispatcher</option>
-                        <option value="ID27 - Amortização Performer 1" class="bg-[#111827] text-gray-200">ID27 - Amortização Performer 1</option>
-                        <option value="ID28 - Amortização Performer 2" class="bg-[#111827] text-gray-200">ID28 - Amortização Performer 2</option>
-                        <option value="IDXX - Amortização Reembolso" class="bg-[#111827] text-gray-200">IDXX - Amortização Reembolso</option>
+                      <optgroup label="AMORTIZAÇÃO NOTAS DE CRÉDITO" class="bg-[#0f172a] text-gray-400 font-bold">
+                        <option value="ID26 - Amortização Dispatcher" class="bg-[#0f172a] text-gray-200">ID26 - Amortização Dispatcher</option>
+                        <option value="ID27 - Amortização Performer 1" class="bg-[#0f172a] text-gray-200">ID27 - Amortização Performer 1</option>
+                        <option value="ID28 - Amortização Performer 2" class="bg-[#0f172a] text-gray-200">ID28 - Amortização Performer 2</option>
+                        <option value="IDXX - Amortização Reembolso" class="bg-[#0f172a] text-gray-200">IDXX - Amortização Reembolso</option>
                       </optgroup>
                     </select>
                   </div>
@@ -249,17 +248,16 @@
                 <!-- 2. RESPONSÁVEL & SEVERIDADE -->
                 <div class="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <label class="form-label" style="font-size: 12px; font-weight: 600; color: #cbd5e1; margin-bottom: 6px; display: block;">Responsável <span class="required-asterisk" style="color: #f43f5e;">*</span></label>
-                    <div class="tag-select-container tag-select-container-indigo w-full bg-[#111827] rounded-2xl p-2.5 transition-all flex flex-wrap items-center gap-2 min-h-[48px]" style="border: 1.5px solid #6366f1; box-shadow: 0 0 14px rgba(99, 102, 241, 0.35); background-color: #111827; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
+                    <label class="block text-xs font-semibold text-gray-300 mb-1.5">Responsável <span class="text-red-400">*</span></label>
+                    <div class="w-full bg-[#0f172a]/90 border border-indigo-500/50 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-500/20 rounded-xl p-2 transition-all flex flex-wrap items-center gap-1.5 min-h-[44px]">
                       <div id="rpa-resp-pills-container" style="display: contents;"></div>
-                      <select id="rpa-resp-adder-select" class="tag-select-dropdown" 
-                              style="background: transparent; border: none; outline: none; color: #94a3b8; font-size: 12px; font-family: inherit; cursor: pointer; flex: 1; min-width: 120px; height: 26px; padding: 0; appearance: none; -webkit-appearance: none;"
+                      <select id="rpa-resp-adder-select" class="bg-transparent text-xs text-gray-400 focus:outline-none cursor-pointer flex-1 min-w-[140px] h-6 py-0 border-none appearance-none font-normal" 
                               onchange="RpaPendenciesModule.addResponsible(this.value); this.value = '';">
-                        <option value="" disabled selected class="bg-[#111827] text-gray-400">+ Selecionar Responsável...</option>
-                        <option value="Redesign (Parceiro)" class="bg-[#111827] text-gray-200">Redesign (Parceiro)</option>
-                        <option value="Caio (Interno)" class="bg-[#111827] text-gray-200">Caio (Interno)</option>
-                        <option value="Time Skytel" class="bg-[#111827] text-gray-200">Time Skytel</option>
-                        <option value="Ambos / Squad RPA" class="bg-[#111827] text-gray-200">Ambos / Squad RPA</option>
+                        <option value="" disabled selected class="bg-[#0f172a] text-gray-400">+ Selecionar Responsável...</option>
+                        <option value="Redesign (Parceiro)" class="bg-[#0f172a] text-gray-200">Redesign (Parceiro)</option>
+                        <option value="Caio (Interno)" class="bg-[#0f172a] text-gray-200">Caio (Interno)</option>
+                        <option value="Time Skytel" class="bg-[#0f172a] text-gray-200">Time Skytel</option>
+                        <option value="Ambos / Squad RPA" class="bg-[#0f172a] text-gray-200">Ambos / Squad RPA</option>
                       </select>
                     </div>
                   </div>
@@ -414,11 +412,9 @@
       container.innerHTML = this.selectedRobots.map(robot => {
         const safeName = robot.replace(/'/g, "\\'");
         return `
-          <span style="background: rgba(6, 78, 59, 0.6); border: 1px solid rgba(16, 185, 129, 0.6); color: #34d399; font-size: 12px; font-weight: 500; padding: 4px 12px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; box-shadow: 0 1px 4px rgba(0,0,0,0.3);">
+          <span class="bg-emerald-950/80 border border-emerald-500/60 text-emerald-300 text-[11px] px-2.5 py-1 rounded-full flex items-center gap-1.5 font-medium shrink-0 shadow-sm">
             ${robot}
-            <button type="button" onclick="RpaPendenciesModule.removeRobot('${safeName}')" style="background: none; border: none; color: #34d399; opacity: 0.85; cursor: pointer; padding: 0; margin-left: 2px; font-size: 11px; font-weight: bold; display: inline-flex; align-items: center;" title="Remover">
-              ✕
-            </button>
+            <button type="button" onclick="RpaPendenciesModule.removeRobot('${safeName}')" class="text-emerald-400/80 hover:text-emerald-100 cursor-pointer text-xs font-bold transition-colors ml-0.5" title="Remover">✕</button>
           </span>
         `;
       }).join('');
@@ -452,11 +448,9 @@
       container.innerHTML = this.selectedResponsibles.map(rName => {
         const safeName = rName.replace(/'/g, "\\'");
         return `
-          <span style="background: rgba(49, 46, 129, 0.6); border: 1px solid rgba(99, 102, 241, 0.6); color: #818cf8; font-size: 12px; font-weight: 500; padding: 4px 12px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; box-shadow: 0 1px 4px rgba(0,0,0,0.3);">
+          <span class="bg-indigo-950/80 border border-indigo-500/60 text-indigo-300 text-[11px] px-2.5 py-1 rounded-full flex items-center gap-1.5 font-medium shrink-0 shadow-sm">
             ${rName}
-            <button type="button" onclick="RpaPendenciesModule.removeResponsible('${safeName}')" style="background: none; border: none; color: #818cf8; opacity: 0.85; cursor: pointer; padding: 0; margin-left: 2px; font-size: 11px; font-weight: bold; display: inline-flex; align-items: center;" title="Remover">
-              ✕
-            </button>
+            <button type="button" onclick="RpaPendenciesModule.removeResponsible('${safeName}')" class="text-indigo-400/80 hover:text-indigo-100 cursor-pointer text-xs font-bold transition-colors ml-0.5" title="Remover">✕</button>
           </span>
         `;
       }).join('');
@@ -475,18 +469,39 @@
       const checkAndToggleTab = () => {
         const squad = (window.app?.activeSquad || '').toString().toLowerCase();
         const isRpa = squad === 'rpa';
+        const activeView = window.app?.activeView || 'board';
         
+        // 1. Alternar 4ª Aba "Pendências RPA" nas Squads
         document.querySelectorAll('.rpa-only-tab-btn').forEach(btn => {
           if (isRpa) {
             btn.classList.remove('hidden');
             btn.style.setProperty('display', 'inline-flex', 'important');
+            if (activeView === 'rpa-pendencies') {
+              btn.classList.remove('btn-secondary');
+              btn.classList.add('btn-primary');
+            } else {
+              btn.classList.remove('btn-primary');
+              btn.classList.add('btn-secondary');
+            }
           } else {
             btn.classList.add('hidden');
             btn.style.setProperty('display', 'none', 'important');
           }
         });
 
-        if (!isRpa && window.app?.activeView === 'rpa-pendencies') {
+        // 2. Controlar exibição do botão "+ Nova Pendência RPA" no cabeçalho superior
+        const newPendencyBtn = document.getElementById('btn-new-rpa-pendency');
+        if (newPendencyBtn) {
+          if (isRpa && activeView === 'rpa-pendencies') {
+            newPendencyBtn.classList.remove('hidden');
+            newPendencyBtn.style.setProperty('display', 'inline-flex', 'important');
+          } else {
+            newPendencyBtn.classList.add('hidden');
+            newPendencyBtn.style.setProperty('display', 'none', 'important');
+          }
+        }
+
+        if (!isRpa && activeView === 'rpa-pendencies') {
           window.app.navigate('board');
         }
       };
@@ -517,6 +532,19 @@
 
         const titleEl = document.getElementById('page-title');
         if (titleEl) titleEl.textContent = 'Pendências - Squad de RPA';
+        
+        // Exibir botão de ação no topo
+        const newPendencyBtn = document.getElementById('btn-new-rpa-pendency');
+        if (newPendencyBtn) {
+          newPendencyBtn.classList.remove('hidden');
+          newPendencyBtn.style.setProperty('display', 'inline-flex', 'important');
+        }
+
+        document.querySelectorAll('.rpa-only-tab-btn').forEach(btn => {
+          btn.classList.remove('btn-secondary');
+          btn.classList.add('btn-primary');
+        });
+
         this.renderView();
       }
     },
