@@ -1953,5 +1953,15 @@ body.light-theme .stat-card-number {
   -webkit-appearance: none !important;
 }
 
+/* 4ª Aba: Pendências RPA - Visibilidade Nativa via Cascata CSS */
+.rpa-only-tab-btn {
+  display: none !important;
+}
+
+body.squad-rpa .rpa-only-tab-btn,
+.squad-rpa .rpa-only-tab-btn {
+  display: inline-flex !important;
+}
+
 
 

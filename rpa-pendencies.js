@@ -548,8 +548,9 @@
     },
 
     openRpaView() {
+      document.body.classList.add('squad-rpa');
       if (window.app) {
-        window.app.activeSquad = 'rpa';
+        window.app.setSquad('rpa');
         window.app.activeView = 'rpa-pendencies';
         document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active-view'));
         const rpaView = document.getElementById('view-rpa-pendencies');

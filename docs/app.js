@@ -772,6 +772,12 @@ const app = {
   setSquad(squadId) {
     this.activeSquad = squadId;
 
+    if (squadId === 'rpa' || (squadId || '').toString().toLowerCase().includes('rpa')) {
+      document.body.classList.add('squad-rpa');
+    } else {
+      document.body.classList.remove('squad-rpa');
+    }
+
     // Atualizar badge no header
     const squadBadge = document.getElementById('header-squad-badge');
     if (squadBadge) {
