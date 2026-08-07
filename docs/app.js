@@ -3082,12 +3082,8 @@ const app = {
   },
 
   addRpaRobot(el) {
-    const val = (typeof el === 'object' && el ? el.value : el);
     if (window.RpaPendenciesModule && window.RpaPendenciesModule.addRobot) {
-      window.RpaPendenciesModule.addRobot(val);
-    }
-    if (typeof el === 'object' && el) {
-      setTimeout(() => { el.selectedIndex = 0; }, 50);
+      window.RpaPendenciesModule.addRobot(el);
     }
   },
 

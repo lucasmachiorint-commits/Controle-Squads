@@ -167,32 +167,39 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       const robotSelect = document.getElementById('rpa-robot-adder-select');
       if (robotSelect) {
         robotSelect.onchange = (e) => {
-          const val = e.target.value;
-          if (val) {
-            this.addRobot(val);
-          }
+          this.addRobot(e.target || robotSelect);
+        };
+        robotSelect.oninput = (e) => {
+          this.addRobot(e.target || robotSelect);
         };
       }
 
       const respSelect = document.getElementById('rpa-resp-adder-select');
       if (respSelect) {
         respSelect.onchange = (e) => {
-          const val = e.target.value;
-          if (val) {
-            this.addResponsible(val);
-          }
+          this.addResponsible(e.target || respSelect);
+        };
+        respSelect.oninput = (e) => {
+          this.addResponsible(e.target || respSelect);
         };
       }
     },
 
     addRobot(robotName) {
-      let val = robotName;
-      if (typeof robotName === 'object' && robotName !== null) {
-        val = robotName.value;
+      let val = '';
+      if (typeof robotName === 'string') {
+        val = robotName;
+      } else if (robotName && typeof robotName === 'object') {
+        if (robotName.value && robotName.value.trim() !== '') {
+          val = robotName.value;
+        } else if (robotName.options && robotName.selectedIndex >= 0) {
+          val = robotName.options[robotName.selectedIndex].value || robotName.options[robotName.selectedIndex].text;
+        }
       }
+
       if (!val || typeof val !== 'string') return;
       val = val.trim();
-      if (!val) return;
+      if (!val || val.startsWith('+ Selecionar')) return;
 
       if (!Array.isArray(this.selectedRobots)) this.selectedRobots = [];
 
@@ -200,10 +207,15 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
         this.selectedRobots.push(val);
       }
 
+      this.renderRobotPills();
+
       setTimeout(() => {
         this.renderRobotPills();
         const selectEl = document.getElementById('rpa-robot-adder-select');
-        if (selectEl) selectEl.selectedIndex = 0;
+        if (selectEl) {
+          selectEl.value = '';
+          selectEl.selectedIndex = 0;
+        }
       }, 50);
     },
 
@@ -228,23 +240,30 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       container.innerHTML = this.selectedRobots.map(robot => {
         const safeName = robot.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         return `
-          <span class="bg-emerald-950/90 border border-emerald-500/70 text-emerald-300 text-[11px] px-2.5 py-1 rounded-lg flex items-center gap-1.5 font-semibold shrink-0 shadow-md">
-            <i class="fa-solid fa-robot text-emerald-400 text-[10px]"></i>
-            ${robot}
-            <button type="button" onclick="(window.app || window).removeRpaRobot('${safeName}')" class="text-emerald-400 hover:text-white cursor-pointer text-xs font-bold transition-colors ml-1" title="Remover">✕</button>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 shadow-sm my-0.5">
+            <i class="fa-solid fa-robot text-emerald-400 text-xs"></i>
+            <span>${robot}</span>
+            <button type="button" onclick="(window.app || window).removeRpaRobot('${safeName}')" class="ml-1 text-emerald-300 hover:text-white font-bold cursor-pointer transition-colors" title="Remover">✕</button>
           </span>
         `;
       }).join('');
     },
 
     addResponsible(respName) {
-      let val = respName;
-      if (typeof respName === 'object' && respName !== null) {
-        val = respName.value;
+      let val = '';
+      if (typeof respName === 'string') {
+        val = respName;
+      } else if (respName && typeof respName === 'object') {
+        if (respName.value && respName.value.trim() !== '') {
+          val = respName.value;
+        } else if (respName.options && respName.selectedIndex >= 0) {
+          val = respName.options[respName.selectedIndex].value || respName.options[respName.selectedIndex].text;
+        }
       }
+
       if (!val || typeof val !== 'string') return;
       val = val.trim();
-      if (!val) return;
+      if (!val || val.startsWith('+ Selecionar')) return;
 
       if (!Array.isArray(this.selectedResponsibles)) this.selectedResponsibles = [];
 
@@ -252,10 +271,15 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
         this.selectedResponsibles.push(val);
       }
 
+      this.renderRespPills();
+
       setTimeout(() => {
         this.renderRespPills();
         const selectEl = document.getElementById('rpa-resp-adder-select');
-        if (selectEl) selectEl.selectedIndex = 0;
+        if (selectEl) {
+          selectEl.value = '';
+          selectEl.selectedIndex = 0;
+        }
       }, 50);
     },
 
