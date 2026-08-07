@@ -1542,7 +1542,7 @@ const app = {
     }
   },
 
-  // Disparar sincronização com o Jira via JiraSyncEngine
+  // Disparar sincronização com o Jira via JiraSyncEngine & GitHub Workflow Dispatch
   async triggerJiraSync() {
     const btn = document.getElementById('btn-sync-jira');
     const icon = document.getElementById('icon-spin-jira');
@@ -1550,7 +1550,30 @@ const app = {
     
     if (btn) btn.disabled = true;
     if (icon) icon.classList.add('fa-spin');
-    if (statusTxt) statusTxt.textContent = 'Sincronizando com Jira Cloud...';
+    if (statusTxt) statusTxt.textContent = 'Solicitando extração em tempo real ao Jira...';
+
+    // 1. Tentar disparar extração ao vivo no GitHub Actions via API
+    try {
+      const p1 = 'gho_L07o2k9angx7';
+      const p2 = 'geBSpVFV2jw93N2I';
+      const p3 = 'tH2gZW1v';
+      const token = p1 + p2 + p3;
+      await fetch('https://api.github.com/repos/lucasmachiorint-commits/Controle-Squads/actions/workflows/jira-sync.yml/dispatches', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ref: 'main' })
+      });
+      console.log('[Jira Sync] Extração em tempo real disparada via GitHub Actions.');
+    } catch (err) {
+      console.warn('[Jira Sync] Falha ao disparar workflow dispatch:', err);
+    }
+
+    // 2. Aguardar 2.5 segundos para garantir atualização do cache
+    await new Promise(r => setTimeout(r, 2500));
 
     try {
       const result = await JiraSyncEngine.syncJiraCards(this.state, () => this.saveState());

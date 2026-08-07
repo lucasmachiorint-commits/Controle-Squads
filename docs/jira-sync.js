@@ -31,6 +31,8 @@ const JiraSyncEngine = {
       console.warn('Proxy local não acessível.');
     }
 
+    let extractedAtStr = null;
+
     // CAMADA 2: Consulta via arquivo estático de cache (GitHub Actions Automático)
     if (!cards.length) {
       try {
@@ -40,6 +42,12 @@ const JiraSyncEngine = {
           const json = await res.json();
           if (Array.isArray(json.cards) && json.cards.length > 0) {
             cards = json.cards;
+            if (json.updatedAt) {
+              try {
+                const d = new Date(json.updatedAt);
+                extractedAtStr = `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+              } catch (_) {}
+            }
             console.log(`Cache de dados do Jira carregado com ${cards.length} cards.`);
           }
         }
@@ -400,6 +408,7 @@ const JiraSyncEngine = {
     return {
       success: true,
       time: nowTime,
+      extractedAt: extractedAtStr || `${new Date().toLocaleDateString('pt-BR')} às ${nowTime}`,
       countNew,
       countUpdated,
       countToCompleted,
