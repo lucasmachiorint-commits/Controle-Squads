@@ -164,11 +164,14 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
 
     // 4. Lógica de Pílulas + Selects Adicionadores
     addRobot(robotName) {
-      if (!robotName) return;
-      if (!this.selectedRobots.includes(robotName)) {
-        this.selectedRobots.push(robotName);
+      const val = (typeof robotName === 'object' && robotName ? robotName.value : robotName);
+      if (!val) return;
+      if (!this.selectedRobots.includes(val)) {
+        this.selectedRobots.push(val);
         this.renderRobotPills();
       }
+      const selectEl = document.getElementById('rpa-robot-adder-select');
+      if (selectEl) selectEl.selectedIndex = 0;
     },
 
     removeRobot(robotName) {
@@ -200,11 +203,14 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
     },
 
     addResponsible(respName) {
-      if (!respName) return;
-      if (!this.selectedResponsibles.includes(respName)) {
-        this.selectedResponsibles.push(respName);
+      const val = (typeof respName === 'object' && respName ? respName.value : respName);
+      if (!val) return;
+      if (!this.selectedResponsibles.includes(val)) {
+        this.selectedResponsibles.push(val);
         this.renderRespPills();
       }
+      const selectEl = document.getElementById('rpa-resp-adder-select');
+      if (selectEl) selectEl.selectedIndex = 0;
     },
 
     removeResponsible(respName) {

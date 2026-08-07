@@ -3081,9 +3081,13 @@ const app = {
     return false;
   },
 
-  addRpaRobot(val) {
+  addRpaRobot(el) {
+    const val = (typeof el === 'object' && el ? el.value : el);
     if (window.RpaPendenciesModule && window.RpaPendenciesModule.addRobot) {
       window.RpaPendenciesModule.addRobot(val);
+    }
+    if (typeof el === 'object' && el) {
+      el.selectedIndex = 0;
     }
   },
 
@@ -3093,9 +3097,13 @@ const app = {
     }
   },
 
-  addRpaResponsible(val) {
+  addRpaResponsible(el) {
+    const val = (typeof el === 'object' && el ? el.value : el);
     if (window.RpaPendenciesModule && window.RpaPendenciesModule.addResponsible) {
       window.RpaPendenciesModule.addResponsible(val);
+    }
+    if (typeof el === 'object' && el) {
+      el.selectedIndex = 0;
     }
   },
 
