@@ -424,8 +424,26 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           </span>
         `).join('');
 
-        const notesCount = (item.history_notes || []).length;
-        const lastUpdate = formatDate(item.updated_at || item.created_at);
+        const notes = item.history_notes || [];
+        let latestUpdateText = '';
+
+        if (Array.isArray(notes) && notes.length > 0) {
+          const latest = notes[0];
+          let dStr = latest.displayDate;
+          if (!dStr && latest.date) {
+            try {
+              dStr = latest.date.includes('/') ? latest.date : new Date(latest.date).toLocaleDateString('pt-BR');
+            } catch (_) {
+              dStr = latest.date;
+            }
+          }
+          if (!dStr) {
+            dStr = formatDate(item.updated_at || item.created_at);
+          }
+          latestUpdateText = `${dStr} - ${latest.text || ''}`;
+        } else if (item.description) {
+          latestUpdateText = item.description;
+        }
 
         return `
           <tr class="hover:bg-white/5 transition-all">
@@ -434,9 +452,15 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
                 ${robotBadges || `<span class="text-slate-400 text-xs">${item.robo_name}</span>`}
               </div>
             </td>
-            <td style="padding: 14px 16px;">
-              <span class="font-semibold text-slate-200 text-xs block">${item.title}</span>
-              <span class="text-[10px] text-slate-400"><i class="fa-solid fa-clock me-1"></i>Atualizado em ${lastUpdate}</span>
+            <td style="padding: 14px 16px; min-width: 260px;">
+              <span class="font-extrabold text-white text-xs block mb-1.5">${item.title}</span>
+              ${latestUpdateText ? `
+                <div class="text-[11px] text-emerald-300/90 bg-slate-900/90 border border-emerald-500/30 rounded-lg p-2.5 leading-relaxed shadow-sm">
+                  <i class="fa-solid fa-comment-dots text-emerald-400 me-1.5 shrink-0"></i>${latestUpdateText}
+                </div>
+              ` : `
+                <span class="text-[10px] text-slate-500 italic">Sem atualizações registradas</span>
+              `}
             </td>
             <td style="padding: 14px 16px;">
               <div class="flex flex-wrap items-center">
@@ -470,7 +494,6 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       const titleInput = document.getElementById('rpa-edit-title');
       const sevEl = document.getElementById('rpa-edit-severity');
       const statusEl = document.getElementById('rpa-edit-status');
-      const noteEl = document.getElementById('rpa-edit-note');
 
       const todayIso = new Date().toISOString().split('T')[0];
       const dateInput = document.getElementById('rpa-update-date');
@@ -479,6 +502,11 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       if (dateInput) dateInput.value = todayIso;
       if (textInput) textInput.value = '';
 
+      const formatDate = (iso) => {
+        if (!iso) return '--/--/----';
+        try { return new Date(iso).toLocaleDateString('pt-BR'); } catch (_) { return iso; }
+      };
+
       if (id) {
         const item = this.pendencies.find(i => i.id === id);
         if (item) {
@@ -486,7 +514,22 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           if (idEl) idEl.value = item.id;
           this.selectedRobots = item.robo_name ? item.robo_name.split(',').map(s => s.trim()).filter(Boolean) : [];
           this.selectedResponsibles = item.responsible ? item.responsible.split(/;|;/).map(s => s.trim()).filter(Boolean) : ['Redesign (Parceiro)'];
-          this.selectedTimelineUpdates = Array.isArray(item.history_notes) ? [...item.history_notes] : [];
+
+          if (Array.isArray(item.history_notes) && item.history_notes.length > 0) {
+            this.selectedTimelineUpdates = [...item.history_notes];
+          } else if (item.description && item.description !== item.title) {
+            const dStr = formatDate(item.created_at || item.updated_at);
+            this.selectedTimelineUpdates = [{
+              id: 'upd-' + Date.now(),
+              date: item.created_at || new Date().toISOString(),
+              displayDate: dStr,
+              author: window.app?.userName || 'Usuário',
+              text: item.description
+            }];
+          } else {
+            this.selectedTimelineUpdates = [];
+          }
+
           if (titleInput) titleInput.value = item.title;
           if (sevEl) sevEl.value = item.severity;
           if (statusEl) statusEl.value = item.status;
@@ -545,8 +588,16 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       let latestSummary = title;
       if (this.selectedTimelineUpdates.length > 0) {
         const first = this.selectedTimelineUpdates[0];
-        const dStr = first.displayDate || (first.date ? (first.date.includes('/') ? first.date : new Date(first.date).toLocaleDateString('pt-BR')) : '');
-        latestSummary = `${dStr ? dStr + ' - ' : ''}${first.text}`;
+        let dStr = first.displayDate;
+        if (!dStr && first.date) {
+          try {
+            dStr = first.date.includes('/') ? first.date : new Date(first.date).toLocaleDateString('pt-BR');
+          } catch (_) {
+            dStr = first.date;
+          }
+        }
+        if (!dStr) dStr = new Date().toLocaleDateString('pt-BR');
+        latestSummary = `${dStr} - ${first.text}`;
       }
 
       if (target) {
