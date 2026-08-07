@@ -1,40 +1,39 @@
 /* ==========================================================================
    Controle de Squads - Módulo Isolado de Pendências RPA (rpa-pendencies.js)
    Design System Harmonizado Impeccable (v1.5.0)
-   100% Autônomo, Resiliente com Fallback REST Supabase + LocalStorage
    ========================================================================== */
 
-(function () {
-  'use strict';
+var RpaPendenciesModule = window.RpaPendenciesModule = {
+  pendencies: [],
+  activeId: null,
+  selectedRobots: [],
+  selectedResponsibles: [],
 
-  const RpaPendenciesModule = {
-    pendencies: [],
-    activeId: null,
-    selectedRobots: [],
-    selectedResponsibles: [],
+  // Inicialização do Módulo
+  init() {
+    this.injectUI();
+    this.fetchPendencies();
+    this.setupNavigationHook();
+    this.registerGlobalAliases();
+  },
 
-    // Inicialização do Módulo
-    init() {
-      this.injectUI();
-      this.fetchPendencies();
-      this.setupNavigationHook();
-      this.registerGlobalAliases();
-    },
+  registerGlobalAliases() {
+    const self = this;
+    window.RpaPendenciesModule = self;
+    window.openRpaView = function () { self.openRpaView(); };
+    window.openRpaModal = function (id = null) { self.openModal(id); };
+    window.openNewRpaPendencyModal = function (id = null) { self.openModal(id); };
 
-    registerGlobalAliases() {
-      const self = this;
-      window.RpaPendenciesModule = self;
-
-      if (window.app) {
-        window.app.openNewRpaPendencyModal = function (id = null) { self.openModal(id); };
-        window.app.openRpaPendencyModal = function (id = null) { self.openModal(id); };
-        window.app.closeRpaPendencyModal = function () { self.closeModal(); };
-        window.app.saveRpaPendency = function (e) { self.savePendency(e); };
-        window.app.openRpaPendencyDetailsModal = function (id) { self.openDetailsModal(id); };
-        window.app.closeRpaPendencyDetailsModal = function () { self.closeDetailsModal(); };
-        window.app.renderRpaPendenciesView = function () { self.renderView(); };
-      }
-    },
+    if (window.app) {
+      window.app.openNewRpaPendencyModal = function (id = null) { self.openModal(id); };
+      window.app.openRpaPendencyModal = function (id = null) { self.openModal(id); };
+      window.app.closeRpaPendencyModal = function () { self.closeModal(); };
+      window.app.saveRpaPendency = function (e) { self.savePendency(e); };
+      window.app.openRpaPendencyDetailsModal = function (id) { self.openDetailsModal(id); };
+      window.app.closeRpaPendencyDetailsModal = function () { self.closeDetailsModal(); };
+      window.app.renderRpaPendenciesView = function () { self.renderView(); };
+    }
+  },
 
     // Auto-Verificação e Leitura no Supabase via REST Client
     async fetchPendencies() {
@@ -953,4 +952,3 @@
   } else {
     RpaPendenciesModule.init();
   }
-})();

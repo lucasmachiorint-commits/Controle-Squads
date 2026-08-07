@@ -823,6 +823,13 @@ const app = {
     const targetView = document.getElementById(`view-${viewId}`);
     if (targetView) targetView.classList.add('active-view');
 
+    if (viewId === 'rpa-pendencies') {
+      this.setSquad('rpa');
+      if (window.RpaPendenciesModule && window.RpaPendenciesModule.renderView) {
+        window.RpaPendenciesModule.renderView();
+      }
+    }
+
     // Atualizar título da página
     const squadNames = { dados: 'Squad de Dados', operacoes: 'Squad de Operações', rpa: 'Squad de RPA' };
     const titleMap = {
