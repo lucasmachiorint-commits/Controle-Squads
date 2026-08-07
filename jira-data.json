@@ -1,7 +1,21 @@
 {
-  "updatedAt": "2026-08-07T12:29:36.105Z",
-  "totalCards": 121,
+  "updatedAt": "2026-08-07T14:13:51.723Z",
+  "totalCards": 122,
   "cards": [
+    {
+      "id": "1382861",
+      "key": "GAU-140",
+      "jiraKey": "GAU-140",
+      "title": "sustentação - prd.trusted_gsurf_view.dview_settlement_items_snapshot",
+      "summary": "sustentação - prd.trusted_gsurf_view.dview_settlement_items_snapshot",
+      "status": "Backlog",
+      "categoriaStatus": "Itens Pendentes",
+      "requester": "VICTOR HUGO SOARES DE MELLO",
+      "priority": "Média",
+      "category": "Geral",
+      "createdDate": "07/08/2026",
+      "description": "Preciso da ajuda para entender a falha na atualização da tabela prd.trusted_gsurf_view.dview_settlement_items_snapshot . Tenho um processo de monitoramento das liquidação porem hoje dia 07/08 os dados do dia 06 ainda não foram atualizados."
+    },
     {
       "id": "1381503",
       "key": "GAU-139",
