@@ -468,7 +468,19 @@
     setupNavigationHook() {
       const checkAndToggleTab = () => {
         const squad = (window.app?.activeSquad || '').toString().toLowerCase();
-        const isRpa = squad === 'rpa';
+        const activeDemandSquad = (window.app?.activeDemandSquadKey || '').toString().toLowerCase();
+        const pageTitle = (document.getElementById('page-title')?.textContent || '').toLowerCase();
+        const boardTitle = (document.getElementById('board-squad-title')?.textContent || '').toLowerCase();
+        const backlogTitle = (document.getElementById('backlog-squad-title')?.textContent || '').toLowerCase();
+        const concluidosTitle = (document.getElementById('concluidos-squad-title')?.textContent || '').toLowerCase();
+
+        const isRpa = squad.includes('rpa') || 
+                      activeDemandSquad.includes('rpa') || 
+                      pageTitle.includes('rpa') || 
+                      boardTitle.includes('rpa') || 
+                      backlogTitle.includes('rpa') || 
+                      concluidosTitle.includes('rpa');
+
         const activeView = window.app?.activeView || 'board';
         
         // 1. Alternar 4ª Aba "⚠️ Pendências RPA" nas Squads
@@ -479,7 +491,7 @@
             if (activeView === 'rpa-pendencies') {
               btn.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer rpa-only-tab-btn bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/10';
             } else {
-              btn.className = 'px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer rpa-only-tab-btn text-gray-400 hover:text-white border border-transparent';
+              btn.className = 'px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer rpa-only-tab-btn text-gray-400 hover:text-white hover:bg-slate-800 border border-transparent';
             }
           } else {
             btn.classList.add('hidden');
@@ -492,7 +504,7 @@
           if (activeView === 'board') {
             btn.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all tab-btn-board bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/10';
           } else {
-            btn.className = 'px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-board text-gray-400 hover:text-white border border-transparent';
+            btn.className = 'px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-board text-gray-400 hover:text-white hover:bg-slate-800 border border-transparent';
           }
         });
 
@@ -500,7 +512,7 @@
           if (activeView === 'backlog') {
             btn.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all tab-btn-backlog bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/10';
           } else {
-            btn.className = 'px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-backlog text-gray-400 hover:text-white border border-transparent';
+            btn.className = 'px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-backlog text-gray-400 hover:text-white hover:bg-slate-800 border border-transparent';
           }
         });
 
@@ -508,7 +520,7 @@
           if (activeView === 'concluidos') {
             btn.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all tab-btn-concluidos bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/10';
           } else {
-            btn.className = 'px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-concluidos text-gray-400 hover:text-white border border-transparent';
+            btn.className = 'px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-concluidos text-gray-400 hover:text-white hover:bg-slate-800 border border-transparent';
           }
         });
 
@@ -531,11 +543,13 @@
         };
       }
 
-      setInterval(checkAndToggleTab, 300);
+      checkAndToggleTab();
+      setInterval(checkAndToggleTab, 200);
     },
 
     openRpaView() {
       if (window.app) {
+        window.app.activeSquad = 'rpa';
         window.app.activeView = 'rpa-pendencies';
         document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active-view'));
         const rpaView = document.getElementById('view-rpa-pendencies');
@@ -544,18 +558,6 @@
         const titleEl = document.getElementById('page-title');
         if (titleEl) titleEl.textContent = 'Pendências - Squad de RPA';
         
-        // Exibir botão de ação no topo
-        const newPendencyBtn = document.getElementById('btn-new-rpa-pendency');
-        if (newPendencyBtn) {
-          newPendencyBtn.classList.remove('hidden');
-          newPendencyBtn.style.setProperty('display', 'inline-flex', 'important');
-        }
-
-        document.querySelectorAll('.rpa-only-tab-btn').forEach(btn => {
-          btn.classList.remove('btn-secondary');
-          btn.classList.add('btn-primary');
-        });
-
         this.renderView();
       }
     },
