@@ -30,7 +30,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=20260806_v6.9.0">
+    <link rel="stylesheet" href="style.css?v=20260806_v6.10.0">
 </head>
 <body>
 
@@ -643,6 +643,88 @@
       </div>
     </div>
 
+    <!-- VIEW: PENDÊNCIAS RPA -->
+    <div class="view-container" id="view-rpa-pendencies">
+      <!-- 1. BARRA DE ABAS HORIZONTAIS -->
+      <div class="flex items-center gap-2 bg-[#111827] p-1.5 rounded-xl border border-[#1f2937] mb-6">
+        <button type="button" class="px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-board text-gray-400 hover:text-white border border-transparent" onclick="app.navigate('board')">
+          Em Andamento
+        </button>
+        <button type="button" class="px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-backlog text-gray-400 hover:text-white border border-transparent" onclick="app.navigate('backlog')">
+          Backlog
+        </button>
+        <button type="button" class="px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-concluidos text-gray-400 hover:text-white border border-transparent" onclick="app.navigate('concluidos')">
+          Concluídos
+        </button>
+        <button type="button" class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer rpa-only-tab-btn bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/10" onclick="app.navigate('rpa-pendencies')">
+          ⚠️ Pendências RPA
+        </button>
+      </div>
+
+      <!-- 2. TRÊS QUADROS DE MÉTRICAS DE RESUMO DAS PENDÊNCIAS RPA -->
+      <div class="triage-metrics-row mb-6 flex items-center gap-4">
+        <div class="metric-box-card metric-box-amber flex-1 p-4 rounded-xl bg-[#111827] border border-[#1f2937]">
+          <span class="metric-box-lbl text-amber-500 text-xs font-bold block mb-1">TOTAL DE PENDÊNCIAS</span>
+          <div class="metric-box-val text-amber-400 text-2xl font-black" id="metric-rpa-total">0 pendências</div>
+        </div>
+        <div class="metric-box-card metric-box-rose flex-1 p-4 rounded-xl bg-[#111827] border border-[#1f2937]">
+          <span class="metric-box-lbl text-rose-400 text-xs font-bold block mb-1">EM ABERTO / CRÍTICAS</span>
+          <div class="metric-box-val text-rose-400 text-2xl font-black" id="metric-rpa-open">0 abertas</div>
+        </div>
+        <div class="metric-box-card metric-box-emerald flex-1 p-4 rounded-xl bg-[#111827] border border-[#1f2937]">
+          <span class="metric-box-lbl text-emerald-400 text-xs font-bold block mb-1">RESOLVIDAS / MONITORADAS</span>
+          <div class="metric-box-val text-emerald-400 text-2xl font-black" id="metric-rpa-resolved">0 concluídas</div>
+        </div>
+      </div>
+
+      <!-- 3. PAINEL DE TABELA E BOTÃO DE CADASTRO + NOVA PENDÊNCIA RPA -->
+      <div class="triage-table-panel">
+        <div class="panel-header-row mb-6 flex items-center justify-between">
+          <div>
+            <h2 style="font-size:20px; font-weight:800; color:#fff; margin:0;" id="rpa-squad-title">
+              <i class="fa-solid fa-robot text-amber-400 me-2"></i> Pendências de Robôs em Produção
+            </h2>
+            <p style="font-size:12px; color:#94a3b8; margin:4px 0 0 0;" id="rpa-squad-desc">
+              Ocorrências recorrentes, problemas de infra/APIs e histórico de cobrança (Redesign & Caio)
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="RpaPendenciesModule.openModal()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 rounded-lg text-xs transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-500/10 cursor-pointer">
+              <i class="fa-solid fa-plus"></i> Nova Pendência RPA
+            </button>
+            <button type="button" class="btn btn-secondary text-xs py-2 px-3.5" onclick="RpaPendenciesModule.printPDF()">
+              <i class="fa-solid fa-print text-indigo-400 me-1.5"></i> Imprimir / PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- BARRA DE BUSCA E FILTRO ÚNICA -->
+        <div class="search-box" style="width:100%; margin-bottom:20px;">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="search" id="rpa-filter-search" class="input-field" style="padding:12px 14px 12px 44px; font-size:12px;" placeholder="Buscar por robô, ocorrência ou responsável..." onkeyup="RpaPendenciesModule.renderView()">
+        </div>
+
+        <!-- TABELA DE PENDÊNCIAS -->
+        <div class="table-responsive">
+          <table class="custom-table w-full text-left">
+            <thead>
+              <tr>
+                <th style="width: 24%;">ROBÔ(S) AFETADO(S)</th>
+                <th style="min-width: 200px;">DESCRIÇÃO / OCORRÊNCIA</th>
+                <th style="width: 16%;">RESPONSÁVEL(IS)</th>
+                <th style="width: 11%;">SEVERIDADE</th>
+                <th style="width: 12%;">STATUS</th>
+                <th style="width: 140px; text-align: right;">AÇÕES</th>
+              </tr>
+            </thead>
+            <tbody id="rpa-pendencies-tbody">
+              <!-- Gerado via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
 
 
     <!-- VIEW 6: MODO REUNIÃO DPO -->
@@ -1068,11 +1150,155 @@
   </div>
 </div>
 
+<!-- MODAL DE CADASTRO E EDIÇÃO DE PENDÊNCIAS RPA -->
+<div class="modal-backdrop hidden" id="modal-rpa-edit" style="display: none; align-items: center; justify-content: center; z-index: 99999;">
+  <div class="glass-panel modal-content" style="max-width: 580px; background: rgba(15, 23, 42, 0.96); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 16px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);">
+    <div class="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-lg">
+          <i class="fa-solid fa-robot"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-extrabold text-white tracking-tight" id="modal-rpa-title">Nova Pendência de Robô RPA</h3>
+          <p class="text-xs text-slate-400">Cadastro de Incidente ou Ocorrência Técnica</p>
+        </div>
+      </div>
+      <button class="text-slate-400 hover:text-white transition-colors" onclick="RpaPendenciesModule.closeModal()">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <form onsubmit="RpaPendenciesModule.savePendency(event)">
+      <input type="hidden" id="rpa-edit-id" />
+
+      <!-- ROBÔS AFETADOS COM PÍLULAS -->
+      <div class="form-group mb-4">
+        <label class="block text-xs font-semibold text-gray-300 mb-1.5">Robô(s) Afetado(s) <span class="text-emerald-400">*</span></label>
+        <div class="w-full bg-[#0f172a]/90 border border-emerald-500/50 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-500/20 rounded-xl p-2 transition-all flex flex-wrap items-center gap-1.5 min-h-[44px]">
+          <div id="rpa-robot-pills-container" style="display: contents;"></div>
+          <select id="rpa-robot-adder-select" class="bg-transparent text-xs text-gray-400 focus:outline-none cursor-pointer flex-1 min-w-[150px] h-6 py-0 border-none appearance-none font-normal" onchange="RpaPendenciesModule.addRobot(this.value); this.value = '';">
+            <option value="" disabled selected class="bg-[#0f172a] text-gray-400">+ Selecionar Robô...</option>
+            <optgroup label="PAGAMENTOS NÃO BAIXADOS" class="bg-[#0f172a] text-gray-400 font-bold">
+              <option value="ID05 - Baixa Manual Lote" class="bg-[#0f172a] text-gray-200">ID05 - Baixa Manual Lote</option>
+              <option value="ID06 - Demandas de BKO" class="bg-[#0f172a] text-gray-200">ID06 - Demandas de BKO</option>
+              <option value="ID08 - Arquivo Reembolso" class="bg-[#0f172a] text-gray-200">ID08 - Arquivo Reembolso</option>
+              <option value="ID09 - Importação Reembolso Zord" class="bg-[#0f172a] text-gray-200">ID09 - Importação Reembolso Zord</option>
+              <option value="ID10 - Status Reembolso Zord" class="bg-[#0f172a] text-gray-200">ID10 - Status Reembolso Zord</option>
+              <option value="ID11 - Triagem Sucesso Zord" class="bg-[#0f172a] text-gray-200">ID11 - Triagem Sucesso Zord</option>
+              <option value="ID13 - Atualização Jira" class="bg-[#0f172a] text-gray-200">ID13 - Atualização Jira</option>
+              <option value="ID29 - Pendência Tesouraria" class="bg-[#0f172a] text-gray-200">ID29 - Pendência Tesouraria</option>
+            </optgroup>
+            <optgroup label="CANCELAMENTO DYNAMICS" class="bg-[#0f172a] text-gray-400 font-bold">
+              <option value="ID12 - Rejeitados Jira" class="bg-[#0f172a] text-gray-200">ID12 - Rejeitados Jira</option>
+              <option value="ID14 - Extração Tarefas Dynamics" class="bg-[#0f172a] text-gray-200">ID14 - Extração Tarefas Dynamics</option>
+              <option value="ID15 - Pendência Recompra" class="bg-[#0f172a] text-gray-200">ID15 - Pendência Recompra</option>
+              <option value="ID16 - Cancelamento Jira" class="bg-[#0f172a] text-gray-200">ID16 - Cancelamento Jira</option>
+              <option value="ID18 - Cancelamento Dynamics" class="bg-[#0f172a] text-gray-200">ID18 - Cancelamento Dynamics</option>
+              <option value="ID19 - Cancelamento SAP" class="bg-[#0f172a] text-gray-200">ID19 - Cancelamento SAP</option>
+              <option value="ID20 - Cancelamento CAPTA" class="bg-[#0f172a] text-gray-200">ID20 - Cancelamento CAPTA</option>
+            </optgroup>
+            <optgroup label="AMORTIZAÇÃO NOTAS DE CRÉDITO" class="bg-[#0f172a] text-gray-400 font-bold">
+              <option value="ID26 - Amortização Dispatcher" class="bg-[#0f172a] text-gray-200">ID26 - Amortização Dispatcher</option>
+              <option value="ID27 - Amortização Performer 1" class="bg-[#0f172a] text-gray-200">ID27 - Amortização Performer 1</option>
+              <option value="ID28 - Amortização Performer 2" class="bg-[#0f172a] text-gray-200">ID28 - Amortização Performer 2</option>
+              <option value="IDXX - Amortização Reembolso" class="bg-[#0f172a] text-gray-200">IDXX - Amortização Reembolso</option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+
+      <!-- TÍTULO -->
+      <div class="form-group mb-4">
+        <label class="form-label text-xs text-slate-300 font-bold">Título / Resumo do Problema <span class="text-rose-400">*</span></label>
+        <input type="text" class="form-control text-xs py-2.5" id="rpa-edit-title" placeholder="Ex: Timeout na API bancária durante execução" required style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
+      </div>
+
+      <!-- RESPONSÁVEL & SEVERIDADE -->
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-300 mb-1.5">Responsável <span class="text-emerald-400">*</span></label>
+          <div class="w-full bg-[#0f172a]/90 border border-emerald-500/50 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-500/20 rounded-xl p-2 transition-all flex flex-wrap items-center gap-1.5 min-h-[44px]">
+            <div id="rpa-resp-pills-container" style="display: contents;"></div>
+            <select id="rpa-resp-adder-select" class="bg-transparent text-xs text-gray-400 focus:outline-none cursor-pointer flex-1 min-w-[140px] h-6 py-0 border-none appearance-none font-normal" onchange="RpaPendenciesModule.addResponsible(this.value); this.value = '';">
+              <option value="" disabled selected class="bg-[#0f172a] text-gray-400">+ Selecionar Responsável...</option>
+              <option value="Redesign (Parceiro)" class="bg-[#0f172a] text-gray-200">Redesign (Parceiro)</option>
+              <option value="Caio (Interno)" class="bg-[#0f172a] text-gray-200">Caio (Interno)</option>
+              <option value="Time Skytel" class="bg-[#0f172a] text-gray-200">Time Skytel</option>
+              <option value="Ambos / Squad RPA" class="bg-[#0f172a] text-gray-200">Ambos / Squad RPA</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="form-label text-xs text-slate-300 font-bold">Severidade <span class="text-rose-400">*</span></label>
+          <select class="form-control text-xs py-2.5" id="rpa-edit-severity" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;">
+            <option value="MEDIA">⚡ Média</option>
+            <option value="BAIXA">🟢 Baixa</option>
+            <option value="ALTA">🔥 Alta</option>
+            <option value="CRITICA">🚨 Crítica</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- STATUS INICIAL -->
+      <div class="form-group mb-4">
+        <label class="form-label text-xs text-slate-300 font-bold">Status <span class="text-rose-400">*</span></label>
+        <select class="form-control text-xs py-2.5" id="rpa-edit-status" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;">
+          <option value="ABERTO">Em Aberto</option>
+          <option value="EM_ANALISE">Em Análise</option>
+          <option value="AGUARDANDO_PARCEIRO">Aguardando Parceiro</option>
+          <option value="RESOLVIDO">Resolvido</option>
+        </select>
+      </div>
+
+      <!-- NOTA INICIAL -->
+      <div class="form-group mb-6">
+        <label class="form-label text-xs text-slate-300 font-bold">Nota Inicial / Detalhes do Incidente</label>
+        <textarea class="form-control text-xs py-2" id="rpa-edit-note" rows="3" placeholder="Descreva o impacto ou motivo do chamado..." style="resize: vertical; background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;"></textarea>
+      </div>
+
+      <!-- RODAPÉ DE AÇÕES -->
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-white/10">
+        <button type="button" class="btn btn-secondary text-xs px-4 py-2" onclick="RpaPendenciesModule.closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary text-xs px-5 py-2">
+          <i class="fa-solid fa-floppy-disk me-1.5"></i> Salvar Pendência
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL DE DETALHES DA PENDÊNCIA RPA -->
+<div class="modal-backdrop hidden" id="modal-rpa-details" style="display: none; align-items: center; justify-content: center; z-index: 99999;">
+  <div class="glass-panel modal-content" style="max-width: 620px; background: rgba(15, 23, 42, 0.96); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);">
+    <div class="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center font-bold text-lg">
+          <i class="fa-solid fa-clipboard-list"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-extrabold text-white tracking-tight" id="rpa-det-title">Detalhes da Ocorrência</h3>
+          <p class="text-xs text-slate-400" id="rpa-det-sub">Histórico e Evolução do Robô</p>
+        </div>
+      </div>
+      <button class="text-slate-400 hover:text-white transition-colors" onclick="RpaPendenciesModule.closeDetailsModal()">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <div id="rpa-det-content"></div>
+
+    <div class="flex items-center justify-end gap-2 pt-4 mt-6 border-t border-white/10">
+      <button type="button" class="btn btn-secondary text-xs px-4 py-2" onclick="RpaPendenciesModule.closeDetailsModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=20260806_v6.9.0"></script>
-<script src="app.js?v=20260806_v6.9.0"></script>
+<script src="jira-sync.js?v=20260806_v6.10.0"></script>
+<script src="app.js?v=20260806_v6.10.0"></script>
 <!-- MÓDULO AUTÔNOMO ISOLADO DA SQUAD RPA -->
-<script src="rpa-pendencies.js?v=20260806_v6.9.0"></script>
+<script src="rpa-pendencies.js?v=20260806_v6.10.0"></script>
 
 </body>
 </html>

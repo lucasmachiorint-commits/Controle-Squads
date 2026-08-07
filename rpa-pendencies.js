@@ -556,6 +556,19 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       const items = this.pendencies || [];
       const search = (document.getElementById('rpa-filter-search')?.value || '').toLowerCase().trim();
 
+      const totalCount = items.length;
+      const openCount = items.filter(i => i.status !== 'RESOLVIDO').length;
+      const resolvedCount = items.filter(i => i.status === 'RESOLVIDO').length;
+
+      const totalEl = document.getElementById('metric-rpa-total');
+      if (totalEl) totalEl.textContent = `${totalCount} pendência${totalCount === 1 ? '' : 's'}`;
+
+      const openEl = document.getElementById('metric-rpa-open');
+      if (openEl) openEl.textContent = `${openCount} aberta${openCount === 1 ? '' : 's'}`;
+
+      const resolvedEl = document.getElementById('metric-rpa-resolved');
+      if (resolvedEl) resolvedEl.textContent = `${resolvedCount} concluída${resolvedCount === 1 ? '' : 's'}`;
+
       const filtered = items.filter(i => {
         if (search) {
           const matchRobo = (i.robo_name || '').toLowerCase().includes(search);
