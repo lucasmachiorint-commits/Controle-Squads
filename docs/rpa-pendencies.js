@@ -666,13 +666,9 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
     // 7. Handlers de Modais e Formulários
     openModal(id = null) {
       let modal = document.getElementById('modal-rpa-edit');
-      if (!modal) {
-        this.injectUI();
-        modal = document.getElementById('modal-rpa-edit');
-      }
       if (!modal) return;
 
-      const titleEl = document.getElementById('rpa-modal-edit-title');
+      const titleEl = document.getElementById('rpa-modal-edit-title') || document.getElementById('modal-rpa-title');
       const idEl = document.getElementById('rpa-edit-id');
       const titleInput = document.getElementById('rpa-edit-title');
       const sevEl = document.getElementById('rpa-edit-severity');
@@ -692,7 +688,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           if (noteEl) noteEl.value = item.description || '';
         }
       } else {
-        if (titleEl) titleEl.textContent = 'Cadastrar Ocorrência RPA';
+        if (titleEl) titleEl.textContent = 'Nova Pendência de Robô RPA';
         if (idEl) idEl.value = '';
         this.selectedRobots = [];
         this.selectedResponsibles = ['Redesign (Parceiro)'];
@@ -707,8 +703,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
 
       modal.classList.remove('hidden');
       modal.classList.add('open', 'active');
-      modal.style.setProperty('display', 'flex', 'important');
-      modal.style.setProperty('z-index', '99999', 'important');
+      modal.style.cssText = 'display: flex !important; opacity: 1 !important; pointer-events: auto !important; z-index: 999999 !important; align-items: center; justify-content: center;';
     },
 
     closeModal() {
@@ -716,7 +711,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       if (modal) {
         modal.classList.add('hidden');
         modal.classList.remove('open', 'active');
-        modal.style.setProperty('display', 'none', 'important');
+        modal.style.cssText = 'display: none !important; opacity: 0 !important; pointer-events: none !important;';
       }
     },
 
@@ -806,16 +801,16 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
 
       this.activeId = id;
       let modal = document.getElementById('modal-rpa-details');
-      if (!modal) {
-        this.injectUI();
-        modal = document.getElementById('modal-rpa-details');
-      }
       if (!modal) return;
 
-      document.getElementById('rpa-detail-robo-title').textContent = `Robô(s): ${item.robo_name}`;
-      document.getElementById('rpa-detail-resp').textContent = item.responsible;
-      document.getElementById('rpa-detail-date').textContent = new Date(item.created_at).toLocaleDateString('pt-BR');
-      document.getElementById('rpa-detail-status-change').value = item.status;
+      const titleEl = document.getElementById('rpa-detail-robo-title') || document.getElementById('rpa-det-title');
+      if (titleEl) titleEl.textContent = `Robô(s): ${item.robo_name}`;
+      const respEl = document.getElementById('rpa-detail-resp');
+      if (respEl) respEl.textContent = item.responsible;
+      const dateEl = document.getElementById('rpa-detail-date');
+      if (dateEl) dateEl.textContent = new Date(item.created_at).toLocaleDateString('pt-BR');
+      const statusChangeEl = document.getElementById('rpa-detail-status-change');
+      if (statusChangeEl) statusChangeEl.value = item.status;
 
       const sevEl = document.getElementById('rpa-detail-sev');
       if (sevEl) {
@@ -836,8 +831,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       this.renderNotesList(item);
       modal.classList.remove('hidden');
       modal.classList.add('open', 'active');
-      modal.style.setProperty('display', 'flex', 'important');
-      modal.style.setProperty('z-index', '99999', 'important');
+      modal.style.cssText = 'display: flex !important; opacity: 1 !important; pointer-events: auto !important; z-index: 999999 !important; align-items: center; justify-content: center;';
     },
 
     renderNotesList(item) {
@@ -866,7 +860,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       if (modal) {
         modal.classList.add('hidden');
         modal.classList.remove('open', 'active');
-        modal.style.setProperty('display', 'none', 'important');
+        modal.style.cssText = 'display: none !important; opacity: 0 !important; pointer-events: none !important;';
       }
     },
 
