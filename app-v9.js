@@ -3036,9 +3036,14 @@ const app = {
   },
 
   saveRpaPendency(e) {
+    if (e) {
+      if (e.preventDefault) e.preventDefault();
+      if (e.stopPropagation) e.stopPropagation();
+    }
     if (window.RpaPendenciesModule && window.RpaPendenciesModule.savePendency) {
       window.RpaPendenciesModule.savePendency(e);
     }
+    return false;
   },
 
   addRpaRobot(val) {
