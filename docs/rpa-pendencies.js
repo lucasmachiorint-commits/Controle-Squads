@@ -201,11 +201,8 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       val = val.trim();
       if (!val || val.startsWith('+ Selecionar')) return;
 
-      if (!Array.isArray(this.selectedRobots)) this.selectedRobots = [];
-
-      if (!this.selectedRobots.includes(val)) {
-        this.selectedRobots.push(val);
-      }
+      // APENAS 1 ROBÔ PERMITIDO (Substitui seleção anterior)
+      this.selectedRobots = [val];
 
       this.renderRobotPills();
 
@@ -304,10 +301,10 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       container.innerHTML = this.selectedResponsibles.map(rName => {
         const safeName = rName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         return `
-          <span class="bg-indigo-950/90 border border-indigo-500/70 text-indigo-300 text-[11px] px-2.5 py-1 rounded-lg flex items-center gap-1.5 font-semibold shrink-0 shadow-md">
-            <i class="fa-solid fa-user text-indigo-400 text-[10px]"></i>
-            ${rName}
-            <button type="button" onclick="(window.app || window).removeRpaResponsible('${safeName}')" class="text-indigo-400 hover:text-white cursor-pointer text-xs font-bold transition-colors ml-1" title="Remover">✕</button>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-500/20 border border-indigo-500/50 text-indigo-300 shadow-sm my-0.5">
+            <i class="fa-solid fa-user text-indigo-400 text-xs"></i>
+            <span>${rName}</span>
+            <button type="button" onclick="(window.app || window).removeRpaResponsible('${safeName}')" class="ml-1 text-indigo-300 hover:text-white font-bold cursor-pointer transition-colors" title="Remover">✕</button>
           </span>
         `;
       }).join('');
