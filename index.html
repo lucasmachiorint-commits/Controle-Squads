@@ -30,7 +30,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=20260806_v6.23.0">
+    <link rel="stylesheet" href="style.css?v=20260806_v6.24.0">
 </head>
 <body>
 
@@ -698,10 +698,47 @@
           </div>
         </div>
 
-        <!-- BARRA DE BUSCA E FILTRO ÚNICA -->
-        <div class="search-box" style="width:100%; margin-bottom:20px;">
-          <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="search" id="rpa-filter-search" class="input-field" style="padding:12px 14px 12px 44px; font-size:12px;" placeholder="Buscar por robô, ocorrência ou responsável..." onkeyup="app.renderRpaPendenciesView()">
+        <!-- BARRA DE FILTROS DINÂMICOS MULTICRITÉRIO -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-5 bg-slate-900/60 backdrop-blur-md p-3.5 rounded-xl border border-slate-800/80 shadow-lg">
+          <!-- BUSCA TEXTUAL -->
+          <div class="relative flex items-center">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 text-slate-400 text-xs"></i>
+            <input type="search" id="rpa-filter-search" class="w-full bg-slate-950/80 border border-slate-800 text-white text-xs rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:border-emerald-500/50" placeholder="Buscar por robô ou ocorrência..." onkeyup="app.renderRpaPendenciesView()">
+          </div>
+
+          <!-- FILTRO RESPONSÁVEL -->
+          <div>
+            <select id="rpa-filter-responsible" class="w-full bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
+              <option value="">👤 Todos os Responsáveis</option>
+              <option value="Redesign (Parceiro)">Redesign (Parceiro)</option>
+              <option value="Caio (Interno)">Caio (Interno)</option>
+            </select>
+          </div>
+
+          <!-- FILTRO STATUS -->
+          <div>
+            <select id="rpa-filter-status" class="w-full bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
+              <option value="">📌 Todos os Status</option>
+              <option value="ABERTO">🚨 Em Aberto</option>
+              <option value="EM_ANALISE">🔍 Em Análise</option>
+              <option value="AGUARDANDO_PARCEIRO">🟣 Aguardando Parceiro</option>
+              <option value="RESOLVIDO">🟢 Resolvido</option>
+            </select>
+          </div>
+
+          <!-- FILTRO DATA / PERÍODO -->
+          <div class="flex items-center gap-2">
+            <select id="rpa-filter-date" class="w-full bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
+              <option value="">📅 Todas as Datas</option>
+              <option value="HOJE">Hoje</option>
+              <option value="7_DIAS">Últimos 7 dias</option>
+              <option value="30_DIAS">Últimos 30 dias</option>
+              <option value="MES_ATUAL">Mês Atual</option>
+            </select>
+            <button type="button" onclick="app.resetRpaFilters()" class="btn btn-secondary text-[11px] py-2 px-2.5 shrink-0" title="Limpar Filtros">
+              <i class="fa-solid fa-filter-circle-xmark"></i>
+            </button>
+          </div>
         </div>
 
         <!-- TABELA DE PENDÊNCIAS -->
@@ -1318,10 +1355,10 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=20260806_v6.23.0"></script>
-<script src="app.js?v=20260806_v6.23.0"></script>
+<script src="jira-sync.js?v=20260806_v6.24.0"></script>
+<script src="app.js?v=20260806_v6.24.0"></script>
 <!-- MÓDULO AUTÔNOMO ISOLADO DA SQUAD RPA -->
-<script src="rpa-pendencies.js?v=20260806_v6.23.0"></script>
+<script src="rpa-pendencies.js?v=20260806_v6.24.0"></script>
 
 </body>
 </html>

@@ -37,6 +37,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       window.app.removeRpaTimelineUpdate = function (idx) { self.removeTimelineUpdate(idx); };
       window.app.printRpaReport = function () { self.printReport(); };
       window.app.printRpaPDF = function () { self.printReport(); };
+      window.app.resetRpaFilters = function () { self.resetFilters(); };
     }
   },
 
@@ -350,17 +351,85 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       }
     },
 
+    resetFilters() {
+      const searchEl = document.getElementById('rpa-filter-search');
+      const respEl = document.getElementById('rpa-filter-responsible');
+      const statusEl = document.getElementById('rpa-filter-status');
+      const dateEl = document.getElementById('rpa-filter-date');
+
+      if (searchEl) searchEl.value = '';
+      if (respEl) respEl.value = '';
+      if (statusEl) statusEl.value = '';
+      if (dateEl) dateEl.value = '';
+
+      this.renderView();
+    },
+
+    getFilteredPendencies() {
+      const search = (document.getElementById('rpa-filter-search')?.value || '').toLowerCase().trim();
+      const respFilter = (document.getElementById('rpa-filter-responsible')?.value || '').trim();
+      const statusFilter = (document.getElementById('rpa-filter-status')?.value || '').trim();
+      const dateFilter = (document.getElementById('rpa-filter-date')?.value || '').trim();
+
+      const now = new Date();
+      const todayStr = now.toISOString().split('T')[0];
+
+      return (this.pendencies || []).filter(item => {
+        // 1. Filtro Busca Textual (robô, título ou descrição)
+        if (search) {
+          const matchTitle = (item.title || '').toLowerCase().includes(search);
+          const matchRobo = (item.robo_name || '').toLowerCase().includes(search);
+          const matchResp = (item.responsible || '').toLowerCase().includes(search);
+          const matchDesc = (item.description || '').toLowerCase().includes(search);
+          if (!matchTitle && !matchRobo && !matchResp && !matchDesc) return false;
+        }
+
+        // 2. Filtro por Responsável
+        if (respFilter) {
+          const itemResp = (item.responsible || '').toString();
+          if (!itemResp.includes(respFilter)) return false;
+        }
+
+        // 3. Filtro por Status
+        if (statusFilter) {
+          const itemStatus = (item.status || 'ABERTO').toString();
+          if (itemStatus !== statusFilter) return false;
+        }
+
+        // 4. Filtro por Data / Período
+        if (dateFilter) {
+          const rawDate = item.created_at || item.createdAt;
+          if (!rawDate) return false;
+          const itemDate = new Date(rawDate);
+          if (isNaN(itemDate.getTime())) return false;
+
+          if (dateFilter === 'HOJE') {
+            const itemDateStr = itemDate.toISOString().split('T')[0];
+            if (itemDateStr !== todayStr) return false;
+          } else if (dateFilter === '7_DIAS') {
+            const diffDays = (now.getTime() - itemDate.getTime()) / (1000 * 3600 * 24);
+            if (diffDays > 7) return false;
+          } else if (dateFilter === '30_DIAS') {
+            const diffDays = (now.getTime() - itemDate.getTime()) / (1000 * 3600 * 24);
+            if (diffDays > 30) return false;
+          } else if (dateFilter === 'MES_ATUAL') {
+            if (itemDate.getMonth() !== now.getMonth() || itemDate.getFullYear() !== now.getFullYear()) return false;
+          }
+        }
+
+        return true;
+      });
+    },
+
     // 6. Renderização da Tabela de Pendências
     renderView() {
       const tbody = document.getElementById('rpa-pendencies-tbody');
       if (!tbody) return;
 
-      const items = this.pendencies || [];
-      const search = (document.getElementById('rpa-filter-search')?.value || '').toLowerCase().trim();
-
-      const totalCount = items.length;
-      const openCount = items.filter(i => i.status !== 'RESOLVIDO').length;
-      const resolvedCount = items.filter(i => i.status === 'RESOLVIDO').length;
+      const allItems = this.pendencies || [];
+      const totalCount = allItems.length;
+      const openCount = allItems.filter(i => i.status !== 'RESOLVIDO').length;
+      const resolvedCount = allItems.filter(i => i.status === 'RESOLVIDO').length;
 
       const totalEl = document.getElementById('metric-rpa-total');
       if (totalEl) totalEl.textContent = `${totalCount} pendência${totalCount === 1 ? '' : 's'}`;
@@ -371,23 +440,14 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       const resolvedEl = document.getElementById('metric-rpa-resolved');
       if (resolvedEl) resolvedEl.textContent = `${resolvedCount} concluída${resolvedCount === 1 ? '' : 's'}`;
 
-      const filtered = items.filter(i => {
-        if (search) {
-          const matchRobo = (i.robo_name || '').toLowerCase().includes(search);
-          const matchTitle = (i.title || '').toLowerCase().includes(search);
-          const matchResp = (i.responsible || '').toLowerCase().includes(search);
-          const matchDesc = (i.description || '').toLowerCase().includes(search);
-          if (!matchRobo && !matchTitle && !matchResp && !matchDesc) return false;
-        }
-        return true;
-      });
+      const filtered = this.getFilteredPendencies();
 
       if (!filtered.length) {
         tbody.innerHTML = `
           <tr>
             <td colspan="6" class="text-center py-8 text-slate-400">
               <i class="fa-solid fa-folder-open text-2xl mb-2 block text-slate-500"></i>
-              Nenhuma pendência de robô cadastrada ou encontrada.
+              Nenhuma pendência encontrada com os filtros selecionados.
             </td>
           </tr>
         `;
@@ -822,7 +882,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       }
 
       const nowStr = new Date().toLocaleDateString('pt-BR') + ' às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-      const items = this.pendencies || [];
+      const items = this.getFilteredPendencies();
       const totalCount = items.length;
       const openCount = items.filter(i => i.status !== 'RESOLVIDO').length;
       const resolvedCount = items.filter(i => i.status === 'RESOLVIDO').length;
