@@ -170,7 +170,6 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           const val = e.target.value;
           if (val) {
             this.addRobot(val);
-            e.target.selectedIndex = 0;
           }
         };
       }
@@ -181,7 +180,6 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           const val = e.target.value;
           if (val) {
             this.addResponsible(val);
-            e.target.selectedIndex = 0;
           }
         };
       }
@@ -203,8 +201,10 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
         this.renderRobotPills();
       }
 
-      const selectEl = document.getElementById('rpa-robot-adder-select');
-      if (selectEl) selectEl.selectedIndex = 0;
+      setTimeout(() => {
+        const selectEl = document.getElementById('rpa-robot-adder-select');
+        if (selectEl) selectEl.selectedIndex = 0;
+      }, 50);
     },
 
     removeRobot(robotName) {
@@ -231,7 +231,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           <span class="bg-emerald-950/90 border border-emerald-500/70 text-emerald-300 text-[11px] px-2.5 py-1 rounded-lg flex items-center gap-1.5 font-semibold shrink-0 shadow-md">
             <i class="fa-solid fa-robot text-emerald-400 text-[10px]"></i>
             ${robot}
-            <button type="button" onclick="app.removeRpaRobot('${safeName}')" class="text-emerald-400 hover:text-white cursor-pointer text-xs font-bold transition-colors ml-1" title="Remover">✕</button>
+            <button type="button" onclick="(window.app || window).removeRpaRobot('${safeName}')" class="text-emerald-400 hover:text-white cursor-pointer text-xs font-bold transition-colors ml-1" title="Remover">✕</button>
           </span>
         `;
       }).join('');
@@ -253,8 +253,10 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
         this.renderRespPills();
       }
 
-      const selectEl = document.getElementById('rpa-resp-adder-select');
-      if (selectEl) selectEl.selectedIndex = 0;
+      setTimeout(() => {
+        const selectEl = document.getElementById('rpa-resp-adder-select');
+        if (selectEl) selectEl.selectedIndex = 0;
+      }, 50);
     },
 
     removeResponsible(respName) {
@@ -281,7 +283,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           <span class="bg-indigo-950/90 border border-indigo-500/70 text-indigo-300 text-[11px] px-2.5 py-1 rounded-lg flex items-center gap-1.5 font-semibold shrink-0 shadow-md">
             <i class="fa-solid fa-user text-indigo-400 text-[10px]"></i>
             ${rName}
-            <button type="button" onclick="app.removeRpaResponsible('${safeName}')" class="text-indigo-400 hover:text-white cursor-pointer text-xs font-bold transition-colors ml-1" title="Remover">✕</button>
+            <button type="button" onclick="(window.app || window).removeRpaResponsible('${safeName}')" class="text-indigo-400 hover:text-white cursor-pointer text-xs font-bold transition-colors ml-1" title="Remover">✕</button>
           </span>
         `;
       }).join('');

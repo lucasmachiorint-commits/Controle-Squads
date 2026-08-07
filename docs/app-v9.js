@@ -3087,7 +3087,7 @@ const app = {
       window.RpaPendenciesModule.addRobot(val);
     }
     if (typeof el === 'object' && el) {
-      el.selectedIndex = 0;
+      setTimeout(() => { el.selectedIndex = 0; }, 50);
     }
   },
 
@@ -3103,7 +3103,7 @@ const app = {
       window.RpaPendenciesModule.addResponsible(val);
     }
     if (typeof el === 'object' && el) {
-      el.selectedIndex = 0;
+      setTimeout(() => { el.selectedIndex = 0; }, 50);
     }
   },
 
