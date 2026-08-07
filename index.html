@@ -30,7 +30,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=20260806_v6.28.0">
+    <link rel="stylesheet" href="style.css?v=20260806_v6.29.0">
 </head>
 <body>
 
@@ -1240,37 +1240,41 @@
 
       <!-- ROBÔS AFETADOS COM PÍLULAS -->
       <div class="form-group mb-4">
-        <label class="block text-xs font-semibold text-gray-300 mb-1.5">Robô(s) Afetado(s) <span class="text-emerald-400">*</span></label>
-        <div class="w-full bg-[#0f172a]/90 border border-emerald-500/50 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-500/20 rounded-xl p-2 transition-all flex flex-wrap items-center gap-1.5 min-h-[44px]">
-          <div id="rpa-robot-pills-container" style="display: contents;"></div>
-          <select id="rpa-robot-adder-select" class="bg-slate-900 border border-slate-700/80 text-xs text-slate-300 focus:outline-none cursor-pointer flex-1 min-w-[150px] py-1 px-2 rounded-lg font-normal" onchange="app.addRpaRobot(this)">
-            <option value="" selected class="bg-[#0f172a] text-gray-400">+ Selecionar Robô...</option>
-            <optgroup label="PAGAMENTOS NÃO BAIXADOS" class="bg-[#0f172a] text-gray-400 font-bold">
-              <option value="ID05 - Baixa Manual Lote" class="bg-[#0f172a] text-gray-200">ID05 - Baixa Manual Lote</option>
-              <option value="ID06 - Demandas de BKO" class="bg-[#0f172a] text-gray-200">ID06 - Demandas de BKO</option>
-              <option value="ID08 - Arquivo Reembolso" class="bg-[#0f172a] text-gray-200">ID08 - Arquivo Reembolso</option>
-              <option value="ID09 - Importação Reembolso Zord" class="bg-[#0f172a] text-gray-200">ID09 - Importação Reembolso Zord</option>
-              <option value="ID10 - Status Reembolso Zord" class="bg-[#0f172a] text-gray-200">ID10 - Status Reembolso Zord</option>
-              <option value="ID11 - Triagem Sucesso Zord" class="bg-[#0f172a] text-gray-200">ID11 - Triagem Sucesso Zord</option>
-              <option value="ID13 - Atualização Jira" class="bg-[#0f172a] text-gray-200">ID13 - Atualização Jira</option>
-              <option value="ID29 - Pendência Tesouraria" class="bg-[#0f172a] text-gray-200">ID29 - Pendência Tesouraria</option>
-            </optgroup>
-            <optgroup label="CANCELAMENTO DYNAMICS" class="bg-[#0f172a] text-gray-400 font-bold">
-              <option value="ID12 - Rejeitados Jira" class="bg-[#0f172a] text-gray-200">ID12 - Rejeitados Jira</option>
-              <option value="ID14 - Extração Tarefas Dynamics" class="bg-[#0f172a] text-gray-200">ID14 - Extração Tarefas Dynamics</option>
-              <option value="ID15 - Pendência Recompra" class="bg-[#0f172a] text-gray-200">ID15 - Pendência Recompra</option>
-              <option value="ID16 - Cancelamento Jira" class="bg-[#0f172a] text-gray-200">ID16 - Cancelamento Jira</option>
-              <option value="ID18 - Cancelamento Dynamics" class="bg-[#0f172a] text-gray-200">ID18 - Cancelamento Dynamics</option>
-              <option value="ID19 - Cancelamento SAP" class="bg-[#0f172a] text-gray-200">ID19 - Cancelamento SAP</option>
-              <option value="ID20 - Cancelamento CAPTA" class="bg-[#0f172a] text-gray-200">ID20 - Cancelamento CAPTA</option>
-            </optgroup>
-            <optgroup label="AMORTIZAÇÃO NOTAS DE CRÉDITO" class="bg-[#0f172a] text-gray-400 font-bold">
-              <option value="ID26 - Amortização Dispatcher" class="bg-[#0f172a] text-gray-200">ID26 - Amortização Dispatcher</option>
-              <option value="ID27 - Amortização Performer 1" class="bg-[#0f172a] text-gray-200">ID27 - Amortização Performer 1</option>
-              <option value="ID28 - Amortização Performer 2" class="bg-[#0f172a] text-gray-200">ID28 - Amortização Performer 2</option>
-              <option value="IDXX - Amortização Reembolso" class="bg-[#0f172a] text-gray-200">IDXX - Amortização Reembolso</option>
-            </optgroup>
-          </select>
+        <label class="block text-xs font-bold text-slate-300 mb-1.5">Robô(s) Afetado(s) <span class="text-emerald-400">*</span></label>
+        
+        <!-- DROPDOWN DE SELEÇÃO DE ROBÔ -->
+        <select id="rpa-robot-adder-select" class="form-control text-xs py-2.5 w-full mb-2 cursor-pointer font-normal" onchange="app.addRpaRobot(this)" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(16,185,129,0.5); border-radius: 8px;">
+          <option value="" selected>+ Selecionar Robô na lista...</option>
+          <optgroup label="PAGAMENTOS NÃO BAIXADOS">
+            <option value="ID05 - Baixa Manual Lote">ID05 - Baixa Manual Lote</option>
+            <option value="ID06 - Demandas de BKO">ID06 - Demandas de BKO</option>
+            <option value="ID08 - Arquivo Reembolso">ID08 - Arquivo Reembolso</option>
+            <option value="ID09 - Importação Reembolso Zord">ID09 - Importação Reembolso Zord</option>
+            <option value="ID10 - Status Reembolso Zord">ID10 - Status Reembolso Zord</option>
+            <option value="ID11 - Triagem Sucesso Zord">ID11 - Triagem Sucesso Zord</option>
+            <option value="ID13 - Atualização Jira">ID13 - Atualização Jira</option>
+            <option value="ID29 - Pendência Tesouraria">ID29 - Pendência Tesouraria</option>
+          </optgroup>
+          <optgroup label="CANCELAMENTO DYNAMICS">
+            <option value="ID12 - Rejeitados Jira">ID12 - Rejeitados Jira</option>
+            <option value="ID14 - Extração Tarefas Dynamics">ID14 - Extração Tarefas Dynamics</option>
+            <option value="ID15 - Pendência Recompra">ID15 - Pendência Recompra</option>
+            <option value="ID16 - Cancelamento Jira">ID16 - Cancelamento Jira</option>
+            <option value="ID18 - Cancelamento Dynamics">ID18 - Cancelamento Dynamics</option>
+            <option value="ID19 - Cancelamento SAP">ID19 - Cancelamento SAP</option>
+            <option value="ID20 - Cancelamento CAPTA">ID20 - Cancelamento CAPTA</option>
+          </optgroup>
+          <optgroup label="AMORTIZAÇÃO NOTAS DE CRÉDITO">
+            <option value="ID26 - Amortização Dispatcher">ID26 - Amortização Dispatcher</option>
+            <option value="ID27 - Amortização Performer 1">ID27 - Amortização Performer 1</option>
+            <option value="ID28 - Amortização Performer 2">ID28 - Amortização Performer 2</option>
+            <option value="IDXX - Amortização Reembolso">IDXX - Amortização Reembolso</option>
+          </optgroup>
+        </select>
+
+        <!-- AREA DAS PÍLULAS SELECIONADAS -->
+        <div id="rpa-robot-pills-container" class="w-full bg-[#0f172a]/90 border border-emerald-500/40 rounded-xl p-2.5 flex flex-wrap items-center gap-1.5 min-h-[42px]">
+          <!-- Pílulas serão inseridas aqui -->
         </div>
       </div>
 
@@ -1283,16 +1287,20 @@
       <!-- RESPONSÁVEL & SEVERIDADE -->
       <div class="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <label class="block text-xs font-semibold text-gray-300 mb-1.5">Responsável <span class="text-emerald-400">*</span></label>
-          <div class="w-full bg-[#0f172a]/90 border border-emerald-500/50 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-500/20 rounded-xl p-2 transition-all flex flex-wrap items-center gap-1.5 min-h-[44px]">
-            <div id="rpa-resp-pills-container" style="display: contents;"></div>
-            <select id="rpa-resp-adder-select" class="bg-slate-900 border border-slate-700/80 text-xs text-slate-300 focus:outline-none cursor-pointer flex-1 min-w-[140px] py-1 px-2 rounded-lg font-normal" onchange="app.addRpaResponsible(this)">
-              <option value="" selected class="bg-[#0f172a] text-gray-400">+ Selecionar Responsável...</option>
-              <option value="Redesign (Parceiro)" class="bg-[#0f172a] text-gray-200">Redesign (Parceiro)</option>
-              <option value="Caio (Interno)" class="bg-[#0f172a] text-gray-200">Caio (Interno)</option>
-              <option value="Time Skytel" class="bg-[#0f172a] text-gray-200">Time Skytel</option>
-              <option value="Ambos / Squad RPA" class="bg-[#0f172a] text-gray-200">Ambos / Squad RPA</option>
-            </select>
+          <label class="block text-xs font-bold text-slate-300 mb-1.5">Responsável <span class="text-emerald-400">*</span></label>
+          
+          <!-- DROPDOWN DE SELEÇÃO DE RESPONSÁVEL -->
+          <select id="rpa-resp-adder-select" class="form-control text-xs py-2.5 w-full mb-2 cursor-pointer font-normal" onchange="app.addRpaResponsible(this)" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(16,185,129,0.5); border-radius: 8px;">
+            <option value="" selected>+ Selecionar Responsável...</option>
+            <option value="Redesign (Parceiro)">Redesign (Parceiro)</option>
+            <option value="Caio (Interno)">Caio (Interno)</option>
+            <option value="Time Skytel">Time Skytel</option>
+            <option value="Ambos / Squad RPA">Ambos / Squad RPA</option>
+          </select>
+
+          <!-- AREA DAS PÍLULAS SELECIONADAS -->
+          <div id="rpa-resp-pills-container" class="w-full bg-[#0f172a]/90 border border-indigo-500/40 rounded-xl p-2.5 flex flex-wrap items-center gap-1.5 min-h-[42px]">
+            <!-- Pílulas serão inseridas aqui -->
           </div>
         </div>
 
@@ -1385,10 +1393,10 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=20260806_v6.28.0"></script>
-<script src="app.js?v=20260806_v6.28.0"></script>
+<script src="jira-sync.js?v=20260806_v6.29.0"></script>
+<script src="app.js?v=20260806_v6.29.0"></script>
 <!-- MÓDULO AUTÔNOMO ISOLADO DA SQUAD RPA -->
-<script src="rpa-pendencies.js?v=20260806_v6.28.0"></script>
+<script src="rpa-pendencies.js?v=20260806_v6.29.0"></script>
 
 </body>
 </html>
