@@ -179,7 +179,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
     },
 
     getSelectedResponsiblesString() {
-      return this.selectedResponsibles.length ? this.selectedResponsibles.join(' ; ') : 'Redesign (Parceiro)';
+      return this.selectedResponsibles.length ? this.selectedResponsibles.join(' ; ') : '';
     },
 
     // 4.5 Lógica da Linha do Tempo de Atualizações
@@ -513,7 +513,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           if (titleEl) titleEl.textContent = 'Editar Ocorrência RPA';
           if (idEl) idEl.value = item.id;
           this.selectedRobots = item.robo_name ? item.robo_name.split(',').map(s => s.trim()).filter(Boolean) : [];
-          this.selectedResponsibles = item.responsible ? item.responsible.split(/;|;/).map(s => s.trim()).filter(Boolean) : ['Redesign (Parceiro)'];
+          this.selectedResponsibles = item.responsible ? item.responsible.split(/;|;/).map(s => s.trim()).filter(Boolean) : [];
 
           if (Array.isArray(item.history_notes) && item.history_notes.length > 0) {
             this.selectedTimelineUpdates = [...item.history_notes];
@@ -538,7 +538,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
         if (titleEl) titleEl.textContent = 'Nova Pendência de Robô RPA';
         if (idEl) idEl.value = '';
         this.selectedRobots = [];
-        this.selectedResponsibles = ['Redesign (Parceiro)'];
+        this.selectedResponsibles = [];
         this.selectedTimelineUpdates = [];
         if (titleInput) titleInput.value = '';
         if (sevEl) sevEl.value = 'MEDIA';
@@ -579,6 +579,10 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       }
       if (!title) {
         alert('Por favor, preencha o Título da ocorrência.');
+        return;
+      }
+      if (!responsible) {
+        alert('Por favor, selecione ao menos um Responsável.');
         return;
       }
 
