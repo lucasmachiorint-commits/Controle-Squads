@@ -30,7 +30,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=20260806_v6.3.0">
+    <link rel="stylesheet" href="style.css?v=20260806_v6.4.0">
 </head>
 <body>
 
@@ -458,18 +458,18 @@
 
     <!-- VIEW 3: DEMANDAS EM ANDAMENTO (ANTIGO QUADRO DA SQUAD) -->
     <div class="view-container" id="view-board">
-      <div class="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
-        <button class="btn btn-primary text-xs py-1.5 px-3" onclick="app.navigate('board')">
-          <i class="fa-solid fa-spinner text-emerald-400 me-1"></i> Em Andamento
+      <div class="flex items-center gap-2 bg-[#111827] p-1.5 rounded-xl border border-[#1f2937] mb-6">
+        <button type="button" class="px-4 py-2 rounded-lg text-xs font-bold transition-all tab-btn-board bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/10" onclick="app.navigate('board')">
+          Em Andamento
         </button>
-        <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('backlog')">
-          <i class="fa-solid fa-list-check me-1"></i> Backlog
+        <button type="button" class="px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-backlog text-gray-400 hover:text-white border border-transparent" onclick="app.navigate('backlog')">
+          Backlog
         </button>
-        <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('concluidos')">
-          <i class="fa-solid fa-circle-check me-1"></i> Concluídos
+        <button type="button" class="px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-concluidos text-gray-400 hover:text-white border border-transparent" onclick="app.navigate('concluidos')">
+          Concluídos
         </button>
-        <button class="btn btn-secondary text-xs py-1.5 px-3 rpa-only-tab-btn hidden" style="display: none !important;" onclick="RpaPendenciesModule.openRpaView()">
-          <i class="fa-solid fa-triangle-exclamation text-amber-400 me-1"></i> ⚠️ Pendências RPA
+        <button type="button" class="px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer rpa-only-tab-btn text-gray-400 hover:text-white border border-transparent hidden" style="display: none !important;" onclick="RpaPendenciesModule.openRpaView()">
+          ⚠️ Pendências RPA
         </button>
       </div>
       <!-- BANNER DE SPRINT / QUARTER DINÂMICO POR SQUAD -->
@@ -531,18 +531,18 @@
 
     <!-- VIEW 4: BACKLOG DE DEMANDAS -->
     <div class="view-container" id="view-backlog">
-      <div class="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
-        <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('board')">
-          <i class="fa-solid fa-spinner text-emerald-400 me-1"></i> Em Andamento
+      <div class="flex items-center gap-2 bg-[#111827] p-1.5 rounded-xl border border-[#1f2937] mb-6">
+        <button type="button" class="px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-board text-gray-400 hover:text-white border border-transparent" onclick="app.navigate('board')">
+          Em Andamento
         </button>
-        <button class="btn btn-primary text-xs py-1.5 px-3" onclick="app.navigate('backlog')">
-          <i class="fa-solid fa-list-check me-1"></i> Backlog
+        <button type="button" class="px-4 py-2 rounded-lg text-xs font-bold transition-all tab-btn-backlog bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/10" onclick="app.navigate('backlog')">
+          Backlog
         </button>
-        <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('concluidos')">
-          <i class="fa-solid fa-circle-check me-1"></i> Concluídos
+        <button type="button" class="px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-concluidos text-gray-400 hover:text-white border border-transparent" onclick="app.navigate('concluidos')">
+          Concluídos
         </button>
-        <button class="btn btn-secondary text-xs py-1.5 px-3 rpa-only-tab-btn hidden" style="display: none !important;" onclick="RpaPendenciesModule.openRpaView()">
-          <i class="fa-solid fa-triangle-exclamation text-amber-400 me-1"></i> ⚠️ Pendências RPA
+        <button type="button" class="px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer rpa-only-tab-btn text-gray-400 hover:text-white border border-transparent hidden" style="display: none !important;" onclick="RpaPendenciesModule.openRpaView()">
+          ⚠️ Pendências RPA
         </button>
       </div>
       <div class="triage-table-panel">
@@ -588,18 +588,18 @@
 
     <!-- VIEW 5: CONCLUÍDOS -->
     <div class="view-container" id="view-concluidos">
-      <div class="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
-        <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('board')">
-          <i class="fa-solid fa-spinner text-emerald-400 me-1"></i> Em Andamento
+      <div class="flex items-center gap-2 bg-[#111827] p-1.5 rounded-xl border border-[#1f2937] mb-6">
+        <button type="button" class="px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-board text-gray-400 hover:text-white border border-transparent" onclick="app.navigate('board')">
+          Em Andamento
         </button>
-        <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="app.navigate('backlog')">
-          <i class="fa-solid fa-list-check me-1"></i> Backlog
+        <button type="button" class="px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-backlog text-gray-400 hover:text-white border border-transparent" onclick="app.navigate('backlog')">
+          Backlog
         </button>
-        <button class="btn btn-primary text-xs py-1.5 px-3" onclick="app.navigate('concluidos')">
-          <i class="fa-solid fa-circle-check me-1"></i> Concluídos
+        <button type="button" class="px-4 py-2 rounded-lg text-xs font-bold transition-all tab-btn-concluidos bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/10" onclick="app.navigate('concluidos')">
+          Concluídos
         </button>
-        <button class="btn btn-secondary text-xs py-1.5 px-3 rpa-only-tab-btn hidden" style="display: none !important;" onclick="RpaPendenciesModule.openRpaView()">
-          <i class="fa-solid fa-triangle-exclamation text-amber-400 me-1"></i> ⚠️ Pendências RPA
+        <button type="button" class="px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer rpa-only-tab-btn text-gray-400 hover:text-white border border-transparent hidden" style="display: none !important;" onclick="RpaPendenciesModule.openRpaView()">
+          ⚠️ Pendências RPA
         </button>
       </div>
       <div class="triage-table-panel">

@@ -108,18 +108,18 @@
       if (!document.getElementById('view-rpa-pendencies')) {
         const viewHtml = `
           <div class="view-container" id="view-rpa-pendencies">
-            <div class="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
-              <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="window.app.navigate('board')">
-                <i class="fa-solid fa-spinner text-emerald-400 me-1"></i> Em Andamento
+            <div class="flex items-center gap-2 bg-[#111827] p-1.5 rounded-xl border border-[#1f2937] mb-6">
+              <button type="button" class="px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-board text-gray-400 hover:text-white border border-transparent" onclick="window.app.navigate('board')">
+                Em Andamento
               </button>
-              <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="window.app.navigate('backlog')">
-                <i class="fa-solid fa-list-check me-1"></i> Backlog
+              <button type="button" class="px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-backlog text-gray-400 hover:text-white border border-transparent" onclick="window.app.navigate('backlog')">
+                Backlog
               </button>
-              <button class="btn btn-secondary text-xs py-1.5 px-3" onclick="window.app.navigate('concluidos')">
-                <i class="fa-solid fa-circle-check me-1"></i> Concluídos
+              <button type="button" class="px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-concluidos text-gray-400 hover:text-white border border-transparent" onclick="window.app.navigate('concluidos')">
+                Concluídos
               </button>
-              <button class="btn btn-primary text-xs py-1.5 px-3 rpa-only-tab-btn" onclick="RpaPendenciesModule.openRpaView()">
-                <i class="fa-solid fa-triangle-exclamation text-amber-400 me-1"></i> Pendências RPA
+              <button type="button" class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer rpa-only-tab-btn bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/10" onclick="RpaPendenciesModule.openRpaView()">
+                ⚠️ Pendências RPA
               </button>
             </div>
 
@@ -471,17 +471,15 @@
         const isRpa = squad === 'rpa';
         const activeView = window.app?.activeView || 'board';
         
-        // 1. Alternar 4ª Aba "Pendências RPA" nas Squads
+        // 1. Alternar 4ª Aba "⚠️ Pendências RPA" nas Squads
         document.querySelectorAll('.rpa-only-tab-btn').forEach(btn => {
           if (isRpa) {
             btn.classList.remove('hidden');
             btn.style.setProperty('display', 'inline-flex', 'important');
             if (activeView === 'rpa-pendencies') {
-              btn.classList.remove('btn-secondary');
-              btn.classList.add('btn-primary');
+              btn.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer rpa-only-tab-btn bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/10';
             } else {
-              btn.classList.remove('btn-primary');
-              btn.classList.add('btn-secondary');
+              btn.className = 'px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer rpa-only-tab-btn text-gray-400 hover:text-white border border-transparent';
             }
           } else {
             btn.classList.add('hidden');
@@ -489,17 +487,30 @@
           }
         });
 
-        // 2. Controlar exibição do botão "+ Nova Pendência RPA" no cabeçalho superior
-        const newPendencyBtn = document.getElementById('btn-new-rpa-pendency');
-        if (newPendencyBtn) {
-          if (isRpa && activeView === 'rpa-pendencies') {
-            newPendencyBtn.classList.remove('hidden');
-            newPendencyBtn.style.setProperty('display', 'inline-flex', 'important');
+        // 2. Atualizar estilos das outras 3 abas
+        document.querySelectorAll('.tab-btn-board').forEach(btn => {
+          if (activeView === 'board') {
+            btn.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all tab-btn-board bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/10';
           } else {
-            newPendencyBtn.classList.add('hidden');
-            newPendencyBtn.style.setProperty('display', 'none', 'important');
+            btn.className = 'px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-board text-gray-400 hover:text-white border border-transparent';
           }
-        }
+        });
+
+        document.querySelectorAll('.tab-btn-backlog').forEach(btn => {
+          if (activeView === 'backlog') {
+            btn.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all tab-btn-backlog bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/10';
+          } else {
+            btn.className = 'px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-backlog text-gray-400 hover:text-white border border-transparent';
+          }
+        });
+
+        document.querySelectorAll('.tab-btn-concluidos').forEach(btn => {
+          if (activeView === 'concluidos') {
+            btn.className = 'px-4 py-2 rounded-lg text-xs font-bold transition-all tab-btn-concluidos bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/10';
+          } else {
+            btn.className = 'px-4 py-2 rounded-lg text-xs font-semibold transition-all tab-btn-concluidos text-gray-400 hover:text-white border border-transparent';
+          }
+        });
 
         if (!isRpa && activeView === 'rpa-pendencies') {
           window.app.navigate('board');
@@ -520,7 +531,7 @@
         };
       }
 
-      setTimeout(checkAndToggleTab, 300);
+      setInterval(checkAndToggleTab, 300);
     },
 
     openRpaView() {
