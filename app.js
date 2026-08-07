@@ -774,8 +774,10 @@ const app = {
 
     if (squadId === 'rpa' || (squadId || '').toString().toLowerCase().includes('rpa')) {
       document.body.classList.add('squad-rpa');
+      document.body.setAttribute('data-squad', 'rpa');
     } else {
       document.body.classList.remove('squad-rpa');
+      document.body.removeAttribute('data-squad');
     }
 
     // Atualizar badge no header

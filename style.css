@@ -1959,6 +1959,7 @@ body.light-theme .stat-card-number {
 }
 
 body.squad-rpa .rpa-only-tab-btn,
+body[data-squad="rpa"] .rpa-only-tab-btn,
 .squad-rpa .rpa-only-tab-btn {
   display: inline-flex !important;
 }

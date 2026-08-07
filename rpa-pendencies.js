@@ -90,20 +90,6 @@
 
     // Injeção Dinâmica da UI (View Limpa + Subnav + Modais)
     injectUI() {
-      // Injetar Botão "Pendências RPA" no Subnav das Squads
-      document.querySelectorAll('.view-container').forEach(container => {
-        const subnav = container.querySelector('.flex.items-center.gap-2.mb-6');
-        if (subnav && !subnav.querySelector('.rpa-only-tab-btn')) {
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'btn btn-secondary text-xs py-1.5 px-3 rpa-only-tab-btn hidden';
-          btn.style.cssText = 'display: none !important;';
-          btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-amber-400 me-1"></i> Pendências RPA';
-          btn.onclick = () => RpaPendenciesModule.openRpaView();
-          subnav.appendChild(btn);
-        }
-      });
-
       // Injetar View Limpa da Tabela de Pendências
       if (!document.getElementById('view-rpa-pendencies')) {
         const viewHtml = `
