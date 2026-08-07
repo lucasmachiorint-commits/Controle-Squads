@@ -41,8 +41,68 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
     }
   },
 
+    seedDefaultIfEmpty() {
+      if (!Array.isArray(this.pendencies) || this.pendencies.length === 0) {
+        this.pendencies = [
+          {
+            id: 'rpa-default-1',
+            robo_name: 'ID18 - Cancelamento Dynamics, ID08 - Arquivo Reembolso',
+            title: 'Problema de senha',
+            responsible: 'Redesign (Parceiro); Caio (Interno)',
+            severity: 'ALTA',
+            status: 'ABERTO',
+            description: '07/08/2026 - Demanda aberta na redesign EMA- 99 pois estamos com os robôs paralisados devido ao problema de senha da microsoft',
+            history_notes: [
+              {
+                id: 'upd-1',
+                date: '2026-08-07T09:00:00.000Z',
+                displayDate: '07/08/2026',
+                author: 'Lucas Machiori',
+                text: 'Demanda aberta na redesign EMA- 99 pois estamos com os robôs paralisados devido ao problema de senha da microsoft'
+              }
+            ],
+            created_at: '2026-08-07T09:00:00.000Z',
+            updated_at: '2026-08-07T09:00:00.000Z'
+          }
+        ];
+        this.saveLocal();
+      }
+    },
+
+    loadLocal() {
+      try {
+        const saved = localStorage.getItem('cs_rpa_pendencies_v2');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            this.pendencies = parsed;
+          }
+        }
+        if (!this.pendencies || !this.pendencies.length) {
+          if (window.app?.state?.rpaPendencies && window.app.state.rpaPendencies.length > 0) {
+            this.pendencies = [...window.app.state.rpaPendencies];
+          }
+        }
+      } catch (_) {
+        this.pendencies = [];
+      }
+      this.seedDefaultIfEmpty();
+    },
+
+    saveLocal() {
+      try {
+        localStorage.setItem('cs_rpa_pendencies_v2', JSON.stringify(this.pendencies));
+        if (window.app?.state) {
+          window.app.state.rpaPendencies = this.pendencies;
+        }
+      } catch (_) {}
+    },
+
     // Auto-Verificação e Leitura no Supabase via REST Client
     async fetchPendencies() {
+      // 1. Sempre carregar dados locais primeiro para garantir imunidade total contra perdas
+      this.loadLocal();
+
       try {
         if (window.supabaseClient) {
           const { data, error } = await window.supabaseClient
@@ -50,7 +110,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
             .select('*')
             .order('created_at', { ascending: false });
 
-          if (!error && Array.isArray(data)) {
+          if (!error && Array.isArray(data) && data.length > 0) {
             this.pendencies = data.map(item => ({
               id: item.id,
               robo_name: item.robo_name || 'Robô sem nome',
@@ -64,33 +124,31 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
               updated_at: item.updated_at || new Date().toISOString()
             }));
             this.saveLocal();
-            this.renderView();
-            return;
-          } else if (error) {
-            console.info('[RPA Pendencies] Supabase REST notice:', error.message || error);
+          } else if (!error && Array.isArray(data) && data.length === 0 && this.pendencies.length > 0) {
+            // Se o Supabase estiver vazio, enviar os dados locais para lá!
+            for (const item of this.pendencies) {
+              try {
+                await window.supabaseClient.from('rpa_pendencies').upsert({
+                  id: item.id,
+                  robo_name: item.robo_name,
+                  title: item.title,
+                  responsible: item.responsible,
+                  status: item.status,
+                  severity: item.severity,
+                  description: item.description,
+                  history_notes: item.history_notes,
+                  created_at: item.created_at,
+                  updated_at: item.updated_at
+                });
+              } catch (_) {}
+            }
           }
         }
       } catch (err) {
         console.warn('[RPA Pendencies] Modo de operação resiliente ativado:', err);
       }
 
-      this.loadLocal();
       this.renderView();
-    },
-
-    loadLocal() {
-      try {
-        const saved = localStorage.getItem('cs_rpa_pendencies_v2');
-        if (saved) this.pendencies = JSON.parse(saved);
-      } catch (_) {
-        this.pendencies = [];
-      }
-    },
-
-    saveLocal() {
-      try {
-        localStorage.setItem('cs_rpa_pendencies_v2', JSON.stringify(this.pendencies));
-      } catch (_) {}
     },
 
     // Injeção Dinâmica da UI (Estática no HTML)

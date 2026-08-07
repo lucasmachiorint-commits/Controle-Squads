@@ -577,6 +577,14 @@ const app = {
 
       this.state = data.data;
       if (!this.state.usersList) this.state.usersList = [];
+      if (this.state.rpaPendencies && Array.isArray(this.state.rpaPendencies) && this.state.rpaPendencies.length > 0) {
+        if (window.RpaPendenciesModule) {
+          window.RpaPendenciesModule.pendencies = this.state.rpaPendencies;
+          window.RpaPendenciesModule.saveLocal();
+        }
+      } else if (window.RpaPendenciesModule && Array.isArray(window.RpaPendenciesModule.pendencies) && window.RpaPendenciesModule.pendencies.length > 0) {
+        this.state.rpaPendencies = window.RpaPendenciesModule.pendencies;
+      }
       localStorage.setItem('cs_triage_items', JSON.stringify(this.state.triageItems || []));
       ['dados', 'operacoes', 'rpa'].forEach(id => {
         localStorage.setItem(`cs_backlog_${id}`, JSON.stringify(this.state.backlogItems?.[id] || []));
@@ -907,6 +915,9 @@ const app = {
         localStorage.setItem(`cs_completed_${id}`, JSON.stringify(this.state.completedTasks[id]));
         localStorage.setItem(`cs_resources_${id}`, JSON.stringify(this.state.resources[id]));
       });
+      if (window.RpaPendenciesModule && Array.isArray(window.RpaPendenciesModule.pendencies)) {
+        this.state.rpaPendencies = window.RpaPendenciesModule.pendencies;
+      }
     } catch (e) {
       console.warn('Erro ao salvar LocalStorage:', e);
     }
@@ -1613,6 +1624,7 @@ const app = {
     } finally {
       if (btn) btn.disabled = false;
       if (icon) icon.classList.remove('fa-spin');
+      if (window.RpaPendenciesModule) window.RpaPendenciesModule.fetchPendencies();
       this.render();
     }
   },
