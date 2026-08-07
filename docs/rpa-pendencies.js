@@ -366,7 +366,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
             </td>
             <td style="padding: 14px 16px;">
               <span class="font-semibold text-slate-200 text-xs block">${item.title}</span>
-              <span class="text-[10px] text-slate-400"><i class="fa-solid fa-clock me-1"></i>Atualizado em ${lastUpdate} · ${notesCount} nota(s)</span>
+              <span class="text-[10px] text-slate-400"><i class="fa-solid fa-clock me-1"></i>Atualizado em ${lastUpdate}</span>
             </td>
             <td style="padding: 14px 16px;">
               <div class="flex flex-wrap items-center">
@@ -377,13 +377,10 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
             <td style="padding: 14px 16px;">${statusBadge}</td>
             <td style="padding: 14px 16px; text-align: right;">
               <div class="flex items-center justify-end gap-1.5">
-                <button onclick="RpaPendenciesModule.openDetailsModal('${item.id}')" class="btn btn-secondary text-[11px] py-1 px-2.5" title="Ver Detalhes e Notas de Cobrança">
-                  <i class="fa-solid fa-comments text-indigo-400 me-1"></i> Notas (${notesCount})
-                </button>
-                <button onclick="RpaPendenciesModule.openModal('${item.id}')" class="btn btn-secondary text-[11px] py-1 px-2" title="Editar Pendência">
+                <button onclick="app.openNewRpaPendencyModal('${item.id}')" class="btn btn-secondary text-[11px] py-1 px-2" title="Editar Pendência">
                   <i class="fa-solid fa-pen text-slate-300"></i>
                 </button>
-                <button onclick="RpaPendenciesModule.deletePendency('${item.id}')" class="btn btn-secondary text-[11px] py-1 px-2 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30" title="Excluir Pendência">
+                <button onclick="app.deleteRpaPendency('${item.id}')" class="btn btn-secondary text-[11px] py-1 px-2 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30" title="Excluir Pendência">
                   <i class="fa-solid fa-trash-can"></i>
                 </button>
               </div>
