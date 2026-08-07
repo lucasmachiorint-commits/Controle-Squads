@@ -163,18 +163,52 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
     },
 
     // 4. Lógica de Pílulas + Selects Adicionadores
+    setupSelectListeners() {
+      const robotSelect = document.getElementById('rpa-robot-adder-select');
+      if (robotSelect) {
+        robotSelect.onchange = (e) => {
+          const val = e.target.value;
+          if (val) {
+            this.addRobot(val);
+            e.target.selectedIndex = 0;
+          }
+        };
+      }
+
+      const respSelect = document.getElementById('rpa-resp-adder-select');
+      if (respSelect) {
+        respSelect.onchange = (e) => {
+          const val = e.target.value;
+          if (val) {
+            this.addResponsible(val);
+            e.target.selectedIndex = 0;
+          }
+        };
+      }
+    },
+
     addRobot(robotName) {
-      const val = (typeof robotName === 'object' && robotName ? robotName.value : robotName);
+      let val = robotName;
+      if (typeof robotName === 'object' && robotName !== null) {
+        val = robotName.value;
+      }
+      if (!val || typeof val !== 'string') return;
+      val = val.trim();
       if (!val) return;
+
+      if (!Array.isArray(this.selectedRobots)) this.selectedRobots = [];
+
       if (!this.selectedRobots.includes(val)) {
         this.selectedRobots.push(val);
         this.renderRobotPills();
       }
+
       const selectEl = document.getElementById('rpa-robot-adder-select');
       if (selectEl) selectEl.selectedIndex = 0;
     },
 
     removeRobot(robotName) {
+      if (!Array.isArray(this.selectedRobots)) return;
       const idx = this.selectedRobots.indexOf(robotName);
       if (idx >= 0) {
         this.selectedRobots.splice(idx, 1);
@@ -186,34 +220,45 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       const container = document.getElementById('rpa-robot-pills-container');
       if (!container) return;
 
-      if (!this.selectedRobots.length) {
+      if (!Array.isArray(this.selectedRobots) || !this.selectedRobots.length) {
         container.innerHTML = '';
         return;
       }
 
       container.innerHTML = this.selectedRobots.map(robot => {
-        const safeName = robot.replace(/'/g, "\\'");
+        const safeName = robot.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         return `
-          <span class="bg-emerald-950/80 border border-emerald-500/60 text-emerald-300 text-[11px] px-2.5 py-1 rounded-full flex items-center gap-1.5 font-medium shrink-0 shadow-sm">
+          <span class="bg-emerald-950/90 border border-emerald-500/70 text-emerald-300 text-[11px] px-2.5 py-1 rounded-lg flex items-center gap-1.5 font-semibold shrink-0 shadow-md">
+            <i class="fa-solid fa-robot text-emerald-400 text-[10px]"></i>
             ${robot}
-            <button type="button" onclick="app.removeRpaRobot('${safeName}')" class="text-emerald-400/80 hover:text-emerald-100 cursor-pointer text-xs font-bold transition-colors ml-0.5" title="Remover">✕</button>
+            <button type="button" onclick="app.removeRpaRobot('${safeName}')" class="text-emerald-400 hover:text-white cursor-pointer text-xs font-bold transition-colors ml-1" title="Remover">✕</button>
           </span>
         `;
       }).join('');
     },
 
     addResponsible(respName) {
-      const val = (typeof respName === 'object' && respName ? respName.value : respName);
+      let val = respName;
+      if (typeof respName === 'object' && respName !== null) {
+        val = respName.value;
+      }
+      if (!val || typeof val !== 'string') return;
+      val = val.trim();
       if (!val) return;
+
+      if (!Array.isArray(this.selectedResponsibles)) this.selectedResponsibles = [];
+
       if (!this.selectedResponsibles.includes(val)) {
         this.selectedResponsibles.push(val);
         this.renderRespPills();
       }
+
       const selectEl = document.getElementById('rpa-resp-adder-select');
       if (selectEl) selectEl.selectedIndex = 0;
     },
 
     removeResponsible(respName) {
+      if (!Array.isArray(this.selectedResponsibles)) return;
       const idx = this.selectedResponsibles.indexOf(respName);
       if (idx >= 0) {
         this.selectedResponsibles.splice(idx, 1);
@@ -225,17 +270,18 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       const container = document.getElementById('rpa-resp-pills-container');
       if (!container) return;
 
-      if (!this.selectedResponsibles.length) {
+      if (!Array.isArray(this.selectedResponsibles) || !this.selectedResponsibles.length) {
         container.innerHTML = '';
         return;
       }
 
       container.innerHTML = this.selectedResponsibles.map(rName => {
-        const safeName = rName.replace(/'/g, "\\'");
+        const safeName = rName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         return `
-          <span class="bg-indigo-950/80 border border-indigo-500/60 text-indigo-300 text-[11px] px-2.5 py-1 rounded-full flex items-center gap-1.5 font-medium shrink-0 shadow-sm">
+          <span class="bg-indigo-950/90 border border-indigo-500/70 text-indigo-300 text-[11px] px-2.5 py-1 rounded-lg flex items-center gap-1.5 font-semibold shrink-0 shadow-md">
+            <i class="fa-solid fa-user text-indigo-400 text-[10px]"></i>
             ${rName}
-            <button type="button" onclick="app.removeRpaResponsible('${safeName}')" class="text-indigo-400/80 hover:text-indigo-100 cursor-pointer text-xs font-bold transition-colors ml-0.5" title="Remover">✕</button>
+            <button type="button" onclick="app.removeRpaResponsible('${safeName}')" class="text-indigo-400 hover:text-white cursor-pointer text-xs font-bold transition-colors ml-1" title="Remover">✕</button>
           </span>
         `;
       }).join('');
@@ -702,6 +748,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       this.renderRobotPills();
       this.renderRespPills();
       this.renderTimelineList();
+      this.setupSelectListeners();
 
       modal.classList.remove('hidden');
       modal.classList.add('open', 'active');
