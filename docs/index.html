@@ -30,7 +30,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=20260806_v6.14.0">
+    <link rel="stylesheet" href="style.css?v=20260806_v6.15.0">
 </head>
 <body>
 
@@ -1251,6 +1251,35 @@
         </select>
       </div>
 
+      <!-- LINHA DO TEMPO DE ATUALIZAÇÕES SEMANAIS -->
+      <div class="mb-5 p-3.5 rounded-xl bg-slate-900/80 border border-emerald-500/30">
+        <label class="block text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <i class="fa-solid fa-clock-rotate-left"></i> Linha do Tempo de Atualizações Semanais
+        </label>
+
+        <!-- INPUTS DE NOVA ATUALIZAÇÃO -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Data da Atualização</label>
+            <input type="date" id="rpa-update-date" class="form-control text-xs py-1.5" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Resumo / Evolução Semanal</label>
+            <div class="flex gap-2">
+              <input type="text" id="rpa-update-text" placeholder="Ex: Reunião realizada com Redesign e Caio..." class="form-control text-xs flex-1 py-1.5" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
+              <button type="button" onclick="app.addRpaTimelineUpdate()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs transition-all shrink-0 cursor-pointer flex items-center gap-1">
+                <i class="fa-solid fa-plus"></i> Add
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- LISTA DO HISTÓRICO -->
+        <div class="max-h-[140px] overflow-y-auto p-2 rounded-lg bg-slate-950/70 border border-slate-800/80 space-y-2" id="rpa-timeline-container">
+          <p class="text-[11px] text-slate-500 text-center py-2">Nenhuma atualização registrada.</p>
+        </div>
+      </div>
+
       <!-- RODAPÉ DE AÇÕES -->
       <div class="flex items-center justify-end gap-2 pt-3 border-t border-white/10">
         <button type="button" class="btn btn-secondary text-xs px-4 py-2" onclick="app.closeRpaPendencyModal()">Cancelar</button>
@@ -1289,10 +1318,10 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=20260806_v6.14.0"></script>
-<script src="app.js?v=20260806_v6.14.0"></script>
+<script src="jira-sync.js?v=20260806_v6.15.0"></script>
+<script src="app.js?v=20260806_v6.15.0"></script>
 <!-- MÓDULO AUTÔNOMO ISOLADO DA SQUAD RPA -->
-<script src="rpa-pendencies.js?v=20260806_v6.14.0"></script>
+<script src="rpa-pendencies.js?v=20260806_v6.15.0"></script>
 
 </body>
 </html>

@@ -8,6 +8,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
   activeId: null,
   selectedRobots: [],
   selectedResponsibles: [],
+  selectedTimelineUpdates: [],
 
   // Inicialização do Módulo
   init() {
@@ -32,6 +33,8 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       window.app.openRpaPendencyDetailsModal = function (id) { self.openDetailsModal(id); };
       window.app.closeRpaPendencyDetailsModal = function () { self.closeDetailsModal(); };
       window.app.renderRpaPendenciesView = function () { self.renderView(); };
+      window.app.addRpaTimelineUpdate = function () { self.addTimelineUpdate(); };
+      window.app.removeRpaTimelineUpdate = function (idx) { self.removeTimelineUpdate(idx); };
     }
   },
 
@@ -177,6 +180,73 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
 
     getSelectedResponsiblesString() {
       return this.selectedResponsibles.length ? this.selectedResponsibles.join(' ; ') : 'Redesign (Parceiro)';
+    },
+
+    // 4.5 Lógica da Linha do Tempo de Atualizações
+    addTimelineUpdate() {
+      const dateVal = document.getElementById('rpa-update-date')?.value;
+      const textInput = document.getElementById('rpa-update-text');
+      const textVal = (textInput?.value || '').trim();
+
+      if (!textVal) {
+        alert('Por favor, digite o resumo da atualização.');
+        return;
+      }
+
+      let formattedDate = '--/--/----';
+      if (dateVal) {
+        const parts = dateVal.split('-');
+        if (parts.length === 3) formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+      } else {
+        formattedDate = new Date().toLocaleDateString('pt-BR');
+      }
+
+      const nowIso = new Date().toISOString();
+      this.selectedTimelineUpdates.unshift({
+        id: 'upd-' + Date.now(),
+        date: dateVal || nowIso,
+        displayDate: formattedDate,
+        author: window.app?.userName || 'Usuário',
+        text: textVal
+      });
+
+      if (textInput) textInput.value = '';
+      this.renderTimelineList();
+    },
+
+    removeTimelineUpdate(index) {
+      if (index >= 0 && index < this.selectedTimelineUpdates.length) {
+        this.selectedTimelineUpdates.splice(index, 1);
+        this.renderTimelineList();
+      }
+    },
+
+    renderTimelineList() {
+      const container = document.getElementById('rpa-timeline-container');
+      if (!container) return;
+
+      if (!this.selectedTimelineUpdates.length) {
+        container.innerHTML = `<p class="text-[11px] text-slate-500 text-center py-2">Nenhuma atualização registrada.</p>`;
+        return;
+      }
+
+      container.innerHTML = this.selectedTimelineUpdates.map((item, idx) => {
+        const displayDate = item.displayDate || (item.date ? (item.date.includes('/') ? item.date : new Date(item.date).toLocaleDateString('pt-BR')) : '--/--/----');
+        return `
+          <div class="flex items-start justify-between gap-2 p-2 rounded bg-slate-900/90 border border-white/5 text-xs">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-0.5">
+                <span class="text-[10px] font-bold text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-500/30">📅 ${displayDate}</span>
+                <span class="text-[10px] text-slate-400">por ${item.author || 'Usuário'}</span>
+              </div>
+              <p class="text-slate-200 text-[11px] leading-relaxed break-words margin-0">${item.text}</p>
+            </div>
+            <button type="button" onclick="app.removeRpaTimelineUpdate(${idx})" class="text-slate-500 hover:text-rose-400 cursor-pointer text-xs p-1 transition-colors" title="Remover atualização">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
     },
 
     // 5. Hook Limpo na Navegação do App
@@ -402,6 +472,13 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       const statusEl = document.getElementById('rpa-edit-status');
       const noteEl = document.getElementById('rpa-edit-note');
 
+      const todayIso = new Date().toISOString().split('T')[0];
+      const dateInput = document.getElementById('rpa-update-date');
+      const textInput = document.getElementById('rpa-update-text');
+
+      if (dateInput) dateInput.value = todayIso;
+      if (textInput) textInput.value = '';
+
       if (id) {
         const item = this.pendencies.find(i => i.id === id);
         if (item) {
@@ -409,24 +486,25 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           if (idEl) idEl.value = item.id;
           this.selectedRobots = item.robo_name ? item.robo_name.split(',').map(s => s.trim()).filter(Boolean) : [];
           this.selectedResponsibles = item.responsible ? item.responsible.split(/;|;/).map(s => s.trim()).filter(Boolean) : ['Redesign (Parceiro)'];
+          this.selectedTimelineUpdates = Array.isArray(item.history_notes) ? [...item.history_notes] : [];
           if (titleInput) titleInput.value = item.title;
           if (sevEl) sevEl.value = item.severity;
           if (statusEl) statusEl.value = item.status;
-          if (noteEl) noteEl.value = item.description || '';
         }
       } else {
         if (titleEl) titleEl.textContent = 'Nova Pendência de Robô RPA';
         if (idEl) idEl.value = '';
         this.selectedRobots = [];
         this.selectedResponsibles = ['Redesign (Parceiro)'];
+        this.selectedTimelineUpdates = [];
         if (titleInput) titleInput.value = '';
         if (sevEl) sevEl.value = 'MEDIA';
         if (statusEl) statusEl.value = 'ABERTO';
-        if (noteEl) noteEl.value = '';
       }
 
       this.renderRobotPills();
       this.renderRespPills();
+      this.renderTimelineList();
 
       modal.classList.remove('hidden');
       modal.classList.add('open', 'active');
@@ -451,7 +529,6 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       const title = document.getElementById('rpa-edit-title')?.value.trim();
       const severity = document.getElementById('rpa-edit-severity')?.value;
       const status = document.getElementById('rpa-edit-status')?.value;
-      const initial_note = document.getElementById('rpa-edit-note')?.value.trim();
 
       if (!robo_name) {
         alert('Por favor, selecione ao menos um Robô Afetado.');
@@ -465,18 +542,22 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       const nowIso = new Date().toISOString();
       let target = id ? this.pendencies.find(i => i.id === id) : null;
 
+      let latestSummary = title;
+      if (this.selectedTimelineUpdates.length > 0) {
+        const first = this.selectedTimelineUpdates[0];
+        const dStr = first.displayDate || (first.date ? (first.date.includes('/') ? first.date : new Date(first.date).toLocaleDateString('pt-BR')) : '');
+        latestSummary = `${dStr ? dStr + ' - ' : ''}${first.text}`;
+      }
+
       if (target) {
         target.robo_name = robo_name;
         target.title = title;
         target.responsible = responsible;
         target.severity = severity;
         target.status = status;
-        target.description = initial_note || title;
+        target.description = latestSummary;
+        target.history_notes = [...this.selectedTimelineUpdates];
         target.updated_at = nowIso;
-        if (initial_note) {
-          if (!Array.isArray(target.history_notes)) target.history_notes = [];
-          target.history_notes.unshift({ date: nowIso, author: window.app?.userName || 'Usuário', text: initial_note });
-        }
       } else {
         target = {
           id: 'rpa-' + Date.now(),
@@ -485,8 +566,8 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           responsible,
           severity,
           status,
-          description: initial_note || title,
-          history_notes: [{ date: nowIso, author: window.app?.userName || 'Usuário', text: initial_note || title }],
+          description: latestSummary,
+          history_notes: [...this.selectedTimelineUpdates],
           created_at: nowIso,
           updated_at: nowIso
         };
