@@ -935,6 +935,9 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       `;
 
       window.print();
+      setTimeout(() => {
+        if (printContainer) printContainer.innerHTML = '';
+      }, 500);
     },
 
     printPDF() {

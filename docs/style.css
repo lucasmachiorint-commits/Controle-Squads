@@ -1967,6 +1967,11 @@ body[data-squad="rpa"] .rpa-only-tab-btn,
 /* ==========================================================================
    Relatório Executivo em PDF / Impressão - Squad de RPA
    ========================================================================== */
+#rpa-print-report-container,
+.rpa-print-only-container {
+  display: none !important;
+}
+
 @media print {
   body * {
     visibility: hidden !important;
@@ -1974,6 +1979,7 @@ body[data-squad="rpa"] .rpa-only-tab-btn,
   #rpa-print-report-container,
   #rpa-print-report-container * {
     visibility: visible !important;
+    display: block;
   }
   #rpa-print-report-container {
     position: absolute !important;
