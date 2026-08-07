@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-07T14:20:07.287Z",
+  "updatedAt": "2026-08-07T15:38:48.482Z",
   "totalCards": 122,
   "cards": [
     {
@@ -8,8 +8,18 @@
       "jiraKey": "GAU-140",
       "title": "sustentação - prd.trusted_gsurf_view.dview_settlement_items_snapshot",
       "summary": "sustentação - prd.trusted_gsurf_view.dview_settlement_items_snapshot",
-      "status": "Backlog",
+      "status": "Aguardando Squad",
       "categoriaStatus": "Itens Pendentes",
+      "customfield_12475": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+        "value": "Dados Operações",
+        "id": "16006"
+      },
+      "squad": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+        "value": "Dados Operações",
+        "id": "16006"
+      },
       "requester": "VICTOR HUGO SOARES DE MELLO",
       "priority": "Média",
       "category": "Geral",
