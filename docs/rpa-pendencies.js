@@ -897,8 +897,9 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
         <div class="rpa-print-report-page">
           <div class="rpa-print-header">
             <div class="rpa-print-logo-row">
-              <div class="rpa-print-logo">
-                <span class="rpa-print-logo-icon">🌿</span> EmanaPay <span class="rpa-print-logo-sub">| Gestão de Squads & RPA</span>
+              <div class="rpa-print-logo" style="display: flex; items-center; gap: 12px;">
+                <img src="assets/emanapay-logo.png" alt="Natura Avon EmanaPay Logo" style="height: 42px; object-fit: contain; display: block;" />
+                <span class="rpa-print-logo-sub" style="align-self: center; border-left: 2px solid #cbd5e1; padding-left: 10px; font-weight: 700; color: #475569;">Gestão de Squads & RPA</span>
               </div>
               <div class="rpa-print-meta">
                 <div><strong>Emissão:</strong> ${nowStr}</div>
