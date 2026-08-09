@@ -477,32 +477,47 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       this.renderView();
     },
 
+    onPeriodChange() {
+      const periodEl = document.getElementById('rpa-filter-period');
+      const customContainer = document.getElementById('rpa-custom-date-container');
+      if (periodEl && customContainer) {
+        if (periodEl.value === 'custom') {
+          customContainer.classList.remove('hidden');
+          customContainer.style.display = 'grid';
+        } else {
+          customContainer.classList.add('hidden');
+          customContainer.style.display = 'none';
+        }
+      }
+      this.renderView();
+    },
+
     resetFilters() {
       const searchEl = document.getElementById('rpa-filter-search');
       const respEl = document.getElementById('rpa-filter-responsible');
       const statusEl = document.getElementById('rpa-filter-status');
+      const periodEl = document.getElementById('rpa-filter-period');
       const dateRefEl = document.getElementById('rpa-filter-date-ref');
-      const dateEl = document.getElementById('rpa-filter-date');
       const dateStartEl = document.getElementById('rpa-filter-date-start');
       const dateEndEl = document.getElementById('rpa-filter-date-end');
 
       if (searchEl) searchEl.value = '';
       if (respEl) respEl.value = '';
       if (statusEl) statusEl.value = '';
+      if (periodEl) periodEl.value = 'all';
       if (dateRefEl) dateRefEl.value = 'created_at';
-      if (dateEl) dateEl.value = '';
       if (dateStartEl) dateStartEl.value = '';
       if (dateEndEl) dateEndEl.value = '';
 
-      this.renderView();
+      this.onPeriodChange();
     },
 
     getFilteredPendencies() {
       const search = (document.getElementById('rpa-filter-search')?.value || '').toLowerCase().trim();
       const respFilter = (document.getElementById('rpa-filter-responsible')?.value || '').trim();
       const statusFilter = (document.getElementById('rpa-filter-status')?.value || '').trim();
+      const periodFilter = (document.getElementById('rpa-filter-period')?.value || 'all').trim();
       const dateRef = (document.getElementById('rpa-filter-date-ref')?.value || 'created_at').trim();
-      const dateFilter = (document.getElementById('rpa-filter-date')?.value || '').trim();
       const dateStartVal = document.getElementById('rpa-filter-date-start')?.value;
       const dateEndVal = document.getElementById('rpa-filter-date-end')?.value;
 
@@ -531,35 +546,32 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           if (itemStatus !== statusFilter) return false;
         }
 
-        // 4. Filtro por Data / Período
-        let rawDate = null;
-        if (dateRef === 'resolved_at') {
-          rawDate = item.resolved_at || item.updated_at || item.created_at;
-        } else {
-          rawDate = item.created_at || item.createdAt;
-        }
+        // 4. Filtro por Período Temporal
+        if (periodFilter !== 'all') {
+          let rawDate = null;
+          if (dateRef === 'resolved_at') {
+            rawDate = item.resolved_at || item.updated_at || item.created_at;
+          } else {
+            rawDate = item.created_at || item.createdAt;
+          }
 
-        if (dateFilter || dateStartVal || dateEndVal) {
           if (!rawDate) return false;
           const itemDate = new Date(rawDate);
           if (isNaN(itemDate.getTime())) return false;
           const itemDateStr = itemDate.toISOString().split('T')[0];
 
-          // Se tiver intervalo dinâmico De / Até preenchido
-          if (dateStartVal && itemDateStr < dateStartVal) return false;
-          if (dateEndVal && itemDateStr > dateEndVal) return false;
-
-          // Se tiver seletor de presets rápidos
-          if (dateFilter === 'HOJE') {
+          if (periodFilter === 'today') {
             if (itemDateStr !== todayStr) return false;
-          } else if (dateFilter === '7_DIAS') {
+          } else if (periodFilter === 'week') {
             const diffDays = (now.getTime() - itemDate.getTime()) / (1000 * 3600 * 24);
             if (diffDays < 0 || diffDays > 7) return false;
-          } else if (dateFilter === '30_DIAS') {
-            const diffDays = (now.getTime() - itemDate.getTime()) / (1000 * 3600 * 24);
-            if (diffDays < 0 || diffDays > 30) return false;
-          } else if (dateFilter === 'MES_ATUAL') {
+          } else if (periodFilter === 'month') {
             if (itemDate.getMonth() !== now.getMonth() || itemDate.getFullYear() !== now.getFullYear()) return false;
+          } else if (periodFilter === 'year') {
+            if (itemDate.getFullYear() !== now.getFullYear()) return false;
+          } else if (periodFilter === 'custom') {
+            if (dateStartVal && itemDateStr < dateStartVal) return false;
+            if (dateEndVal && itemDateStr > dateEndVal) return false;
           }
         }
 

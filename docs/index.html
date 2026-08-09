@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Controle de Squads - Enterprise Board v6.42.0</title>
+    <title>Controle de Squads - Enterprise Board v6.43.0</title>
     
     <script>
       (function() {
@@ -20,11 +20,11 @@
             for (let name of names) { caches.delete(name); }
           });
         }
-        const TARGET_RELEASE = 'v6.42.0';
+        const TARGET_RELEASE = 'v6.43.0';
         const currentLock = localStorage.getItem('cs_deployed_release_lock');
-        if (currentLock !== TARGET_RELEASE || !window.location.search.includes('v=6.42.0')) {
+        if (currentLock !== TARGET_RELEASE || !window.location.search.includes('v=6.43.0')) {
           localStorage.setItem('cs_deployed_release_lock', TARGET_RELEASE);
-          window.location.href = window.location.pathname + '?v=6.42.0&t=' + Date.now();
+          window.location.href = window.location.pathname + '?v=6.43.0&t=' + Date.now();
         }
       })();
     </script>
@@ -56,7 +56,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=20260809_v6.42.0">
+    <link rel="stylesheet" href="style.css?v=20260809_v6.43.0">
 </head>
 <body>
 
@@ -724,27 +724,29 @@
           </div>
         </div>
 
-        <!-- BARRA DE FILTROS DINÂMICOS MULTICRITÉRIO (COM DATA DE CRIAÇÃO E CONCLUSÃO) -->
+        <!-- BARRA DE FILTROS DINÂMICOS MULTICRITÉRIO UNIFICADA -->
         <div class="bg-slate-900/60 backdrop-blur-md p-4 rounded-xl border border-slate-800/80 shadow-lg mb-5 flex flex-col gap-3">
-          <!-- LINHA 1: BUSCA, RESPONSÁVEL, STATUS E REFERÊNCIA DA DATA -->
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <!-- LINHA 1: BUSCA, RESPONSÁVEL, STATUS, PERÍODO TEMPORAL E LIMPAR -->
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
             <!-- BUSCA TEXTUAL -->
-            <div class="relative flex items-center">
+            <div class="md:col-span-3 relative flex items-center">
               <i class="fa-solid fa-magnifying-glass absolute left-3 text-slate-400 text-xs"></i>
               <input type="search" id="rpa-filter-search" class="w-full bg-slate-950/80 border border-slate-800 text-white text-xs rounded-lg pl-9 pr-3 py-2 focus:outline-none focus:border-emerald-500/50" placeholder="Buscar por robô ou ocorrência..." onkeyup="app.renderRpaPendenciesView()">
             </div>
 
             <!-- FILTRO RESPONSÁVEL -->
-            <div>
+            <div class="md:col-span-2">
               <select id="rpa-filter-responsible" class="w-full bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
-                <option value="">👤 Todos os Responsáveis</option>
+                <option value="">👤 Todos Responsáveis</option>
                 <option value="Redesign (Parceiro)">Redesign (Parceiro)</option>
                 <option value="Caio (Interno)">Caio (Interno)</option>
+                <option value="Time Skytel">Time Skytel</option>
+                <option value="Ambos / Squad RPA">Ambos / Squad RPA</option>
               </select>
             </div>
 
             <!-- FILTRO STATUS -->
-            <div>
+            <div class="md:col-span-2">
               <select id="rpa-filter-status" class="w-full bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
                 <option value="">📌 Todos os Status</option>
                 <option value="ABERTO">🚨 Em Aberto</option>
@@ -754,45 +756,41 @@
               </select>
             </div>
 
-            <!-- CAMPO REFERÊNCIA DA DATA -->
-            <div>
-              <select id="rpa-filter-date-ref" class="w-full bg-slate-950/80 border border-slate-800 text-emerald-400 font-semibold text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
-                <option value="created_at">🗓️ Ref: Data de Criação</option>
-                <option value="resolved_at">✅ Ref: Data de Conclusão / Atz</option>
+            <!-- PERÍODO TEMPORAL UNIFICADO -->
+            <div class="md:col-span-4">
+              <select id="rpa-filter-period" class="w-full bg-slate-950/80 border border-slate-800 text-emerald-400 font-semibold text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/50" onchange="window.RpaPendenciesModule ? window.RpaPendenciesModule.onPeriodChange() : app.renderRpaPendenciesView()">
+                <option value="all">📅 Período Temporal: Todo o Período</option>
+                <option value="today">Hoje (Dia)</option>
+                <option value="week">Esta Semana (Últimos 7 dias)</option>
+                <option value="month">Este Mês</option>
+                <option value="year">Este Ano</option>
+                <option value="custom">De xxxx Até xxxx (Personalizado)</option>
               </select>
-            </div>
-          </div>
-
-          <!-- LINHA 2: OPÇÕES DE PERÍODO & FILTRO DINÂMICO DE DATA DE / ATÉ -->
-          <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center pt-2 border-t border-slate-800/60">
-            <!-- SELETOR DE PERÍODO RÁPIDO -->
-            <div class="md:col-span-5">
-              <select id="rpa-filter-date" class="w-full bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
-                <option value="">📅 Período: Todas as Datas</option>
-                <option value="HOJE">Hoje</option>
-                <option value="7_DIAS">Esta Semana (Últimos 7 dias)</option>
-                <option value="30_DIAS">Este Mês (Últimos 30 dias)</option>
-                <option value="MES_ATUAL">Mês Atual</option>
-              </select>
-            </div>
-
-            <!-- INTERVALO DINÂMICO DE / ATÉ -->
-            <div id="rpa-custom-date-container" class="md:col-span-6 flex items-center gap-2">
-              <div class="flex items-center gap-1.5 flex-1">
-                <span class="text-[11px] text-slate-400 shrink-0 font-medium">De:</span>
-                <input type="date" id="rpa-filter-date-start" class="w-full bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
-              </div>
-              <div class="flex items-center gap-1.5 flex-1">
-                <span class="text-[11px] text-slate-400 shrink-0 font-medium">Até:</span>
-                <input type="date" id="rpa-filter-date-end" class="w-full bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
-              </div>
             </div>
 
             <!-- BOTÃO LIMPAR FILTROS -->
             <div class="md:col-span-1 flex justify-end">
-              <button type="button" onclick="app.resetRpaFilters()" class="btn btn-secondary text-[11px] py-1.5 px-3 w-full flex items-center justify-center gap-1 text-slate-300 hover:text-white" title="Limpar Todos os Filtros">
+              <button type="button" onclick="app.resetRpaFilters()" class="btn btn-secondary text-[11px] py-2 px-3 w-full flex items-center justify-center gap-1 text-slate-300 hover:text-white" title="Limpar Todos os Filtros">
                 <i class="fa-solid fa-filter-circle-xmark"></i> Limpar
               </button>
+            </div>
+          </div>
+
+          <!-- LINHA SECUNDÁRIA EXPANSÍVEL APENAS QUANDO FOR PERSONALIZADO -->
+          <div id="rpa-custom-date-container" class="hidden grid-cols-1 md:grid-cols-12 gap-3 items-center pt-2 border-t border-slate-800/60">
+            <div class="md:col-span-4">
+              <select id="rpa-filter-date-ref" class="w-full bg-slate-950/80 border border-slate-800 text-slate-300 text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
+                <option value="created_at">🗓️ Ref: Data de Criação</option>
+                <option value="resolved_at">✅ Ref: Data de Conclusão / Atz</option>
+              </select>
+            </div>
+            <div class="md:col-span-4 flex items-center gap-1.5">
+              <span class="text-[11px] text-slate-400 shrink-0 font-medium">De:</span>
+              <input type="date" id="rpa-filter-date-start" class="w-full bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
+            </div>
+            <div class="md:col-span-4 flex items-center gap-1.5">
+              <span class="text-[11px] text-slate-400 shrink-0 font-medium">Até:</span>
+              <input type="date" id="rpa-filter-date-end" class="w-full bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
             </div>
           </div>
         </div>
@@ -1411,10 +1409,10 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=20260809_v6.42.0"></script>
-<script src="app.js?v=20260809_v6.42.0"></script>
+<script src="jira-sync.js?v=20260809_v6.43.0"></script>
+<script src="app.js?v=20260809_v6.43.0"></script>
 <!-- MÓDULO AUTÔNOMO ISOLADO DA SQUAD RPA -->
-<script src="rpa-pendencies.js?v=20260809_v6.42.0"></script>
+<script src="rpa-pendencies.js?v=20260809_v6.43.0"></script>
 
 </body>
 </html>

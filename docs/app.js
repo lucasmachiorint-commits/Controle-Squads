@@ -3119,6 +3119,12 @@ const app = {
     }
   },
 
+  resetRpaFilters() {
+    if (window.RpaPendenciesModule && window.RpaPendenciesModule.resetFilters) {
+      window.RpaPendenciesModule.resetFilters();
+    }
+  },
+
   printRpaPDF() {
     if (window.RpaPendenciesModule && window.RpaPendenciesModule.printPDF) {
       window.RpaPendenciesModule.printPDF();
