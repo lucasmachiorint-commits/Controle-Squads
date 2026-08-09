@@ -42,31 +42,323 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
   },
 
     seedDefaultIfEmpty() {
-      if (!Array.isArray(this.pendencies) || this.pendencies.length === 0) {
-        this.pendencies = [
-          {
-            id: 'rpa-default-1',
-            robo_name: 'ID18 - Cancelamento Dynamics, ID08 - Arquivo Reembolso',
-            title: 'Problema de senha',
-            responsible: 'Redesign (Parceiro); Caio (Interno)',
-            severity: 'ALTA',
-            status: 'ABERTO',
-            description: '07/08/2026 - Demanda aberta na redesign EMA- 99 pois estamos com os robôs paralisados devido ao problema de senha da microsoft',
-            history_notes: [
-              {
-                id: 'upd-1',
-                date: '2026-08-07T09:00:00.000Z',
-                displayDate: '07/08/2026',
-                author: 'Lucas Machiori',
-                text: 'Demanda aberta na redesign EMA- 99 pois estamos com os robôs paralisados devido ao problema de senha da microsoft'
-              }
-            ],
-            created_at: '2026-08-07T09:00:00.000Z',
-            updated_at: '2026-08-07T09:00:00.000Z'
-          }
-        ];
-        this.saveLocal();
-      }
+      const initial26Items = [
+        {
+          id: 'rpa-item-1',
+          robo_name: 'ID18 - Cancelamento Dynamics',
+          title: 'EMA-52 Finalizar período de Hypercare da automação Dynamics para garantir execução correta pós-ajustes',
+          responsible: 'Redesign (Parceiro)',
+          severity: 'MEDIA',
+          status: 'EM_ANALISE',
+          description: 'Finalizar período de Hypercare da automação Dynamics para garantir execução correta pós-ajustes (Sustentação / Redesign)',
+          history_notes: [{ id: 'upd-1', date: '2026-08-09T10:00:00.000Z', displayDate: '09/08/2026', author: 'Sustentação / Redesign', text: 'Em Andamento / Conclusão Prevista' }],
+          created_at: '2026-08-09T10:00:00.000Z',
+          updated_at: '2026-08-09T10:00:00.000Z'
+        },
+        {
+          id: 'rpa-item-2',
+          robo_name: 'ID13 - Atualização Jira, ID29 - Pendência Tesouraria',
+          title: 'EMA-54 (ID 13, ID 29) Corrigir regras de duplicidade e aprovar pendentes no BKO/Zord para religar o ID 29 (reembolso não permitido para rejeitado)',
+          responsible: 'Caio (Interno)',
+          severity: 'ALTA',
+          status: 'EM_ANALISE',
+          description: 'Corrigir regras de duplicidade e aprovar pendentes no BKO/Zord para religar o ID 29 (BKO / Sustentação)',
+          history_notes: [{ id: 'upd-2', date: '2026-08-09T10:05:00.000Z', displayDate: '09/08/2026', author: 'BKO / Sustentação', text: 'Em Validação / Aguardando Aprovação' }],
+          created_at: '2026-08-09T10:05:00.000Z',
+          updated_at: '2026-08-09T10:05:00.000Z'
+        },
+        {
+          id: 'rpa-item-3',
+          robo_name: 'ID05 - Baixa Manual Lote',
+          title: 'EMA-58 / EM 58 (ID 05) Análise de Baixas / Lote 203: Correção do fluxo na planilha de BKO; aguardando validação final de +20 itens/insumos inseridos',
+          responsible: 'Caio (Interno)',
+          severity: 'ALTA',
+          status: 'EM_ANALISE',
+          description: 'Correção do fluxo na planilha de BKO; aguardando validação final de +20 itens/insumos inseridos (Ana Natura)',
+          history_notes: [{ id: 'upd-3', date: '2026-08-09T10:10:00.000Z', displayDate: '09/08/2026', author: 'Ana (Natura)', text: 'Aguardando Validação Final' }],
+          created_at: '2026-08-09T10:10:00.000Z',
+          updated_at: '2026-08-09T10:10:00.000Z'
+        },
+        {
+          id: 'rpa-item-4',
+          robo_name: 'ID06 - Demandas de BKO',
+          title: 'EMA-59 / EM 59 (ID 06, ID 07) Remapeamento do processo de Análise Parking devido à descontinuação do ID 07, mudanças de regras e criação de monitoramento automatizado',
+          responsible: 'Caio (Interno)',
+          severity: 'ALTA',
+          status: 'EM_ANALISE',
+          description: 'Remapeamento do processo de Análise Parking devido à descontinuação do ID 07, mudanças de regras e criação de monitoramento automatizado',
+          history_notes: [{ id: 'upd-4', date: '2026-08-09T10:15:00.000Z', displayDate: '09/08/2026', author: 'Caio', text: 'Em Análise / Pendente Alinhamento' }],
+          created_at: '2026-08-09T10:15:00.000Z',
+          updated_at: '2026-08-09T10:15:00.000Z'
+        },
+        {
+          id: 'rpa-item-5',
+          robo_name: 'ID06 - Demandas de BKO',
+          title: 'EMA-60 Desenvolvimento e validação do Dashboard (Lupa / Radar) para exibição de métricas em tempo real',
+          responsible: 'Caio (Interno)',
+          severity: 'MEDIA',
+          status: 'ABERTO',
+          description: 'Desenvolvimento e validação do Dashboard (Lupa / Radar) para exibição de métricas em tempo real (Caio / Equipe de Projetos)',
+          history_notes: [{ id: 'upd-5', date: '2026-08-09T10:20:00.000Z', displayDate: '09/08/2026', author: 'Caio / Equipe de Projetos', text: 'Em Desenvolvimento / Validação' }],
+          created_at: '2026-08-09T10:20:00.000Z',
+          updated_at: '2026-08-09T10:20:00.000Z'
+        },
+        {
+          id: 'rpa-item-6',
+          robo_name: 'ID13 - Atualização Jira, ID15 - Pendência Recompra',
+          title: 'EMA-61 / EC 61 (ID 13, ID 15) Expiração recorrente de senhas de acesso/login (Microsoft) no ID 13 e ID 15; necessidade de alerta automático e atualização',
+          responsible: 'Caio (Interno)',
+          severity: 'ALTA',
+          status: 'ABERTO',
+          description: 'Expiração recorrente de senhas de acesso/login (Microsoft) no ID 13 e ID 15; necessidade de alerta automático e atualização',
+          history_notes: [{ id: 'upd-6', date: '2026-08-09T10:25:00.000Z', displayDate: '09/08/2026', author: 'Caio / Lado Natura', text: 'Em Andamento / Pendente Acesso' }],
+          created_at: '2026-08-09T10:25:00.000Z',
+          updated_at: '2026-08-09T10:25:00.000Z'
+        },
+        {
+          id: 'rpa-item-7',
+          robo_name: 'ID16 - Cancelamento Jira',
+          title: 'EMA-62 Mapeamento de Tipo de Item para o Fluxo de Cancelamento JIRA',
+          responsible: 'Redesign (Parceiro)',
+          severity: 'MEDIA',
+          status: 'ABERTO',
+          description: 'Mapeamento de Tipo de Item para o Fluxo de Cancelamento JIRA (Sustentação)',
+          history_notes: [{ id: 'upd-7', date: '2026-08-09T10:30:00.000Z', displayDate: '09/08/2026', author: 'Sustentação', text: 'Novo Chamado' }],
+          created_at: '2026-08-09T10:30:00.000Z',
+          updated_at: '2026-08-09T10:30:00.000Z'
+        },
+        {
+          id: 'rpa-item-8',
+          robo_name: 'ID28 - Amortização Performer 2, ID27 - Amortização Performer 1',
+          title: 'ID 17 Documentação do processo ID 17 (Reembolso Amortização NC - gerado pelo ID 28/27) em fase final de elaboração/validação interna para envio',
+          responsible: 'Caio (Interno)',
+          severity: 'MEDIA',
+          status: 'ABERTO',
+          description: 'Documentação do processo ID 17 (Reembolso Amortização NC - gerado pelo ID 28/27) em fase final de elaboração/validação interna para envio',
+          history_notes: [{ id: 'upd-8', date: '2026-08-09T10:35:00.000Z', displayDate: '09/08/2026', author: 'Matheus', text: 'Em Andamento (Documentação)' }],
+          created_at: '2026-08-09T10:35:00.000Z',
+          updated_at: '2026-08-09T10:35:00.000Z'
+        },
+        {
+          id: 'rpa-item-9',
+          robo_name: 'ID26 - Amortização Dispatcher',
+          title: 'ID 26 Homologação interna do ID 26 (Amortização); pendência na liberação de e-mail com anexos para troca de dados',
+          responsible: 'Caio (Interno)',
+          severity: 'ALTA',
+          status: 'AGUARDANDO_PARCEIRO',
+          description: 'Homologação interna do ID 26 (Amortização); pendência na liberação de e-mail com anexos para troca de dados',
+          history_notes: [{ id: 'upd-9', date: '2026-08-09T10:40:00.000Z', displayDate: '09/08/2026', author: 'Wennis / Caio (TI)', text: 'Em Homologação Interna / Bloqueado' }],
+          created_at: '2026-08-09T10:40:00.000Z',
+          updated_at: '2026-08-09T10:40:00.000Z'
+        },
+        {
+          id: 'rpa-item-10',
+          robo_name: 'ID27 - Amortização Performer 1, ID28 - Amortização Performer 2',
+          title: 'ID 27, ID 28 Amortização: Documentações aprovadas em 04/08',
+          responsible: 'Caio (Interno)',
+          severity: 'BAIXA',
+          status: 'RESOLVIDO',
+          description: 'Amortização: Documentações aprovadas em 04/08 (Projetos)',
+          history_notes: [{ id: 'upd-10', date: '2026-08-04T10:00:00.000Z', displayDate: '04/08/2026', author: 'Projetos', text: 'Aprovado' }],
+          created_at: '2026-08-04T10:00:00.000Z',
+          updated_at: '2026-08-04T10:00:00.000Z'
+        },
+        {
+          id: 'rpa-item-11',
+          robo_name: 'ID29 - Pendência Tesouraria',
+          title: 'Conciliação / Terceira Coleta Processo descontinuado na semana anterior; aguardando definição da data para a Terceira Coleta de Conciliação',
+          responsible: 'Caio (Interno)',
+          severity: 'MEDIA',
+          status: 'AGUARDANDO_PARCEIRO',
+          description: 'Processo descontinuado na semana anterior; aguardando definição da data para a Terceira Coleta de Conciliação',
+          history_notes: [{ id: 'upd-11', date: '2026-08-09T10:50:00.000Z', displayDate: '09/08/2026', author: 'Lucas / Willian (Natura) / Tesouraria', text: 'Aguardando Agendamento' }],
+          created_at: '2026-08-09T10:50:00.000Z',
+          updated_at: '2026-08-09T10:50:00.000Z'
+        },
+        {
+          id: 'rpa-item-12',
+          robo_name: 'ID16 - Cancelamento Jira',
+          title: 'ID 16 Desenvolvimento em 70% da atualização Jira (Documentação aprovada); cronograma de término, HML interna e HML com a área',
+          responsible: 'Caio (Interno)',
+          severity: 'MEDIA',
+          status: 'ABERTO',
+          description: 'Desenvolvimento em 70% da atualização Jira (Documentação aprovada); cronograma de término, HML interna e HML com a área',
+          history_notes: [{ id: 'upd-12', date: '2026-08-09T10:55:00.000Z', displayDate: '09/08/2026', author: 'Projetos', text: 'Em Desenvolvimento' }],
+          created_at: '2026-08-09T10:55:00.000Z',
+          updated_at: '2026-08-09T10:55:00.000Z'
+        },
+        {
+          id: 'rpa-item-13',
+          robo_name: 'ID09 - Importação Reembolso Zord, ID10 - Status Reembolso Zord',
+          title: 'Zord / Função (URL) Migração de URL do sistema Função pendente de alinhamento (Virada do Zord concluída, link antigo expira em 30 dias)',
+          responsible: 'Caio (Interno)',
+          severity: 'MEDIA',
+          status: 'EM_ANALISE',
+          description: 'Migração de URL do sistema Função pendente de alinhamento (Virada do Zord concluída, link antigo expira em 30 dias)',
+          history_notes: [{ id: 'upd-13', date: '2026-08-09T11:00:00.000Z', displayDate: '09/08/2026', author: 'Caio', text: 'Pendente Alinhamento' }],
+          created_at: '2026-08-09T11:00:00.000Z',
+          updated_at: '2026-08-09T11:00:00.000Z'
+        },
+        {
+          id: 'rpa-item-14',
+          robo_name: 'ID13 - Atualização Jira',
+          title: 'Infra / VPN / Acessos Liberar e regularizar acesso VPN e conta Microsoft',
+          responsible: 'Caio (Interno)',
+          severity: 'ALTA',
+          status: 'AGUARDANDO_PARCEIRO',
+          description: 'Liberar e regularizar acesso VPN e conta Microsoft (Rodrigo / Lado Natura)',
+          history_notes: [{ id: 'upd-14', date: '2026-08-09T11:05:00.000Z', displayDate: '09/08/2026', author: 'Rodrigo / Lado Natura', text: 'Pendente Liberação' }],
+          created_at: '2026-08-09T11:05:00.000Z',
+          updated_at: '2026-08-09T11:05:00.000Z'
+        },
+        {
+          id: 'rpa-item-15',
+          robo_name: 'ID13 - Atualização Jira, ID15 - Pendência Recompra',
+          title: 'Infra / Credenciais (ID 13, ID 15) Atualizar credenciais (assets) de acesso Microsoft expiradas diretamente no orquestrador',
+          responsible: 'Caio (Interno)',
+          severity: 'ALTA',
+          status: 'AGUARDANDO_PARCEIRO',
+          description: 'Atualizar credenciais (assets) de acesso Microsoft expiradas diretamente no orquestrador',
+          history_notes: [{ id: 'upd-15', date: '2026-08-09T11:10:00.000Z', displayDate: '09/08/2026', author: 'Lado Natura', text: 'Pendente Atualização' }],
+          created_at: '2026-08-09T11:10:00.000Z',
+          updated_at: '2026-08-09T11:10:00.000Z'
+        },
+        {
+          id: 'rpa-item-16',
+          robo_name: 'ID26 - Amortização Dispatcher, ID27 - Amortização Performer 1',
+          title: 'E-mail / Caixa de Entrada (ID 26, ID 27) Liberar acesso à caixa de e-mail para recebimento de mensagens do time de dados (bloqueante)',
+          responsible: 'Caio (Interno)',
+          severity: 'CRITICA',
+          status: 'ABERTO',
+          description: 'Liberar acesso à caixa de e-mail para recebimento de mensagens do time de dados (bloqueante)',
+          history_notes: [{ id: 'upd-16', date: '2026-08-09T11:15:00.000Z', displayDate: '09/08/2026', author: 'Caio', text: 'Bloqueado' }],
+          created_at: '2026-08-09T11:15:00.000Z',
+          updated_at: '2026-08-09T11:15:00.000Z'
+        },
+        {
+          id: 'rpa-item-17',
+          robo_name: 'ID28 - Amortização Performer 2',
+          title: 'E-mail / Porta SMTP (ID 28) Providenciar a liberação da porta SMTP para envio de e-mails com anexo (bloqueante)',
+          responsible: 'Caio (Interno)',
+          severity: 'CRITICA',
+          status: 'ABERTO',
+          description: 'Providenciar a liberação da porta SMTP para envio de e-mails com anexo (bloqueante)',
+          history_notes: [{ id: 'upd-17', date: '2026-08-09T11:20:00.000Z', displayDate: '09/08/2026', author: 'Caio / TI', text: 'Bloqueado' }],
+          created_at: '2026-08-09T11:20:00.000Z',
+          updated_at: '2026-08-09T11:20:00.000Z'
+        },
+        {
+          id: 'rpa-item-18',
+          robo_name: 'ID05 - Baixa Manual Lote, ID06 - Demandas de BKO',
+          title: 'ID 05 (Demandas BKO) Quedas severas de performance e resets na máquina acima de 500 casos fora do 1º horário; geração de retornos repetidos subscrevendo dados',
+          responsible: 'Redesign (Parceiro)',
+          severity: 'CRITICA',
+          status: 'ABERTO',
+          description: 'Quedas severas de performance e resets na máquina acima de 500 casos fora do 1º horário; geração de retornos repetidos subscrevendo dados',
+          history_notes: [{ id: 'upd-18', date: '2026-08-09T11:25:00.000Z', displayDate: '09/08/2026', author: 'Sustentação / BKO', text: 'Pendente Resolução' }],
+          created_at: '2026-08-09T11:25:00.000Z',
+          updated_at: '2026-08-09T11:25:00.000Z'
+        },
+        {
+          id: 'rpa-item-19',
+          robo_name: 'ID05 - Baixa Manual Lote',
+          title: 'EMA-28 / ID 05 Configuração incorreta na obtenção de itens da fila e fluxos duplicados geraram erro em cascata e 25,5h de retrabalho',
+          responsible: 'Redesign (Parceiro)',
+          severity: 'ALTA',
+          status: 'EM_ANALISE',
+          description: 'Configuração incorreta na obtenção de itens da fila e fluxos duplicados geraram erro em cascata e 25,5h de retrabalho',
+          history_notes: [{ id: 'upd-19', date: '2026-08-09T11:30:00.000Z', displayDate: '09/08/2026', author: 'Sustentação / Redesign', text: 'Identificado / Em Correção' }],
+          created_at: '2026-08-09T11:30:00.000Z',
+          updated_at: '2026-08-09T11:30:00.000Z'
+        },
+        {
+          id: 'rpa-item-20',
+          robo_name: 'ID08 - Arquivo Reembolso',
+          title: 'ID 08 (Arquivo Reembolso) Falha grave de integridade/compliance: erros no nome do arquivo e subscrição divergente de pedido/valor. Solução prometida a partir do lote 67',
+          responsible: 'Redesign (Parceiro)',
+          severity: 'CRITICA',
+          status: 'ABERTO',
+          description: 'Falha grave de integridade/compliance: erros no nome do arquivo e subscrição divergente de pedido/valor. Solução prometida a partir do lote 67',
+          history_notes: [{ id: 'upd-20', date: '2026-08-09T11:35:00.000Z', displayDate: '09/08/2026', author: 'Redesign', text: 'Correção Prevista (Lote 67)' }],
+          created_at: '2026-08-09T11:35:00.000Z',
+          updated_at: '2026-08-09T11:35:00.000Z'
+        },
+        {
+          id: 'rpa-item-21',
+          robo_name: 'ID13 - Atualização Jira',
+          title: 'ID 13 (Atualização Jira) Falha na transição HML p/ PRD: encerra execução com falha total e descarta itens já concluídos do lote. Falha nos filtros a corrigir no lote 35',
+          responsible: 'Redesign (Parceiro)',
+          severity: 'CRITICA',
+          status: 'EM_ANALISE',
+          description: 'Falha na transição HML p/ PRD: encerra execução com falha total e descarta itens já concluídos do lote. Falha nos filtros a corrigir no lote 35',
+          history_notes: [{ id: 'upd-21', date: '2026-08-09T11:40:00.000Z', displayDate: '09/08/2026', author: 'Redesign', text: 'Validação Pendente (Lote 35)' }],
+          created_at: '2026-08-09T11:40:00.000Z',
+          updated_at: '2026-08-09T11:40:00.000Z'
+        },
+        {
+          id: 'rpa-item-22',
+          robo_name: 'ID14 - Extração Tarefas Dynamics, ID15 - Pendência Recompra, ID18 - Cancelamento Dynamics',
+          title: 'ID 15 / ID 14 / ID 18 Falha na extração de cards no final de semana por falta de gatilho em dias não úteis no ID 18 (ajustado para operarem no FDS)',
+          responsible: 'Redesign (Parceiro)',
+          severity: 'MEDIA',
+          status: 'EM_ANALISE',
+          description: 'Falha na extração de cards no final de semana por falta de gatilho em dias não úteis no ID 18 (ajustado para operarem no FDS)',
+          history_notes: [{ id: 'upd-22', date: '2026-08-09T11:45:00.000Z', displayDate: '09/08/2026', author: 'Redesign', text: 'Ajustado / Em Acompanhamento' }],
+          created_at: '2026-08-09T11:45:00.000Z',
+          updated_at: '2026-08-09T11:45:00.000Z'
+        },
+        {
+          id: 'rpa-item-23',
+          robo_name: 'ID18 - Cancelamento Dynamics',
+          title: 'EMA-47 / ID 18 (Cancelamento Dynamics) Desempenho ineficiente e lentidão extrema consumindo o SLA (D0). Realizado ajuste no seletor do botão "Finalizar tarefa"',
+          responsible: 'Redesign (Parceiro)',
+          severity: 'CRITICA',
+          status: 'EM_ANALISE',
+          description: 'Desempenho ineficiente e lentidão extrema consumindo o SLA (D0). Realizado ajuste no seletor do botão "Finalizar tarefa"',
+          history_notes: [{ id: 'upd-23', date: '2026-08-09T11:50:00.000Z', displayDate: '09/08/2026', author: 'Redesign / Sustentação', text: 'Em Validação (Aguardando Execuções)' }],
+          created_at: '2026-08-09T11:50:00.000Z',
+          updated_at: '2026-08-09T11:50:00.000Z'
+        },
+        {
+          id: 'rpa-item-24',
+          robo_name: 'ID19 - Cancelamento SAP',
+          title: 'ID 19 (SAP Dispatcher) Solução desenhada internamente após travamento com o parceiro. Apresentação da versão oficial pela Redesign e apuração do atraso/horas',
+          responsible: 'Redesign (Parceiro)',
+          severity: 'MEDIA',
+          status: 'EM_ANALISE',
+          description: 'Solução desenhada internamente após travamento com o parceiro. Apresentação da versão oficial pela Redesign e apuração do atraso/horas',
+          history_notes: [{ id: 'upd-24', date: '2026-08-09T11:55:00.000Z', displayDate: '09/08/2026', author: 'Redesign / TI Interna', text: 'Em Validação / Apuração' }],
+          created_at: '2026-08-09T11:55:00.000Z',
+          updated_at: '2026-08-09T11:55:00.000Z'
+        },
+        {
+          id: 'rpa-item-25',
+          robo_name: 'ID06 - Demandas de BKO',
+          title: 'Geral / Gestão de Conhecimento Turnover constante na sustentação do fornecedor gerando novos bugs por falta de transferência de contexto; exigência de documentação robusta de engenharia',
+          responsible: 'Redesign (Parceiro)',
+          severity: 'ALTA',
+          status: 'ABERTO',
+          description: 'Turnover constante na sustentação do fornecedor gerando novos bugs por falta de transferência de contexto; exigência de documentação robusta de engenharia',
+          history_notes: [{ id: 'upd-25', date: '2026-08-09T12:00:00.000Z', displayDate: '09/08/2026', author: 'Redesign / Gestão de Contrato', text: 'Pendente Normalização / Ação Contratual' }],
+          created_at: '2026-08-09T12:00:00.000Z',
+          updated_at: '2026-08-09T12:00:00.000Z'
+        },
+        {
+          id: 'rpa-item-26',
+          robo_name: 'ID06 - Demandas de BKO',
+          title: 'Geral / Processo de Sustentação Exigência de Restabelecimento do Hypercare obrigatorio e proibição de fragmentação de chamados/abertura de novos chamados sem historico mantido no original',
+          responsible: 'Redesign (Parceiro)',
+          severity: 'ALTA',
+          status: 'ABERTO',
+          description: 'Exigência de Restabelecimento do Hypercare obrigatorio e proibição de fragmentação de chamados/abertura de novos chamados sem historico mantido no original',
+          history_notes: [{ id: 'upd-26', date: '2026-08-09T12:05:00.000Z', displayDate: '09/08/2026', author: 'Redesign / Gestão de Processos', text: 'Pendente Alinhamento de Processo' }],
+          created_at: '2026-08-09T12:05:00.000Z',
+          updated_at: '2026-08-09T12:05:00.000Z'
+        }
+      ];
+
+      this.pendencies = initial26Items;
+      this.saveLocal();
     },
 
     loadLocal() {
@@ -74,19 +366,16 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
         const saved = localStorage.getItem('cs_rpa_pendencies_v2');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
+          if (Array.isArray(parsed) && parsed.length >= 20) {
             this.pendencies = parsed;
-          }
-        }
-        if (!this.pendencies || !this.pendencies.length) {
-          if (window.app?.state?.rpaPendencies && window.app.state.rpaPendencies.length > 0) {
-            this.pendencies = [...window.app.state.rpaPendencies];
           }
         }
       } catch (_) {
         this.pendencies = [];
       }
-      this.seedDefaultIfEmpty();
+      if (!Array.isArray(this.pendencies) || this.pendencies.length < 20) {
+        this.seedDefaultIfEmpty();
+      }
     },
 
     saveLocal() {
