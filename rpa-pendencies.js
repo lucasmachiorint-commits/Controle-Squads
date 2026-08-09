@@ -164,59 +164,50 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
 
     // 4. Lógica de Pílulas + Selects Adicionadores
     setupSelectListeners() {
+      // Backup listeners - HTML inline onchange already handles the primary flow
+      // These only fire if inline handlers are somehow stripped
+      const self = this;
       const robotSelect = document.getElementById('rpa-robot-adder-select');
       if (robotSelect) {
-        robotSelect.onchange = (e) => {
-          this.addRobot(e.target || robotSelect);
-        };
-        robotSelect.oninput = (e) => {
-          this.addRobot(e.target || robotSelect);
-        };
+        robotSelect.addEventListener('change', function() {
+          const v = this.value;
+          if (v && v.indexOf('Selecionar') === -1) {
+            self.addRobot(v);
+            this.selectedIndex = 0;
+          }
+        });
       }
 
       const respSelect = document.getElementById('rpa-resp-adder-select');
       if (respSelect) {
-        respSelect.onchange = (e) => {
-          this.addResponsible(e.target || respSelect);
-        };
-        respSelect.oninput = (e) => {
-          this.addResponsible(e.target || respSelect);
-        };
+        respSelect.addEventListener('change', function() {
+          const v = this.value;
+          if (v && v.indexOf('Selecionar') === -1) {
+            self.addResponsible(v);
+            this.selectedIndex = 0;
+          }
+        });
       }
     },
 
     addRobot(robotName) {
+      // Aceita string diretamente (vindo do HTML onchange="...this.value...")
+      // Também aceita elemento <select> como fallback de segurança
       let val = '';
       if (typeof robotName === 'string') {
-        val = robotName;
+        val = robotName.trim();
       } else if (robotName && typeof robotName === 'object') {
-        if (robotName.value && robotName.value.trim() !== '') {
-          val = robotName.value;
-        } else if (robotName.options && robotName.selectedIndex >= 0) {
-          val = robotName.options[robotName.selectedIndex].value || robotName.options[robotName.selectedIndex].text;
-        }
+        val = (robotName.value || '').trim();
       }
 
-      if (!val || typeof val !== 'string') return;
-      val = val.trim();
-      if (!val || val.startsWith('+ Selecionar')) return;
+      if (!val || val.indexOf('Selecionar') !== -1) return;
 
-      // Permite 1 ou mais robôs selecionados
       if (!Array.isArray(this.selectedRobots)) this.selectedRobots = [];
       if (!this.selectedRobots.includes(val)) {
         this.selectedRobots.push(val);
       }
 
       this.renderRobotPills();
-
-      setTimeout(() => {
-        this.renderRobotPills();
-        const selectEl = document.getElementById('rpa-robot-adder-select');
-        if (selectEl) {
-          selectEl.value = '';
-          selectEl.selectedIndex = 0;
-        }
-      }, 50);
     },
 
     removeRobot(robotName) {
@@ -243,27 +234,23 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 shadow-sm my-0.5">
             <i class="fa-solid fa-robot text-emerald-400 text-xs"></i>
             <span>${robot}</span>
-            <button type="button" onclick="(window.app || window).removeRpaRobot('${safeName}')" class="ml-1 text-emerald-300 hover:text-white font-bold cursor-pointer transition-colors" title="Remover">✕</button>
+            <button type="button" onclick="window.RpaPendenciesModule.removeRobot('${safeName}')" class="ml-1 text-emerald-300 hover:text-white font-bold cursor-pointer transition-colors" title="Remover">✕</button>
           </span>
         `;
       }).join('');
     },
 
     addResponsible(respName) {
+      // Aceita string diretamente (vindo do HTML onchange="...this.value...")
+      // Também aceita elemento <select> como fallback de segurança
       let val = '';
       if (typeof respName === 'string') {
-        val = respName;
+        val = respName.trim();
       } else if (respName && typeof respName === 'object') {
-        if (respName.value && respName.value.trim() !== '') {
-          val = respName.value;
-        } else if (respName.options && respName.selectedIndex >= 0) {
-          val = respName.options[respName.selectedIndex].value || respName.options[respName.selectedIndex].text;
-        }
+        val = (respName.value || '').trim();
       }
 
-      if (!val || typeof val !== 'string') return;
-      val = val.trim();
-      if (!val || val.startsWith('+ Selecionar')) return;
+      if (!val || val.indexOf('Selecionar') !== -1) return;
 
       if (!Array.isArray(this.selectedResponsibles)) this.selectedResponsibles = [];
 
@@ -272,15 +259,6 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       }
 
       this.renderRespPills();
-
-      setTimeout(() => {
-        this.renderRespPills();
-        const selectEl = document.getElementById('rpa-resp-adder-select');
-        if (selectEl) {
-          selectEl.value = '';
-          selectEl.selectedIndex = 0;
-        }
-      }, 50);
     },
 
     removeResponsible(respName) {
@@ -307,7 +285,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-500/20 border border-indigo-500/50 text-indigo-300 shadow-sm my-0.5">
             <i class="fa-solid fa-user text-indigo-400 text-xs"></i>
             <span>${rName}</span>
-            <button type="button" onclick="(window.app || window).removeRpaResponsible('${safeName}')" class="ml-1 text-indigo-300 hover:text-white font-bold cursor-pointer transition-colors" title="Remover">✕</button>
+            <button type="button" onclick="window.RpaPendenciesModule.removeResponsible('${safeName}')" class="ml-1 text-indigo-300 hover:text-white font-bold cursor-pointer transition-colors" title="Remover">✕</button>
           </span>
         `;
       }).join('');
