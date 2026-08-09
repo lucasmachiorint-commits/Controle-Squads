@@ -357,29 +357,97 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
         }
       ];
 
-      this.pendencies = initial26Items;
+      this.pendencies = this.filterDeleted(initial26Items);
       this.saveLocal();
+      this.syncMasterToSupabase();
+    },
+
+    getDeletedIds() {
+      try {
+        const val = localStorage.getItem('cs_rpa_deleted_ids');
+        return val ? JSON.parse(val) : [];
+      } catch (_) {
+        return [];
+      }
+    },
+
+    markDeleted(id) {
+      if (!id) return;
+      try {
+        const list = this.getDeletedIds();
+        if (!list.includes(id)) {
+          list.push(id);
+          localStorage.setItem('cs_rpa_deleted_ids', JSON.stringify(list));
+        }
+      } catch (_) {}
+    },
+
+    filterDeleted(items) {
+      if (!Array.isArray(items)) return [];
+      const deletedList = this.getDeletedIds();
+      return items.filter(item => item && item.id && !deletedList.includes(item.id));
+    },
+
+    async syncMasterToSupabase() {
+      if (!window.supabaseClient) return;
+      try {
+        const masterIds = this.pendencies.map(i => i.id);
+        for (const item of this.pendencies) {
+          try {
+            await window.supabaseClient.from('rpa_pendencies').upsert({
+              id: item.id,
+              robo_name: item.robo_name,
+              title: item.title,
+              responsible: item.responsible,
+              status: item.status,
+              severity: item.severity,
+              description: item.description,
+              history_notes: item.history_notes,
+              created_at: item.created_at,
+              updated_at: item.updated_at
+            });
+          } catch (_) {}
+        }
+        // Purga itens antigos do Supabase que não estejam na lista das 26 demandas ativas
+        const { data: dbData } = await window.supabaseClient.from('rpa_pendencies').select('id');
+        if (Array.isArray(dbData)) {
+          for (const row of dbData) {
+            if (!masterIds.includes(row.id)) {
+              await window.supabaseClient.from('rpa_pendencies').delete().eq('id', row.id);
+            }
+          }
+        }
+      } catch (_) {}
     },
 
     loadLocal() {
       try {
+        const forceReset = localStorage.getItem('cs_rpa_master_v26_applied_v3');
+        if (!forceReset) {
+          localStorage.setItem('cs_rpa_master_v26_applied_v3', 'true');
+          this.seedDefaultIfEmpty();
+          return;
+        }
+
         const saved = localStorage.getItem('cs_rpa_pendencies_v2');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length >= 20) {
-            this.pendencies = parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            this.pendencies = this.filterDeleted(parsed);
           }
         }
       } catch (_) {
         this.pendencies = [];
       }
-      if (!Array.isArray(this.pendencies) || this.pendencies.length < 20) {
+
+      if (!Array.isArray(this.pendencies) || this.pendencies.length === 0) {
         this.seedDefaultIfEmpty();
       }
     },
 
     saveLocal() {
       try {
+        this.pendencies = this.filterDeleted(this.pendencies);
         localStorage.setItem('cs_rpa_pendencies_v2', JSON.stringify(this.pendencies));
         if (window.app?.state) {
           window.app.state.rpaPendencies = this.pendencies;
@@ -389,7 +457,6 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
 
     // Auto-Verificação e Leitura no Supabase via REST Client
     async fetchPendencies() {
-      // 1. Sempre carregar dados locais primeiro para garantir imunidade total contra perdas
       this.loadLocal();
 
       try {
@@ -400,7 +467,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
             .order('created_at', { ascending: false });
 
           if (!error && Array.isArray(data) && data.length > 0) {
-            this.pendencies = data.map(item => ({
+            const mapped = data.map(item => ({
               id: item.id,
               robo_name: item.robo_name || 'Robô sem nome',
               title: item.title || 'Sem título',
@@ -412,24 +479,11 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
               created_at: item.created_at || new Date().toISOString(),
               updated_at: item.updated_at || new Date().toISOString()
             }));
-            this.saveLocal();
-          } else if (!error && Array.isArray(data) && data.length === 0 && this.pendencies.length > 0) {
-            // Se o Supabase estiver vazio, enviar os dados locais para lá!
-            for (const item of this.pendencies) {
-              try {
-                await window.supabaseClient.from('rpa_pendencies').upsert({
-                  id: item.id,
-                  robo_name: item.robo_name,
-                  title: item.title,
-                  responsible: item.responsible,
-                  status: item.status,
-                  severity: item.severity,
-                  description: item.description,
-                  history_notes: item.history_notes,
-                  created_at: item.created_at,
-                  updated_at: item.updated_at
-                });
-              } catch (_) {}
+
+            const clean = this.filterDeleted(mapped);
+            if (clean.length > 0) {
+              this.pendencies = clean;
+              this.saveLocal();
             }
           }
         }
@@ -1325,6 +1379,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
     async deletePendency(id) {
       if (!confirm('Tem certeza que deseja excluir esta pendência de robô?')) return;
 
+      this.markDeleted(id);
       this.pendencies = this.pendencies.filter(i => i.id !== id);
 
       if (window.supabaseClient) {

@@ -579,8 +579,11 @@ const app = {
       if (!this.state.usersList) this.state.usersList = [];
       if (this.state.rpaPendencies && Array.isArray(this.state.rpaPendencies) && this.state.rpaPendencies.length > 0) {
         if (window.RpaPendenciesModule) {
-          window.RpaPendenciesModule.pendencies = this.state.rpaPendencies;
-          window.RpaPendenciesModule.saveLocal();
+          const clean = window.RpaPendenciesModule.filterDeleted ? window.RpaPendenciesModule.filterDeleted(this.state.rpaPendencies) : this.state.rpaPendencies;
+          if (clean.length > 0) {
+            window.RpaPendenciesModule.pendencies = clean;
+            window.RpaPendenciesModule.saveLocal();
+          }
         }
       } else if (window.RpaPendenciesModule && Array.isArray(window.RpaPendenciesModule.pendencies) && window.RpaPendenciesModule.pendencies.length > 0) {
         this.state.rpaPendencies = window.RpaPendenciesModule.pendencies;
