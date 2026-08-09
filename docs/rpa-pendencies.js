@@ -472,6 +472,11 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
         window.app.activeView = 'rpa-pendencies';
         document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active-view'));
         const rpaView = document.getElementById('view-rpa-pendencies');
+        if (rpaView) rpaView.classList.add('active-view');
+      }
+      this.renderView();
+    },
+
     resetFilters() {
       const searchEl = document.getElementById('rpa-filter-search');
       const respEl = document.getElementById('rpa-filter-responsible');
