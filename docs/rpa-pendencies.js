@@ -191,13 +191,15 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
     },
 
     addRobot(robotName) {
-      // Aceita string diretamente (vindo do HTML onchange="...this.value...")
-      // Também aceita elemento <select> como fallback de segurança
       let val = '';
       if (typeof robotName === 'string') {
         val = robotName.trim();
       } else if (robotName && typeof robotName === 'object') {
-        val = (robotName.value || '').trim();
+        if (robotName.value && robotName.value.trim() !== '') {
+          val = robotName.value.trim();
+        } else if (robotName.options && robotName.selectedIndex >= 0) {
+          val = (robotName.options[robotName.selectedIndex].value || robotName.options[robotName.selectedIndex].text || '').trim();
+        }
       }
 
       if (!val || val.indexOf('Selecionar') !== -1) return;
@@ -208,6 +210,12 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       }
 
       this.renderRobotPills();
+
+      const selectEl = document.getElementById('rpa-robot-adder-select');
+      if (selectEl) {
+        selectEl.value = '';
+        selectEl.selectedIndex = 0;
+      }
     },
 
     removeRobot(robotName) {
@@ -241,13 +249,15 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
     },
 
     addResponsible(respName) {
-      // Aceita string diretamente (vindo do HTML onchange="...this.value...")
-      // Também aceita elemento <select> como fallback de segurança
       let val = '';
       if (typeof respName === 'string') {
         val = respName.trim();
       } else if (respName && typeof respName === 'object') {
-        val = (respName.value || '').trim();
+        if (respName.value && respName.value.trim() !== '') {
+          val = respName.value.trim();
+        } else if (respName.options && respName.selectedIndex >= 0) {
+          val = (respName.options[respName.selectedIndex].value || respName.options[respName.selectedIndex].text || '').trim();
+        }
       }
 
       if (!val || val.indexOf('Selecionar') !== -1) return;
@@ -259,6 +269,12 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       }
 
       this.renderRespPills();
+
+      const selectEl = document.getElementById('rpa-resp-adder-select');
+      if (selectEl) {
+        selectEl.value = '';
+        selectEl.selectedIndex = 0;
+      }
     },
 
     removeResponsible(respName) {

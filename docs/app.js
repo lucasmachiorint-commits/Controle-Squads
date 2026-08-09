@@ -3082,8 +3082,12 @@ const app = {
   },
 
   addRpaRobot(el) {
+    let val = typeof el === 'string' ? el : (el?.value || (el?.options && el.selectedIndex >= 0 ? (el.options[el.selectedIndex].value || el.options[el.selectedIndex].text) : ''));
     if (window.RpaPendenciesModule && window.RpaPendenciesModule.addRobot) {
-      window.RpaPendenciesModule.addRobot(el);
+      window.RpaPendenciesModule.addRobot(val || el);
+    }
+    if (typeof el === 'object' && el) {
+      setTimeout(() => { try { el.selectedIndex = 0; el.value = ''; } catch(_) {} }, 50);
     }
   },
 
@@ -3094,12 +3098,12 @@ const app = {
   },
 
   addRpaResponsible(el) {
-    const val = (typeof el === 'object' && el ? el.value : el);
+    let val = typeof el === 'string' ? el : (el?.value || (el?.options && el.selectedIndex >= 0 ? (el.options[el.selectedIndex].value || el.options[el.selectedIndex].text) : ''));
     if (window.RpaPendenciesModule && window.RpaPendenciesModule.addResponsible) {
-      window.RpaPendenciesModule.addResponsible(val);
+      window.RpaPendenciesModule.addResponsible(val || el);
     }
     if (typeof el === 'object' && el) {
-      setTimeout(() => { el.selectedIndex = 0; }, 50);
+      setTimeout(() => { try { el.selectedIndex = 0; el.value = ''; } catch(_) {} }, 50);
     }
   },
 
