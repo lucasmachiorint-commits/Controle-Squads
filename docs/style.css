@@ -1617,6 +1617,169 @@ body.light-theme .status-select-dropdown option {
 }
 
 /* ============================================================
+   IMPECCABLE LIGHT MODE (REVISÃO COMPLETA E IRRESTRETA UI/UX)
+   ============================================================ */
+body.light-theme {
+  background-color: #f8fafc !important;
+  background-image: none !important;
+  color: #0f172a !important;
+}
+
+body.light-theme .main-wrapper,
+body.light-theme #main-content,
+body.light-theme .content-area,
+body.light-theme .view-container {
+  background-color: #f8fafc !important;
+  background-image: none !important;
+  color: #0f172a !important;
+}
+
+/* Override de todas as superfícies com fundos escuros hardcoded */
+body.light-theme .bg-\[\#0b0f19\],
+body.light-theme .bg-\[\#0f172a\],
+body.light-theme .bg-\[\#111827\],
+body.light-theme .bg-\[\#0f172a\]\/90,
+body.light-theme .bg-\[\#0f172a\]\/80,
+body.light-theme .bg-\[\#0f172a\]\/95,
+body.light-theme .bg-slate-900,
+body.light-theme .bg-slate-900\/60,
+body.light-theme .bg-slate-900\/80,
+body.light-theme .bg-slate-900\/90,
+body.light-theme .bg-slate-950,
+body.light-theme .bg-slate-950\/80,
+body.light-theme .bg-slate-950\/90,
+body.light-theme .bg-slate-950\/95,
+body.light-theme .bg-white\/5,
+body.light-theme .bg-white\/10 {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* Overrides para atributos de estilo inline com cores escuras */
+body.light-theme [style*="background: rgba(15, 23, 42"],
+body.light-theme [style*="background:rgba(15,23,42"],
+body.light-theme [style*="background: rgba(15,23,42"],
+body.light-theme [style*="background: #0f172a"],
+body.light-theme [style*="background:#0f172a"],
+body.light-theme [style*="background: #0b0f19"],
+body.light-theme [style*="background:#0b0f19"],
+body.light-theme [style*="background: #111827"],
+body.light-theme [style*="background:#111827"],
+body.light-theme [style*="background-color: #0f172a"],
+body.light-theme [style*="background-color:#0f172a"] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Overrides de Bordas no Light Mode */
+body.light-theme .border-slate-800,
+body.light-theme .border-slate-800\/80,
+body.light-theme .border-slate-800\/60,
+body.light-theme .border-slate-700\/50,
+body.light-theme .border-slate-700,
+body.light-theme .border-\[\#1f2937\],
+body.light-theme .border-white\/10,
+body.light-theme .border-white\/20 {
+  border-color: #e2e8f0 !important;
+}
+
+/* Overrides de Tipografia no Light Mode */
+body.light-theme .text-slate-100,
+body.light-theme .text-slate-200,
+body.light-theme .text-slate-300,
+body.light-theme .text-gray-100,
+body.light-theme .text-gray-200,
+body.light-theme .text-gray-300 {
+  color: #1e293b !important;
+}
+
+body.light-theme .text-slate-400,
+body.light-theme .text-slate-500,
+body.light-theme .text-gray-400 {
+  color: #64748b !important;
+}
+
+body.light-theme [style*="color: #fff"],
+body.light-theme [style*="color:#fff"],
+body.light-theme [style*="color: #f8fafc"],
+body.light-theme [style*="color:#f8fafc"] {
+  color: #0f172a !important;
+}
+
+body.light-theme [style*="color: #94a3b8"],
+body.light-theme [style*="color:#94a3b8"],
+body.light-theme [style*="color: #cbd5e1"],
+body.light-theme [style*="color:#cbd5e1"] {
+  color: #475569 !important;
+}
+
+/* Estilização dos Formulários, Selects e Options no Light Mode */
+body.light-theme select,
+body.light-theme input,
+body.light-theme textarea,
+body.light-theme option,
+body.light-theme optgroup {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+body.light-theme option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+body.light-theme optgroup {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+}
+
+/* Módulo de Pendências RPA no Light Mode */
+body.light-theme #rpa-robot-adder-select,
+body.light-theme #rpa-resp-adder-select {
+  color: #0f172a !important;
+  background-color: transparent !important;
+}
+
+body.light-theme .w-full.bg-\[\#0f172a\]\/90 {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+body.light-theme #rpa-robot-pills-container,
+body.light-theme #rpa-resp-pills-container {
+  background-color: transparent !important;
+}
+
+body.light-theme #rpa-pendencies-tbody tr {
+  background-color: #ffffff !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+
+body.light-theme #rpa-pendencies-tbody tr:hover {
+  background-color: #f8fafc !important;
+}
+
+body.light-theme #rpa-pendencies-tbody td {
+  color: #0f172a !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+
+body.light-theme .text-emerald-300\/90 {
+  color: #047857 !important;
+  background-color: #f0fdf4 !important;
+  border-color: #a7f3d0 !important;
+}
+
+body.light-theme .bg-slate-900\/90,
+body.light-theme .bg-slate-900\/80 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* ============================================================
    @MEDIA PRINT — Impressão Direta (window.print)
    ============================================================ */
 
