@@ -201,8 +201,11 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       val = val.trim();
       if (!val || val.startsWith('+ Selecionar')) return;
 
-      // APENAS 1 ROBÔ PERMITIDO (Substitui seleção anterior)
-      this.selectedRobots = [val];
+      // Permite 1 ou mais robôs selecionados
+      if (!Array.isArray(this.selectedRobots)) this.selectedRobots = [];
+      if (!this.selectedRobots.includes(val)) {
+        this.selectedRobots.push(val);
+      }
 
       this.renderRobotPills();
 
