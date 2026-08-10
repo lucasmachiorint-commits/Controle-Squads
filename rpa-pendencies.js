@@ -39,15 +39,13 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       window.app.printRpaPDF = function () { self.printReport(); };
       window.app.resetRpaFilters = function () { self.resetFilters(); };
     }
-  },
-
-    seedDefaultIfEmpty() {
+  }    seedDefaultIfEmpty() {
       const initial26Items = [
         {
           id: 'rpa-item-1',
           robo_name: 'ID18 - Cancelamento Dynamics',
           title: 'EMA-52 Finalizar período de Hypercare da automação Dynamics para garantir execução correta pós-ajustes',
-          responsible: 'Redesign (Parceiro)',
+          responsible: 'Redesign',
           severity: 'MEDIA',
           status: 'ABERTO',
           description: 'Finalizar período de Hypercare da automação Dynamics para garantir execução correta pós-ajustes (Sustentação / Redesign)',
@@ -59,7 +57,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-2',
           robo_name: 'ID13 - Atualização Jira, ID29 - Pendência Tesouraria',
           title: 'EMA-54 (ID 13, ID 29) Corrigir regras de duplicidade e aprovar pendentes no BKO/Zord para religar o ID 29 (reembolso não permitido para rejeitado)',
-          responsible: 'Caio (Interno)',
+          responsible: 'Caio',
           severity: 'ALTA',
           status: 'ABERTO',
           description: 'Corrigir regras de duplicidade e aprovar pendentes no BKO/Zord para religar o ID 29 (BKO / Sustentação)',
@@ -71,7 +69,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-3',
           robo_name: 'ID05 - Baixa Manual Lote',
           title: 'EMA-58 / EM 58 (ID 05) Análise de Baixas / Lote 203: Correção do fluxo na planilha de BKO; aguardando validação final de +20 itens/insumos inseridos',
-          responsible: 'Caio (Interno)',
+          responsible: 'Caio',
           severity: 'ALTA',
           status: 'ABERTO',
           description: 'Correção do fluxo na planilha de BKO; aguardando validação final de +20 itens/insumos inseridos (Ana Natura)',
@@ -83,7 +81,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-4',
           robo_name: 'ID06 - Demandas de BKO',
           title: 'EMA-59 / EM 59 (ID 06, ID 07) Remapeamento do processo de Análise Parking devido à descontinuação do ID 07, mudanças de regras e criação de monitoramento automatizado',
-          responsible: 'Caio (Interno)',
+          responsible: 'Caio',
           severity: 'ALTA',
           status: 'ABERTO',
           description: 'Remapeamento do processo de Análise Parking devido à descontinuação do ID 07, mudanças de regras e criação de monitoramento automatizado',
@@ -95,7 +93,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-5',
           robo_name: 'ID06 - Demandas de BKO',
           title: 'EMA-60 Desenvolvimento e validação do Dashboard (Lupa / Radar) para exibição de métricas em tempo real',
-          responsible: 'Caio (Interno)',
+          responsible: 'Caio',
           severity: 'MEDIA',
           status: 'ABERTO',
           description: 'Desenvolvimento e validação do Dashboard (Lupa / Radar) para exibição de métricas em tempo real (Caio / Equipe de Projetos)',
@@ -107,7 +105,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-6',
           robo_name: 'ID13 - Atualização Jira, ID15 - Pendência Recompra',
           title: 'EMA-61 / EC 61 (ID 13, ID 15) Expiração recorrente de senhas de acesso/login (Microsoft) no ID 13 e ID 15; necessidade de alerta automático e atualização',
-          responsible: 'Caio (Interno)',
+          responsible: 'Caio',
           severity: 'ALTA',
           status: 'ABERTO',
           description: 'Expiração recorrente de senhas de acesso/login (Microsoft) no ID 13 e ID 15; necessidade de alerta automático e atualização',
@@ -119,7 +117,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-7',
           robo_name: 'ID16 - Cancelamento Jira',
           title: 'EMA-62 Mapeamento de Tipo de Item para o Fluxo de Cancelamento JIRA',
-          responsible: 'Redesign (Parceiro)',
+          responsible: 'Redesign',
           severity: 'MEDIA',
           status: 'ABERTO',
           description: 'Mapeamento de Tipo de Item para o Fluxo de Cancelamento JIRA (Sustentação)',
@@ -131,7 +129,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-8',
           robo_name: 'ID28 - Amortização Performer 2, ID27 - Amortização Performer 1',
           title: 'ID 17 Documentação do processo ID 17 (Reembolso Amortização NC - gerado pelo ID 28/27) em fase final de elaboração/validação interna para envio',
-          responsible: 'Caio (Interno)',
+          responsible: 'Caio',
           severity: 'MEDIA',
           status: 'ABERTO',
           description: 'Documentação do processo ID 17 (Reembolso Amortização NC - gerado pelo ID 28/27) em fase final de elaboração/validação interna para envio',
@@ -143,7 +141,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-9',
           robo_name: 'ID26 - Amortização Dispatcher',
           title: 'ID 26 Homologação interna do ID 26 (Amortização); pendência na liberação de e-mail com anexos para troca de dados',
-          responsible: 'Caio (Interno)',
+          responsible: 'Caio',
           severity: 'ALTA',
           status: 'EM_VALIDACAO',
           description: 'Homologação interna do ID 26 (Amortização); pendência na liberação de e-mail com anexos para troca de dados',
@@ -155,7 +153,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-10',
           robo_name: 'ID27 - Amortização Performer 1, ID28 - Amortização Performer 2',
           title: 'ID 27, ID 28 Amortização: Documentações aprovadas em 04/08',
-          responsible: 'Caio (Interno)',
+          responsible: 'Caio',
           severity: 'BAIXA',
           status: 'RESOLVIDO',
           description: 'Amortização: Documentações aprovadas em 04/08 (Projetos)',
@@ -167,7 +165,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-11',
           robo_name: 'ID29 - Pendência Tesouraria',
           title: 'Conciliação / Terceira Coleta Processo descontinuado na semana anterior; aguardando definição da data para a Terceira Coleta de Conciliação',
-          responsible: 'Caio (Interno)',
+          responsible: 'Caio',
           severity: 'MEDIA',
           status: 'EM_VALIDACAO',
           description: 'Processo descontinuado na semana anterior; aguardando definição da data para a Terceira Coleta de Conciliação',
@@ -179,7 +177,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-12',
           robo_name: 'ID16 - Cancelamento Jira',
           title: 'ID 16 Desenvolvimento em 70% da atualização Jira (Documentação aprovada); cronograma de término, HML interna e HML com a área',
-          responsible: 'Caio (Interno)',
+          responsible: 'Caio',
           severity: 'MEDIA',
           status: 'ABERTO',
           description: 'Desenvolvimento em 70% da atualização Jira (Documentação aprovada); cronograma de término, HML interna e HML com a área',
@@ -191,7 +189,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-13',
           robo_name: 'ID09 - Importação Reembolso Zord, ID10 - Status Reembolso Zord',
           title: 'Zord / Função (URL) Migração de URL do sistema Função pendente de alinhamento (Virada do Zord concluída, link antigo expira em 30 dias)',
-          responsible: 'Caio (Interno)',
+          responsible: 'Caio',
           severity: 'MEDIA',
           status: 'ABERTO',
           description: 'Migração de URL do sistema Função pendente de alinhamento (Virada do Zord concluída, link antigo expira em 30 dias)',
@@ -203,7 +201,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-14',
           robo_name: 'ID13 - Atualização Jira',
           title: 'Infra / VPN / Acessos Liberar e regularizar acesso VPN e conta Microsoft',
-          responsible: 'Caio (Interno)',
+          responsible: 'Caio',
           severity: 'ALTA',
           status: 'EM_VALIDACAO',
           description: 'Liberar e regularizar acesso VPN e conta Microsoft (Rodrigo / Lado Natura)',
@@ -215,7 +213,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-15',
           robo_name: 'ID13 - Atualização Jira, ID15 - Pendência Recompra',
           title: 'Infra / Credenciais (ID 13, ID 15) Atualizar credenciais (assets) de acesso Microsoft expiradas diretamente no orquestrador',
-          responsible: 'Caio (Interno)',
+          responsible: 'Caio',
           severity: 'ALTA',
           status: 'EM_VALIDACAO',
           description: 'Atualizar credenciais (assets) de acesso Microsoft expiradas diretamente no orquestrador',
@@ -227,7 +225,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-16',
           robo_name: 'ID26 - Amortização Dispatcher, ID27 - Amortização Performer 1',
           title: 'E-mail / Caixa de Entrada (ID 26, ID 27) Liberar acesso à caixa de e-mail para recebimento de mensagens do time de dados (bloqueante)',
-          responsible: 'Caio (Interno)',
+          responsible: 'Caio',
           severity: 'CRITICA',
           status: 'ABERTO',
           description: 'Liberar acesso à caixa de e-mail para recebimento de mensagens do time de dados (bloqueante)',
@@ -239,7 +237,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-17',
           robo_name: 'ID28 - Amortização Performer 2',
           title: 'E-mail / Porta SMTP (ID 28) Providenciar a liberação da porta SMTP para envio de e-mails com anexo (bloqueante)',
-          responsible: 'Caio (Interno)',
+          responsible: 'Caio',
           severity: 'CRITICA',
           status: 'ABERTO',
           description: 'Providenciar a liberação da porta SMTP para envio de e-mails com anexo (bloqueante)',
@@ -251,7 +249,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-18',
           robo_name: 'ID05 - Baixa Manual Lote, ID06 - Demandas de BKO',
           title: 'ID 05 (Demandas BKO) Quedas severas de performance e resets na máquina acima de 500 casos fora do 1º horário; geração de retornos repetidos subscrevendo dados',
-          responsible: 'Redesign (Parceiro)',
+          responsible: 'Redesign',
           severity: 'CRITICA',
           status: 'ABERTO',
           description: 'Quedas severas de performance e resets na máquina acima de 500 casos fora do 1º horário; geração de retornos repetidos subscrevendo dados',
@@ -263,7 +261,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-19',
           robo_name: 'ID05 - Baixa Manual Lote',
           title: 'EMA-28 / ID 05 Configuração incorreta na obtenção de itens da fila e fluxos duplicados geraram erro em cascata e 25,5h de retrabalho',
-          responsible: 'Redesign (Parceiro)',
+          responsible: 'Redesign',
           severity: 'ALTA',
           status: 'ABERTO',
           description: 'Configuração incorreta na obtenção de itens da fila e fluxos duplicados geraram erro em cascata e 25,5h de retrabalho',
@@ -275,7 +273,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-20',
           robo_name: 'ID08 - Arquivo Reembolso',
           title: 'ID 08 (Arquivo Reembolso) Falha grave de integridade/compliance: erros no nome do arquivo e subscrição divergente de pedido/valor. Solução prometida a partir do lote 67',
-          responsible: 'Redesign (Parceiro)',
+          responsible: 'Redesign',
           severity: 'CRITICA',
           status: 'ABERTO',
           description: 'Falha grave de integridade/compliance: erros no nome do arquivo e subscrição divergente de pedido/valor. Solução prometida a partir do lote 67',
@@ -287,7 +285,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-21',
           robo_name: 'ID13 - Atualização Jira',
           title: 'ID 13 (Atualização Jira) Falha na transição HML p/ PRD: encerra execução com falha total e descarta itens já concluídos do lote. Falha nos filtros a corrigir no lote 35',
-          responsible: 'Redesign (Parceiro)',
+          responsible: 'Redesign',
           severity: 'CRITICA',
           status: 'ABERTO',
           description: 'Falha na transição HML p/ PRD: encerra execução com falha total e descarta itens já concluídos do lote. Falha nos filtros a corrigir no lote 35',
@@ -299,7 +297,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-22',
           robo_name: 'ID14 - Extração Tarefas Dynamics, ID15 - Pendência Recompra, ID18 - Cancelamento Dynamics',
           title: 'ID 15 / ID 14 / ID 18 Falha na extração de cards no final de semana por falta de gatilho em dias não úteis no ID 18 (ajustado para operarem no FDS)',
-          responsible: 'Redesign (Parceiro)',
+          responsible: 'Redesign',
           severity: 'MEDIA',
           status: 'ABERTO',
           description: 'Falha na extração de cards no final de semana por falta de gatilho em dias não úteis no ID 18 (ajustado para operarem no FDS)',
@@ -311,7 +309,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-23',
           robo_name: 'ID18 - Cancelamento Dynamics',
           title: 'EMA-47 / ID 18 (Cancelamento Dynamics) Desempenho ineficiente e lentidão extrema consumindo o SLA (D0). Realizado ajuste no seletor do botão "Finalizar tarefa"',
-          responsible: 'Redesign (Parceiro)',
+          responsible: 'Redesign',
           severity: 'CRITICA',
           status: 'ABERTO',
           description: 'Desempenho ineficiente e lentidão extrema consumindo o SLA (D0). Realizado ajuste no seletor do botão "Finalizar tarefa"',
@@ -323,7 +321,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-24',
           robo_name: 'ID19 - Cancelamento SAP',
           title: 'ID 19 (SAP Dispatcher) Solução desenhada internamente após travamento com o parceiro. Apresentação da versão oficial pela Redesign e apuração do atraso/horas',
-          responsible: 'Redesign (Parceiro)',
+          responsible: 'Redesign',
           severity: 'MEDIA',
           status: 'ABERTO',
           description: 'Solução desenhada internamente após travamento com o parceiro. Apresentação da versão oficial pela Redesign e apuração do atraso/horas',
@@ -335,7 +333,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-25',
           robo_name: 'ID06 - Demandas de BKO',
           title: 'Geral / Gestão de Conhecimento Turnover constante na sustentação do fornecedor gerando novos bugs por falta de transferência de contexto; exigência de documentação robusta de engenharia',
-          responsible: 'Redesign (Parceiro)',
+          responsible: 'Redesign',
           severity: 'ALTA',
           status: 'ABERTO',
           description: 'Turnover constante na sustentação do fornecedor gerando novos bugs por falta de transferência de contexto; exigência de documentação robusta de engenharia',
@@ -347,7 +345,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           id: 'rpa-item-26',
           robo_name: 'ID06 - Demandas de BKO',
           title: 'Geral / Processo de Sustentação Exigência de Restabelecimento do Hypercare obrigatorio e proibição de fragmentação de chamados/abertura de novos chamados sem historico mantido no original',
-          responsible: 'Redesign (Parceiro)',
+          responsible: 'Redesign',
           severity: 'ALTA',
           status: 'ABERTO',
           description: 'Exigência de Restabelecimento do Hypercare obrigatorio e proibição de fragmentação de chamados/abertura de novos chamados sem historico mantido no original',
@@ -382,6 +380,19 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       } catch (_) {}
     },
 
+    normalizeResponsible(respStr) {
+      if (!respStr) return 'Redesign';
+      const parts = String(respStr).split(/;|;/).map(s => s.trim()).filter(Boolean);
+      const mapped = parts.map(p => {
+        const lower = p.toLowerCase();
+        if (lower.includes('redesign')) return 'Redesign';
+        if (lower.includes('caio')) return 'Caio';
+        if (lower.includes('skytel') || lower.includes('ambos') || lower.includes('emanapay') || lower.includes('squad rpa')) return 'Emanapay';
+        return p;
+      });
+      return [...new Set(mapped)].join('; ');
+    },
+
     filterDeleted(items) {
       if (!Array.isArray(items)) return [];
       const deletedList = this.getDeletedIds();
@@ -390,6 +401,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
         .map(item => {
           if (item.status === 'EM_ANALISE') item.status = 'ABERTO';
           if (item.status === 'AGUARDANDO_PARCEIRO') item.status = 'EM_VALIDACAO';
+          item.responsible = this.normalizeResponsible(item.responsible);
           return item;
         });
     },
@@ -428,9 +440,9 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
 
     loadLocal() {
       try {
-        const forceReset = localStorage.getItem('cs_rpa_master_v26_applied_v5');
+        const forceReset = localStorage.getItem('cs_rpa_master_v26_applied_v6');
         if (!forceReset) {
-          localStorage.setItem('cs_rpa_master_v26_applied_v5', 'true');
+          localStorage.setItem('cs_rpa_master_v26_applied_v6', 'true');
           this.seedDefaultIfEmpty();
           return;
         }

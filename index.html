@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Controle de Squads - Enterprise Board v6.47.0</title>
+    <title>Controle de Squads - Enterprise Board v6.48.0</title>
     
     <script>
       (function() {
@@ -20,11 +20,11 @@
             for (let name of names) { caches.delete(name); }
           });
         }
-        const TARGET_RELEASE = 'v6.47.0';
+        const TARGET_RELEASE = 'v6.48.0';
         const currentLock = localStorage.getItem('cs_deployed_release_lock');
-        if (currentLock !== TARGET_RELEASE || !window.location.search.includes('v=6.47.0')) {
+        if (currentLock !== TARGET_RELEASE || !window.location.search.includes('v=6.48.0')) {
           localStorage.setItem('cs_deployed_release_lock', TARGET_RELEASE);
-          window.location.href = window.location.pathname + '?v=6.47.0&t=' + Date.now();
+          window.location.href = window.location.pathname + '?v=6.48.0&t=' + Date.now();
         }
       })();
     </script>
@@ -56,7 +56,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=20260809_v6.47.0">
+    <link rel="stylesheet" href="style.css?v=20260809_v6.48.0">
 </head>
 <body>
 
@@ -738,10 +738,9 @@
             <div class="md:col-span-2">
               <select id="rpa-filter-responsible" class="w-full bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
                 <option value="">👤 Todos Responsáveis</option>
-                <option value="Redesign (Parceiro)">Redesign (Parceiro)</option>
-                <option value="Caio (Interno)">Caio (Interno)</option>
-                <option value="Time Skytel">Time Skytel</option>
-                <option value="Ambos / Squad RPA">Ambos / Squad RPA</option>
+                <option value="Redesign">Redesign</option>
+                <option value="Caio">Caio</option>
+                <option value="Emanapay">Emanapay</option>
               </select>
             </div>
 
@@ -1311,10 +1310,9 @@
             <div id="rpa-resp-pills-container" class="flex flex-wrap items-center gap-1.5"></div>
             <select id="rpa-resp-adder-select" class="bg-transparent text-xs text-slate-300 focus:outline-none cursor-pointer flex-1 min-w-[130px] py-1 px-1 border-none outline-none font-normal" onchange="app.addRpaResponsible(this)">
               <option value="" selected class="bg-[#0f172a] text-gray-400">+ Selecionar Responsável...</option>
-              <option value="Redesign (Parceiro)" class="bg-[#0f172a] text-gray-200">Redesign (Parceiro)</option>
-              <option value="Caio (Interno)" class="bg-[#0f172a] text-gray-200">Caio (Interno)</option>
-              <option value="Time Skytel" class="bg-[#0f172a] text-gray-200">Time Skytel</option>
-              <option value="Ambos / Squad RPA" class="bg-[#0f172a] text-gray-200">Ambos / Squad RPA</option>
+              <option value="Redesign" class="bg-[#0f172a] text-gray-200">Redesign</option>
+              <option value="Caio" class="bg-[#0f172a] text-gray-200">Caio</option>
+              <option value="Emanapay" class="bg-[#0f172a] text-gray-200">Emanapay</option>
             </select>
           </div>
         </div>
@@ -1407,10 +1405,10 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=20260809_v6.47.0"></script>
-<script src="app.js?v=20260809_v6.47.0"></script>
+<script src="jira-sync.js?v=20260809_v6.48.0"></script>
+<script src="app.js?v=20260809_v6.48.0"></script>
 <!-- MÓDULO AUTÔNOMO ISOLADO DA SQUAD RPA -->
-<script src="rpa-pendencies.js?v=20260809_v6.47.0"></script>
+<script src="rpa-pendencies.js?v=20260809_v6.48.0"></script>
 
 </body>
 </html>
