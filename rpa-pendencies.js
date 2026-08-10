@@ -482,6 +482,24 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
 
       try {
         if (window.supabaseClient) {
+          // 1. Tentar ler da tabela centralizada cs_board_state (acesso universal garantido para todos os usuários)
+          const { data: boardState, error: bsError } = await window.supabaseClient
+            .from('cs_board_state')
+            .select('data')
+            .eq('id', 'default')
+            .maybeSingle();
+
+          if (!bsError && boardState && boardState.data && Array.isArray(boardState.data.rpaPendencies) && boardState.data.rpaPendencies.length > 0) {
+            const cleanBs = this.filterDeleted(boardState.data.rpaPendencies);
+            if (cleanBs.length > 0) {
+              this.pendencies = cleanBs;
+              this.saveLocal();
+              this.renderView();
+              return;
+            }
+          }
+
+          // 2. Fallback para a tabela rpa_pendencies se cs_board_state não tiver dados
           const { data, error } = await window.supabaseClient
             .from('rpa_pendencies')
             .select('*')
@@ -522,10 +540,14 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           try { window.supabaseClient.removeChannel(this._realtimeChannel); } catch (_) {}
         }
         this._realtimeChannel = window.supabaseClient
-          .channel('rpa_pendencies_realtime_v2')
+          .channel('rpa_pendencies_realtime_v3')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'cs_board_state' }, () => {
+            console.log('[RPA Realtime] Alteração remota detectada no cs_board_state. Atualizando tela de todos os usuários...');
+            this.fetchPendencies();
+          })
           .on('postgres_changes', { event: '*', schema: 'public', table: 'rpa_pendencies' }, () => {
-            console.log('[RPA Realtime] Alteração remota detectada no Supabase. Atualizando dados...');
-            this.fetchPendenciesFromSupabaseOnly();
+            console.log('[RPA Realtime] Alteração remota detectada na tabela rpa_pendencies. Atualizando tela...');
+            this.fetchPendencies();
           })
           .subscribe();
       } catch (e) {
@@ -534,41 +556,9 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
 
       if (!this._pollingInterval) {
         this._pollingInterval = setInterval(() => {
-          this.fetchPendenciesFromSupabaseOnly();
+          this.fetchPendencies();
         }, 10000);
       }
-    },
-
-    async fetchPendenciesFromSupabaseOnly() {
-      if (!window.supabaseClient) return;
-      try {
-        const { data, error } = await window.supabaseClient
-          .from('rpa_pendencies')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (!error && Array.isArray(data) && data.length > 0) {
-          const mapped = data.map(item => ({
-            id: item.id,
-            robo_name: item.robo_name || 'Robô sem nome',
-            title: item.title || 'Sem título',
-            responsible: item.responsible || 'Redesign',
-            status: item.status || 'ABERTO',
-            severity: item.severity || 'MEDIA',
-            description: item.description || item.title || '',
-            history_notes: Array.isArray(item.history_notes) ? item.history_notes : [],
-            created_at: item.created_at || new Date().toISOString(),
-            updated_at: item.updated_at || new Date().toISOString()
-          }));
-
-          const clean = this.filterDeleted(mapped);
-          if (clean.length > 0) {
-            this.pendencies = clean;
-            this.saveLocal();
-            this.renderView();
-          }
-        }
-      } catch (_) {}
     },
 
     // Injeção Dinâmica da UI (Estática no HTML)
@@ -1285,10 +1275,20 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
         this.pendencies.unshift(target);
       }
 
+      this.saveLocal();
+
+      // Disparar persistência centralizada no Supabase (cs_board_state) para que todos os usuários recebam em tempo real
+      if (window.app && typeof window.app.saveStateToSupabase === 'function') {
+        try {
+          await window.app.saveStateToSupabase();
+        } catch (err) {
+          console.warn('[RPA SaveState Warning]', err);
+        }
+      }
+
       if (window.supabaseClient) {
         try {
           const payload = {
-            id: target.id,
             robo_name: target.robo_name,
             title: target.title,
             responsible: target.responsible,
@@ -1299,13 +1299,15 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
             created_at: target.created_at || nowIso,
             updated_at: nowIso
           };
+          if (target.id && !target.id.startsWith('rpa-')) {
+            payload.id = target.id;
+          }
           await window.supabaseClient.from('rpa_pendencies').upsert(payload);
         } catch (err) {
           console.warn('[RPA Pendencies] Supabase upsert error:', err);
         }
       }
 
-      this.saveLocal();
       this.closeModal();
       this.renderView();
       alert('✅ Pendência salva com sucesso!');
