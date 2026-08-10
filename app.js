@@ -2283,6 +2283,28 @@ const app = {
         });
       });
     });
+
+    // Incluir Ocorrências de Pendência RPA da Squad RPA
+    const rpaPendencies = window.RpaPendenciesModule?.pendencies || this.state?.rpaPendencies || [];
+    rpaPendencies.forEach(item => {
+      let mappedStatus = 'Em Andamento';
+      if (item.status === 'RESOLVIDO') mappedStatus = 'Concluído';
+      else if (item.status === 'EM_VALIDACAO') mappedStatus = 'Em Andamento';
+      else if (item.status === 'ABERTO') mappedStatus = 'Backlog';
+
+      if (item.severity === 'CRITICA') mappedStatus = 'Bloqueado';
+
+      allDemands.push({
+        id: item.id,
+        summary: item.title,
+        status: mappedStatus,
+        squadId: 'rpa',
+        assignee: item.responsible,
+        createdDate: item.created_at,
+        itemType: item.status === 'RESOLVIDO' ? 'completed' : 'active'
+      });
+    });
+
     return allDemands;
   },
 
@@ -2399,6 +2421,26 @@ const app = {
     if (elBlocked) elBlocked.textContent = blockedCount;
     if (elCompleted) elCompleted.textContent = completedCount;
     if (elRate) elRate.textContent = `${completionRate}%`;
+
+    // Atualizar Indicadores Exclusivos da Squad RPA (Pendências RPA)
+    const rpaItems = window.RpaPendenciesModule?.pendencies || this.state?.rpaPendencies || [];
+    const rpaTotal = rpaItems.length;
+    const rpaAberto = rpaItems.filter(p => p.status === 'ABERTO' || p.status === 'EM_ANALISE').length;
+    const rpaValidacao = rpaItems.filter(p => p.status === 'EM_VALIDACAO' || p.status === 'AGUARDANDO_PARCEIRO').length;
+    const rpaCritica = rpaItems.filter(p => p.severity === 'CRITICA').length;
+    const rpaResolvido = rpaItems.filter(p => p.status === 'RESOLVIDO').length;
+
+    const elRpaTotal = document.getElementById('dash-rpa-kpi-total');
+    const elRpaAberto = document.getElementById('dash-rpa-kpi-aberto');
+    const elRpaValidacao = document.getElementById('dash-rpa-kpi-validacao');
+    const elRpaCritica = document.getElementById('dash-rpa-kpi-critica');
+    const elRpaResolvido = document.getElementById('dash-rpa-kpi-resolvido');
+
+    if (elRpaTotal) elRpaTotal.textContent = rpaTotal;
+    if (elRpaAberto) elRpaAberto.textContent = rpaAberto;
+    if (elRpaValidacao) elRpaValidacao.textContent = rpaValidacao;
+    if (elRpaCritica) elRpaCritica.textContent = rpaCritica;
+    if (elRpaResolvido) elRpaResolvido.textContent = rpaResolvido;
 
     // Renderizar a Matriz de 4 Gráficos & Tabela de Bloqueados
     this.renderCharts(demands);
