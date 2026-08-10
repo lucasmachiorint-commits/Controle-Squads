@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Controle de Squads - Enterprise Board v6.46.0</title>
+    <title>Controle de Squads - Enterprise Board v6.47.0</title>
     
     <script>
       (function() {
@@ -20,11 +20,11 @@
             for (let name of names) { caches.delete(name); }
           });
         }
-        const TARGET_RELEASE = 'v6.46.0';
+        const TARGET_RELEASE = 'v6.47.0';
         const currentLock = localStorage.getItem('cs_deployed_release_lock');
-        if (currentLock !== TARGET_RELEASE || !window.location.search.includes('v=6.46.0')) {
+        if (currentLock !== TARGET_RELEASE || !window.location.search.includes('v=6.47.0')) {
           localStorage.setItem('cs_deployed_release_lock', TARGET_RELEASE);
-          window.location.href = window.location.pathname + '?v=6.46.0&t=' + Date.now();
+          window.location.href = window.location.pathname + '?v=6.47.0&t=' + Date.now();
         }
       })();
     </script>
@@ -56,7 +56,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=20260809_v6.46.0">
+    <link rel="stylesheet" href="style.css?v=20260809_v6.47.0">
 </head>
 <body>
 
@@ -750,8 +750,7 @@
               <select id="rpa-filter-status" class="w-full bg-slate-950/80 border border-slate-800 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500/50" onchange="app.renderRpaPendenciesView()">
                 <option value="">📌 Todos os Status</option>
                 <option value="ABERTO">🚨 Em Aberto</option>
-                <option value="EM_ANALISE">🔍 Em Análise</option>
-                <option value="AGUARDANDO_PARCEIRO">🟣 Aguardando Parceiro</option>
+                <option value="EM_VALIDACAO">🔍 Em Validação</option>
                 <option value="RESOLVIDO">🟢 Resolvido</option>
               </select>
             </div>
@@ -1336,8 +1335,7 @@
         <label class="form-label text-xs text-slate-300 font-bold">Status <span class="text-rose-400">*</span></label>
         <select class="form-control text-xs py-2.5" id="rpa-edit-status" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;">
           <option value="ABERTO">Em Aberto</option>
-          <option value="EM_ANALISE">Em Análise</option>
-          <option value="AGUARDANDO_PARCEIRO">Aguardando Parceiro</option>
+          <option value="EM_VALIDACAO">Em Validação</option>
           <option value="RESOLVIDO">Resolvido</option>
         </select>
       </div>
@@ -1409,10 +1407,10 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=20260809_v6.46.0"></script>
-<script src="app.js?v=20260809_v6.46.0"></script>
+<script src="jira-sync.js?v=20260809_v6.47.0"></script>
+<script src="app.js?v=20260809_v6.47.0"></script>
 <!-- MÓDULO AUTÔNOMO ISOLADO DA SQUAD RPA -->
-<script src="rpa-pendencies.js?v=20260809_v6.46.0"></script>
+<script src="rpa-pendencies.js?v=20260809_v6.47.0"></script>
 
 </body>
 </html>

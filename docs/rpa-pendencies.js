@@ -49,7 +49,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           title: 'EMA-52 Finalizar período de Hypercare da automação Dynamics para garantir execução correta pós-ajustes',
           responsible: 'Redesign (Parceiro)',
           severity: 'MEDIA',
-          status: 'EM_ANALISE',
+          status: 'ABERTO',
           description: 'Finalizar período de Hypercare da automação Dynamics para garantir execução correta pós-ajustes (Sustentação / Redesign)',
           history_notes: [{ id: 'upd-1', date: '2026-08-09T10:00:00.000Z', displayDate: '09/08/2026', author: 'Sustentação / Redesign', text: 'Em Andamento / Conclusão Prevista' }],
           created_at: '2026-08-09T10:00:00.000Z',
@@ -61,7 +61,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           title: 'EMA-54 (ID 13, ID 29) Corrigir regras de duplicidade e aprovar pendentes no BKO/Zord para religar o ID 29 (reembolso não permitido para rejeitado)',
           responsible: 'Caio (Interno)',
           severity: 'ALTA',
-          status: 'EM_ANALISE',
+          status: 'ABERTO',
           description: 'Corrigir regras de duplicidade e aprovar pendentes no BKO/Zord para religar o ID 29 (BKO / Sustentação)',
           history_notes: [{ id: 'upd-2', date: '2026-08-09T10:05:00.000Z', displayDate: '09/08/2026', author: 'BKO / Sustentação', text: 'Em Validação / Aguardando Aprovação' }],
           created_at: '2026-08-09T10:05:00.000Z',
@@ -73,7 +73,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           title: 'EMA-58 / EM 58 (ID 05) Análise de Baixas / Lote 203: Correção do fluxo na planilha de BKO; aguardando validação final de +20 itens/insumos inseridos',
           responsible: 'Caio (Interno)',
           severity: 'ALTA',
-          status: 'EM_ANALISE',
+          status: 'ABERTO',
           description: 'Correção do fluxo na planilha de BKO; aguardando validação final de +20 itens/insumos inseridos (Ana Natura)',
           history_notes: [{ id: 'upd-3', date: '2026-08-09T10:10:00.000Z', displayDate: '09/08/2026', author: 'Ana (Natura)', text: 'Aguardando Validação Final' }],
           created_at: '2026-08-09T10:10:00.000Z',
@@ -85,7 +85,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           title: 'EMA-59 / EM 59 (ID 06, ID 07) Remapeamento do processo de Análise Parking devido à descontinuação do ID 07, mudanças de regras e criação de monitoramento automatizado',
           responsible: 'Caio (Interno)',
           severity: 'ALTA',
-          status: 'EM_ANALISE',
+          status: 'ABERTO',
           description: 'Remapeamento do processo de Análise Parking devido à descontinuação do ID 07, mudanças de regras e criação de monitoramento automatizado',
           history_notes: [{ id: 'upd-4', date: '2026-08-09T10:15:00.000Z', displayDate: '09/08/2026', author: 'Caio', text: 'Em Análise / Pendente Alinhamento' }],
           created_at: '2026-08-09T10:15:00.000Z',
@@ -145,7 +145,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           title: 'ID 26 Homologação interna do ID 26 (Amortização); pendência na liberação de e-mail com anexos para troca de dados',
           responsible: 'Caio (Interno)',
           severity: 'ALTA',
-          status: 'AGUARDANDO_PARCEIRO',
+          status: 'EM_VALIDACAO',
           description: 'Homologação interna do ID 26 (Amortização); pendência na liberação de e-mail com anexos para troca de dados',
           history_notes: [{ id: 'upd-9', date: '2026-08-09T10:40:00.000Z', displayDate: '09/08/2026', author: 'Wennis / Caio (TI)', text: 'Em Homologação Interna / Bloqueado' }],
           created_at: '2026-08-09T10:40:00.000Z',
@@ -169,7 +169,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           title: 'Conciliação / Terceira Coleta Processo descontinuado na semana anterior; aguardando definição da data para a Terceira Coleta de Conciliação',
           responsible: 'Caio (Interno)',
           severity: 'MEDIA',
-          status: 'AGUARDANDO_PARCEIRO',
+          status: 'EM_VALIDACAO',
           description: 'Processo descontinuado na semana anterior; aguardando definição da data para a Terceira Coleta de Conciliação',
           history_notes: [{ id: 'upd-11', date: '2026-08-09T10:50:00.000Z', displayDate: '09/08/2026', author: 'Lucas / Willian (Natura) / Tesouraria', text: 'Aguardando Agendamento' }],
           created_at: '2026-08-09T10:50:00.000Z',
@@ -193,7 +193,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           title: 'Zord / Função (URL) Migração de URL do sistema Função pendente de alinhamento (Virada do Zord concluída, link antigo expira em 30 dias)',
           responsible: 'Caio (Interno)',
           severity: 'MEDIA',
-          status: 'EM_ANALISE',
+          status: 'ABERTO',
           description: 'Migração de URL do sistema Função pendente de alinhamento (Virada do Zord concluída, link antigo expira em 30 dias)',
           history_notes: [{ id: 'upd-13', date: '2026-08-09T11:00:00.000Z', displayDate: '09/08/2026', author: 'Caio', text: 'Pendente Alinhamento' }],
           created_at: '2026-08-09T11:00:00.000Z',
@@ -205,7 +205,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           title: 'Infra / VPN / Acessos Liberar e regularizar acesso VPN e conta Microsoft',
           responsible: 'Caio (Interno)',
           severity: 'ALTA',
-          status: 'AGUARDANDO_PARCEIRO',
+          status: 'EM_VALIDACAO',
           description: 'Liberar e regularizar acesso VPN e conta Microsoft (Rodrigo / Lado Natura)',
           history_notes: [{ id: 'upd-14', date: '2026-08-09T11:05:00.000Z', displayDate: '09/08/2026', author: 'Rodrigo / Lado Natura', text: 'Pendente Liberação' }],
           created_at: '2026-08-09T11:05:00.000Z',
@@ -217,7 +217,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           title: 'Infra / Credenciais (ID 13, ID 15) Atualizar credenciais (assets) de acesso Microsoft expiradas diretamente no orquestrador',
           responsible: 'Caio (Interno)',
           severity: 'ALTA',
-          status: 'AGUARDANDO_PARCEIRO',
+          status: 'EM_VALIDACAO',
           description: 'Atualizar credenciais (assets) de acesso Microsoft expiradas diretamente no orquestrador',
           history_notes: [{ id: 'upd-15', date: '2026-08-09T11:10:00.000Z', displayDate: '09/08/2026', author: 'Lado Natura', text: 'Pendente Atualização' }],
           created_at: '2026-08-09T11:10:00.000Z',
@@ -265,7 +265,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           title: 'EMA-28 / ID 05 Configuração incorreta na obtenção de itens da fila e fluxos duplicados geraram erro em cascata e 25,5h de retrabalho',
           responsible: 'Redesign (Parceiro)',
           severity: 'ALTA',
-          status: 'EM_ANALISE',
+          status: 'ABERTO',
           description: 'Configuração incorreta na obtenção de itens da fila e fluxos duplicados geraram erro em cascata e 25,5h de retrabalho',
           history_notes: [{ id: 'upd-19', date: '2026-08-09T11:30:00.000Z', displayDate: '09/08/2026', author: 'Sustentação / Redesign', text: 'Identificado / Em Correção' }],
           created_at: '2026-08-09T11:30:00.000Z',
@@ -289,7 +289,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           title: 'ID 13 (Atualização Jira) Falha na transição HML p/ PRD: encerra execução com falha total e descarta itens já concluídos do lote. Falha nos filtros a corrigir no lote 35',
           responsible: 'Redesign (Parceiro)',
           severity: 'CRITICA',
-          status: 'EM_ANALISE',
+          status: 'ABERTO',
           description: 'Falha na transição HML p/ PRD: encerra execução com falha total e descarta itens já concluídos do lote. Falha nos filtros a corrigir no lote 35',
           history_notes: [{ id: 'upd-21', date: '2026-08-09T11:40:00.000Z', displayDate: '09/08/2026', author: 'Redesign', text: 'Validação Pendente (Lote 35)' }],
           created_at: '2026-08-09T11:40:00.000Z',
@@ -301,7 +301,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           title: 'ID 15 / ID 14 / ID 18 Falha na extração de cards no final de semana por falta de gatilho em dias não úteis no ID 18 (ajustado para operarem no FDS)',
           responsible: 'Redesign (Parceiro)',
           severity: 'MEDIA',
-          status: 'EM_ANALISE',
+          status: 'ABERTO',
           description: 'Falha na extração de cards no final de semana por falta de gatilho em dias não úteis no ID 18 (ajustado para operarem no FDS)',
           history_notes: [{ id: 'upd-22', date: '2026-08-09T11:45:00.000Z', displayDate: '09/08/2026', author: 'Redesign', text: 'Ajustado / Em Acompanhamento' }],
           created_at: '2026-08-09T11:45:00.000Z',
@@ -313,7 +313,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           title: 'EMA-47 / ID 18 (Cancelamento Dynamics) Desempenho ineficiente e lentidão extrema consumindo o SLA (D0). Realizado ajuste no seletor do botão "Finalizar tarefa"',
           responsible: 'Redesign (Parceiro)',
           severity: 'CRITICA',
-          status: 'EM_ANALISE',
+          status: 'ABERTO',
           description: 'Desempenho ineficiente e lentidão extrema consumindo o SLA (D0). Realizado ajuste no seletor do botão "Finalizar tarefa"',
           history_notes: [{ id: 'upd-23', date: '2026-08-09T11:50:00.000Z', displayDate: '09/08/2026', author: 'Redesign / Sustentação', text: 'Em Validação (Aguardando Execuções)' }],
           created_at: '2026-08-09T11:50:00.000Z',
@@ -325,7 +325,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
           title: 'ID 19 (SAP Dispatcher) Solução desenhada internamente após travamento com o parceiro. Apresentação da versão oficial pela Redesign e apuração do atraso/horas',
           responsible: 'Redesign (Parceiro)',
           severity: 'MEDIA',
-          status: 'EM_ANALISE',
+          status: 'ABERTO',
           description: 'Solução desenhada internamente após travamento com o parceiro. Apresentação da versão oficial pela Redesign e apuração do atraso/horas',
           history_notes: [{ id: 'upd-24', date: '2026-08-09T11:55:00.000Z', displayDate: '09/08/2026', author: 'Redesign / TI Interna', text: 'Em Validação / Apuração' }],
           created_at: '2026-08-09T11:55:00.000Z',
@@ -385,7 +385,13 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
     filterDeleted(items) {
       if (!Array.isArray(items)) return [];
       const deletedList = this.getDeletedIds();
-      return items.filter(item => item && item.id && !deletedList.includes(item.id));
+      return items
+        .filter(item => item && item.id && !deletedList.includes(item.id))
+        .map(item => {
+          if (item.status === 'EM_ANALISE') item.status = 'ABERTO';
+          if (item.status === 'AGUARDANDO_PARCEIRO') item.status = 'EM_VALIDACAO';
+          return item;
+        });
     },
 
     async syncMasterToSupabase() {
@@ -422,9 +428,9 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
 
     loadLocal() {
       try {
-        const forceReset = localStorage.getItem('cs_rpa_master_v26_applied_v3');
+        const forceReset = localStorage.getItem('cs_rpa_master_v26_applied_v5');
         if (!forceReset) {
-          localStorage.setItem('cs_rpa_master_v26_applied_v3', 'true');
+          localStorage.setItem('cs_rpa_master_v26_applied_v5', 'true');
           this.seedDefaultIfEmpty();
           return;
         }
@@ -989,10 +995,8 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
         }
 
         let statusBadge = `<span class="badge text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/40 font-extrabold px-2.5 py-1 rounded-md uppercase">EM ABERTO</span>`;
-        if (item.status === 'EM_ANALISE') {
-          statusBadge = `<span class="badge text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 font-extrabold px-2.5 py-1 rounded-md uppercase">EM ANÁLISE</span>`;
-        } else if (item.status === 'AGUARDANDO_PARCEIRO') {
-          statusBadge = `<span class="badge text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/40 font-extrabold px-2.5 py-1 rounded-md uppercase">AGUARDANDO PARCEIRO</span>`;
+        if (item.status === 'EM_VALIDACAO') {
+          statusBadge = `<span class="badge text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-extrabold px-2.5 py-1 rounded-md uppercase">EM VALIDAÇÃO</span>`;
         } else if (item.status === 'RESOLVIDO') {
           statusBadge = `<span class="badge text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-extrabold px-2.5 py-1 rounded-md uppercase"><i class="fa-solid fa-check me-1"></i> RESOLVIDO</span>`;
         }
@@ -1266,10 +1270,9 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
 
       const statusEl = document.getElementById('rpa-detail-status');
       if (statusEl) {
-        if (item.status === 'ABERTO') statusEl.innerHTML = '<span class="badge bg-rose-500/20 text-rose-300 border border-rose-500/40 px-2 py-0.5 font-bold text-[10px]">Em Aberto</span>';
-        else if (item.status === 'EM_ANALISE') statusEl.innerHTML = '<span class="badge bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 font-bold text-[10px]">Em Análise</span>';
-        else if (item.status === 'AGUARDANDO_PARCEIRO') statusEl.innerHTML = '<span class="badge bg-purple-500/20 text-purple-300 border border-purple-500/40 px-2 py-0.5 font-bold text-[10px]">Aguardando Parceiro</span>';
-        else statusEl.innerHTML = '<span class="badge bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 font-bold text-[10px]">Resolvido</span>';
+        if (item.status === 'EM_VALIDACAO') statusEl.innerHTML = '<span class="badge bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 px-2 py-0.5 font-bold text-[10px]">Em Validação</span>';
+        else if (item.status === 'RESOLVIDO') statusEl.innerHTML = '<span class="badge bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 font-bold text-[10px]">Resolvido</span>';
+        else statusEl.innerHTML = '<span class="badge bg-rose-500/20 text-rose-300 border border-rose-500/40 px-2 py-0.5 font-bold text-[10px]">Em Aberto</span>';
       }
 
       this.renderNotesList(item);
@@ -1423,8 +1426,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
 
         let statusLabel = 'Em Aberto';
         let statusClass = 'rpa-print-badge-open';
-        if (item.status === 'EM_ANALISE') { statusLabel = 'Em Análise'; statusClass = 'rpa-print-badge-analysis'; }
-        else if (item.status === 'AGUARDANDO_PARCEIRO') { statusLabel = 'Aguardando Parceiro'; statusClass = 'rpa-print-badge-partner'; }
+        if (item.status === 'EM_VALIDACAO') { statusLabel = 'Em Validação'; statusClass = 'rpa-print-badge-analysis'; }
         else if (item.status === 'RESOLVIDO') { statusLabel = 'Resolvido'; statusClass = 'rpa-print-badge-resolved'; }
 
         const notes = item.history_notes || [];
