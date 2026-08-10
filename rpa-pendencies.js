@@ -39,7 +39,9 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       window.app.printRpaPDF = function () { self.printReport(); };
       window.app.resetRpaFilters = function () { self.resetFilters(); };
     }
-  }    seedDefaultIfEmpty() {
+  },
+
+  seedDefaultIfEmpty() {
       const initial26Items = [
         {
           id: 'rpa-item-1',
@@ -440,9 +442,9 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
 
     loadLocal() {
       try {
-        const forceReset = localStorage.getItem('cs_rpa_master_v26_applied_v6');
+        const forceReset = localStorage.getItem('cs_rpa_master_v26_applied_v7');
         if (!forceReset) {
-          localStorage.setItem('cs_rpa_master_v26_applied_v6', 'true');
+          localStorage.setItem('cs_rpa_master_v26_applied_v7', 'true');
           this.seedDefaultIfEmpty();
           return;
         }
