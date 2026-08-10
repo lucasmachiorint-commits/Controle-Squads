@@ -2283,28 +2283,6 @@ const app = {
         });
       });
     });
-
-    // Incluir Ocorrências de Pendência RPA da Squad RPA
-    const rpaPendencies = window.RpaPendenciesModule?.pendencies || this.state?.rpaPendencies || [];
-    rpaPendencies.forEach(item => {
-      let mappedStatus = 'Em Andamento';
-      if (item.status === 'RESOLVIDO') mappedStatus = 'Concluído';
-      else if (item.status === 'EM_VALIDACAO') mappedStatus = 'Em Andamento';
-      else if (item.status === 'ABERTO') mappedStatus = 'Backlog';
-
-      if (item.severity === 'CRITICA') mappedStatus = 'Bloqueado';
-
-      allDemands.push({
-        id: item.id,
-        summary: item.title,
-        status: mappedStatus,
-        squadId: 'rpa',
-        assignee: item.responsible,
-        createdDate: item.created_at,
-        itemType: item.status === 'RESOLVIDO' ? 'completed' : 'active'
-      });
-    });
-
     return allDemands;
   },
 
