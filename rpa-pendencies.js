@@ -16,6 +16,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
     this.fetchPendencies();
     this.setupNavigationHook();
     this.registerGlobalAliases();
+    this.setupRealtimeSync();
   },
 
   registerGlobalAliases() {
@@ -512,6 +513,62 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       }
 
       this.renderView();
+    },
+
+    setupRealtimeSync() {
+      if (!window.supabaseClient) return;
+      try {
+        if (this._realtimeChannel) {
+          try { window.supabaseClient.removeChannel(this._realtimeChannel); } catch (_) {}
+        }
+        this._realtimeChannel = window.supabaseClient
+          .channel('rpa_pendencies_realtime_v2')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'rpa_pendencies' }, () => {
+            console.log('[RPA Realtime] Alteração remota detectada no Supabase. Atualizando dados...');
+            this.fetchPendenciesFromSupabaseOnly();
+          })
+          .subscribe();
+      } catch (e) {
+        console.warn('[RPA Realtime Error]', e);
+      }
+
+      if (!this._pollingInterval) {
+        this._pollingInterval = setInterval(() => {
+          this.fetchPendenciesFromSupabaseOnly();
+        }, 10000);
+      }
+    },
+
+    async fetchPendenciesFromSupabaseOnly() {
+      if (!window.supabaseClient) return;
+      try {
+        const { data, error } = await window.supabaseClient
+          .from('rpa_pendencies')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && Array.isArray(data) && data.length > 0) {
+          const mapped = data.map(item => ({
+            id: item.id,
+            robo_name: item.robo_name || 'Robô sem nome',
+            title: item.title || 'Sem título',
+            responsible: item.responsible || 'Redesign',
+            status: item.status || 'ABERTO',
+            severity: item.severity || 'MEDIA',
+            description: item.description || item.title || '',
+            history_notes: Array.isArray(item.history_notes) ? item.history_notes : [],
+            created_at: item.created_at || new Date().toISOString(),
+            updated_at: item.updated_at || new Date().toISOString()
+          }));
+
+          const clean = this.filterDeleted(mapped);
+          if (clean.length > 0) {
+            this.pendencies = clean;
+            this.saveLocal();
+            this.renderView();
+          }
+        }
+      } catch (_) {}
     },
 
     // Injeção Dinâmica da UI (Estática no HTML)
@@ -1231,6 +1288,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       if (window.supabaseClient) {
         try {
           const payload = {
+            id: target.id,
             robo_name: target.robo_name,
             title: target.title,
             responsible: target.responsible,
@@ -1238,16 +1296,12 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
             status: target.status,
             description: target.description,
             history_notes: target.history_notes,
+            created_at: target.created_at || nowIso,
             updated_at: nowIso
           };
-          if (id && !id.startsWith('rpa-')) {
-            await window.supabaseClient.from('rpa_pendencies').update(payload).eq('id', id);
-          } else {
-            const { data, error } = await window.supabaseClient.from('rpa_pendencies').insert([payload]).select().single();
-            if (!error && data) target.id = data.id;
-          }
+          await window.supabaseClient.from('rpa_pendencies').upsert(payload);
         } catch (err) {
-          console.warn('[RPA Pendencies] Supabase insert/update warning:', err);
+          console.warn('[RPA Pendencies] Supabase upsert error:', err);
         }
       }
 
