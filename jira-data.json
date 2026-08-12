@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-12T16:11:58.579Z",
+  "updatedAt": "2026-08-12T20:02:54.177Z",
   "totalCards": 123,
   "cards": [
     {
@@ -8,8 +8,18 @@
       "jiraKey": "GAU-141",
       "title": "Trafego arquivos de conciliação casas de recaudación argentina",
       "summary": "Trafego arquivos de conciliação casas de recaudación argentina",
-      "status": "Backlog",
+      "status": "Aguardando Squad",
       "categoriaStatus": "Itens Pendentes",
+      "customfield_12475": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+        "value": "Operações NPay",
+        "id": "16005"
+      },
+      "squad": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+        "value": "Operações NPay",
+        "id": "16005"
+      },
       "requester": "Luiz Paulo Marcelo Moreira - Natura Pay",
       "priority": "Média",
       "category": "Geral",
