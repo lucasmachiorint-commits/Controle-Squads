@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Controle de Squads - Enterprise Board v6.66.0</title>
+    <title>Controle de Squads - Enterprise Board v6.68.0</title>
     
     <script>
       (function() {
@@ -20,11 +20,11 @@
             for (let name of names) { caches.delete(name); }
           });
         }
-        const TARGET_RELEASE = 'v6.66.0';
+        const TARGET_RELEASE = 'v6.68.0';
         const currentLock = localStorage.getItem('cs_deployed_release_lock');
-        if (currentLock !== TARGET_RELEASE || !window.location.search.includes('v=6.66.0')) {
+        if (currentLock !== TARGET_RELEASE || !window.location.search.includes('v=6.68.0')) {
           localStorage.setItem('cs_deployed_release_lock', TARGET_RELEASE);
-          window.location.href = window.location.pathname + '?v=6.66.0&t=' + Date.now();
+          window.location.href = window.location.pathname + '?v=6.68.0&t=' + Date.now();
         }
       })();
     </script>
@@ -56,11 +56,21 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=20260812_v6.66.0">
+    <link rel="stylesheet" href="style.css?v=20260812_v6.68.0">
 </head>
 <body>
 
-<div class="app-container">
+<!-- BANNER FIXO AMBIENTE DE HOMOLOGAÇÃO (HML) -->
+<div id="hml-banner-fixed" style="position: fixed; top: 0; left: 0; right: 0; width: 100%; height: 36px; background: #f59e0b; color: #090d16; font-size: 11px; font-weight: 900; letter-spacing: 0.8px; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; z-index: 999999; box-shadow: 0 4px 14px rgba(245,158,11,0.35); border-bottom: 2px solid #d97706;">
+  <div class="flex items-center gap-2">
+    <i class="fa-solid fa-vial-circle-check text-slate-950 text-xs"></i> 🧪 AMBIENTE DE HOMOLOGAÇÃO (HML) — DADOS ISOLADOS DE TESTE
+  </div>
+  <button type="button" onclick="app.copyDataFromPrd()" class="bg-slate-950 hover:bg-slate-900 text-amber-400 font-extrabold px-3 py-1 rounded-md text-[10px] transition-all flex items-center gap-1.5 cursor-pointer shadow border border-amber-400/40" title="Substituir dados de HML com uma cópia atualizada de Produção">
+    <i class="fa-solid fa-cloud-arrow-down"></i> Copiar Dados de PRD
+  </button>
+</div>
+
+<div class="app-container" style="margin-top: 36px; min-height: calc(100vh - 36px);">
 
   <!-- SIDEBAR NAVIGATION -->
   <aside class="sidebar" id="sidebar">
@@ -1264,7 +1274,7 @@
 
     <form onsubmit="app.saveJiraConfigModal(event)">
       <div class="form-group mb-3">
-        <label class="form-label text-xs text-slate-300 font-bold">URL da API / Servidor Proxy HTTPS</label>
+        <label class="form-label text-xs text-slate-300 bold">URL da API / Servidor Proxy HTTPS</label>
         <input type="text" class="form-control text-xs py-2.5 font-mono" id="jira-cfg-custom-url" placeholder="https://emana-squads-jira-platform.onrender.com/api/jira/consultar-cards-jira" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
         <span class="text-[10px] text-slate-400 block mt-1">Insira a URL HTTPS do servidor Proxy ou deixe em branco para usar o endpoint padrão.</span>
       </div>
@@ -1412,7 +1422,13 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
           <div>
             <label class="block text-[11px] font-semibold text-slate-400 mb-1">Data da Atualização</label>
-            <input type="date" id="rpa-update-date" class="form-control text-xs py-1.5" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
+            <div class="relative flex items-center">
+              <input type="text" id="rpa-update-date" placeholder="DD/MM/AAAA" maxlength="10" class="form-control text-xs py-1.5 pl-2 pr-7 text-center font-bold w-full" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;" />
+              <button type="button" onclick="app.openRpaDatePicker()" class="absolute right-1.5 text-slate-400 hover:text-emerald-400 transition-colors p-1 cursor-pointer" title="Selecionar no Calendário">
+                <i class="fa-solid fa-calendar-days text-xs"></i>
+              </button>
+              <input type="date" id="rpa-date-picker-hidden" style="position:absolute; opacity:0; pointer-events:none; width:0; height:0;" />
+            </div>
           </div>
           <div class="sm:col-span-2">
             <label class="block text-[11px] font-semibold text-slate-400 mb-1">Resumo / Evolução Semanal</label>
@@ -1469,10 +1485,10 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=20260812_v6.66.0"></script>
-<script src="app.js?v=20260812_v6.66.0"></script>
+<script src="jira-sync.js?v=20260812_v6.68.0"></script>
+<script src="app.js?v=20260812_v6.68.0"></script>
 <!-- MÓDULO AUTÔNOMO ISOLADO DA SQUAD RPA -->
-<script src="rpa-pendencies.js?v=20260812_v6.66.0"></script>
+<script src="rpa-pendencies.js?v=20260812_v6.68.0"></script>
 
 </body>
 </html>
