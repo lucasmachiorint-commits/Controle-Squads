@@ -131,7 +131,7 @@ const app = {
   // INICIALIZAÇÃO
   // ============================================================
   async init() {
-    console.log('[APP INIT v10.0.0] Iniciando Controle de Squads [HML]...');
+    console.log('[APP INIT v10.0.0] Iniciando Controle de Squads [PRD]...');
     this.ensureStateSanity();
     this.loadTheme();
     this.setupInactivityMonitor();
