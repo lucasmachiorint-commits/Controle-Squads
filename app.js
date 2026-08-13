@@ -758,6 +758,15 @@ const app = {
       } else if (window.RpaPendenciesModule && Array.isArray(window.RpaPendenciesModule.pendencies) && window.RpaPendenciesModule.pendencies.length > 0) {
         this.state.rpaPendencies = window.RpaPendenciesModule.pendencies;
       }
+      if (this.state.automacaoItems && Array.isArray(this.state.automacaoItems)) {
+        if (window.AutomacaoModule) {
+          window.AutomacaoModule.items = this.state.automacaoItems;
+          localStorage.setItem('cs_automacao_items_v1', JSON.stringify(this.state.automacaoItems));
+          if (window.AutomacaoModule.renderView) window.AutomacaoModule.renderView();
+        }
+      } else if (window.AutomacaoModule && Array.isArray(window.AutomacaoModule.items)) {
+        this.state.automacaoItems = window.AutomacaoModule.items;
+      }
       localStorage.setItem('cs_triage_items', JSON.stringify(this.state.triageItems || []));
       ['dados', 'operacoes', 'rpa'].forEach(id => {
         localStorage.setItem(`cs_backlog_${id}`, JSON.stringify(this.state.backlogItems?.[id] || []));
@@ -998,6 +1007,9 @@ const app = {
     } else if (viewId === 'gestao-acessos') {
       const activeNav = document.getElementById('nav-gestao-acessos');
       if (activeNav) activeNav.classList.add('active');
+    } else if (viewId === 'automacao') {
+      const activeNav = document.getElementById('nav-automacao');
+      if (activeNav) activeNav.classList.add('active');
     } else {
       // Para visões de squad (board, backlog, concluidos, rpa-pendencies)
       const activeSquadNav = document.getElementById(`nav-squad-${this.activeSquad}`);
@@ -1016,6 +1028,12 @@ const app = {
       }
     }
 
+    if (viewId === 'automacao') {
+      if (window.AutomacaoModule && window.AutomacaoModule.renderView) {
+        window.AutomacaoModule.renderView();
+      }
+    }
+
     // Atualizar título da página
     const squadNames = { dados: 'Squad de Dados', operacoes: 'Squad de Operações', rpa: 'Squad de RPA' };
     const titleMap = {
@@ -1025,6 +1043,7 @@ const app = {
       backlog: `Backlog - ${squadNames[this.activeSquad]}`,
       concluidos: `Concluídos - ${squadNames[this.activeSquad]}`,
       'rpa-pendencies': 'Pendências - Squad de RPA',
+      'automacao': 'Automação — Demandas Internas',
       'dpo-sync': 'Modo Reunião DPO',
       'dpo-logs': 'Histórico de Alinhamentos DPO',
       'gestao-acessos': 'Gestão de Perfis & Acessos Supabase'
@@ -1095,6 +1114,9 @@ const app = {
       });
       if (window.RpaPendenciesModule && Array.isArray(window.RpaPendenciesModule.pendencies)) {
         this.state.rpaPendencies = window.RpaPendenciesModule.pendencies;
+      }
+      if (window.AutomacaoModule && Array.isArray(window.AutomacaoModule.items)) {
+        this.state.automacaoItems = window.AutomacaoModule.items;
       }
     } catch (e) {
       console.warn('Erro ao salvar LocalStorage:', e);
@@ -2441,7 +2463,7 @@ const app = {
     return isNaN(d.getTime()) ? null : d;
   },
 
-  // Agrupar todos os chamados das 3 squads para análise consolidada
+  // Agrupar todos os chamados das 3 squads + módulo de automação para análise consolidada
   getAllDashboardDemands() {
     let allDemands = [];
     ['dados', 'operacoes', 'rpa'].forEach(squadId => {
@@ -2464,6 +2486,25 @@ const app = {
         });
       });
     });
+
+    // 3. Demandas do Módulo de Automação
+    const autoItems = window.AutomacaoModule?.items || this.state?.automacaoItems || [];
+    autoItems.forEach(item => {
+      let mappedStatus = 'Backlog';
+      if (item.status === 'em-andamento') mappedStatus = 'Em Andamento';
+      else if (item.status === 'concluido') mappedStatus = 'Concluído';
+
+      allDemands.push({
+        ...item,
+        squadId: 'automacao',
+        status: mappedStatus,
+        teamSolicitante: item.team || 'Conciliação, Parâmetros, Processamento e Adquirência',
+        requester: item.requester || 'Solicitante Automação',
+        createdDate: item.createdDate || item.createdAt,
+        itemType: item.status === 'concluido' ? 'completed' : 'active'
+      });
+    });
+
     return allDemands;
   },
 
@@ -2563,8 +2604,9 @@ const app = {
     const dashTeamFilter = document.getElementById('dash-filter-team')?.value || '';
     if (dashTeamFilter) {
       demands = demands.filter(d => {
-        if (dashTeamFilter === '__vazio__') return !d.teamSolicitante;
-        return (d.teamSolicitante || '').startsWith(dashTeamFilter);
+        const teamName = d.teamSolicitante || d.team || '';
+        if (dashTeamFilter === '__vazio__') return !teamName;
+        return teamName.toLowerCase().includes(dashTeamFilter.toLowerCase()) || teamName.startsWith(dashTeamFilter);
       });
     }
 
@@ -2630,14 +2672,15 @@ const app = {
       const countDados = demands.filter(d => d.squadId === 'dados').length;
       const countOperac = demands.filter(d => d.squadId === 'operacoes').length;
       const countRpa = demands.filter(d => d.squadId === 'rpa').length;
+      const countAutomacao = demands.filter(d => d.squadId === 'automacao').length;
 
       window.squadChart = new Chart(ctxSquad, {
         type: 'doughnut',
         data: {
-          labels: ['Squad de Dados', 'Squad de Operações', 'Squad de RPA'],
+          labels: ['Squad de Dados', 'Squad de Operações', 'Squad de RPA', 'Automação'],
           datasets: [{
-            data: [countDados, countOperac, countRpa],
-            backgroundColor: ['#10b981', '#f59e0b', '#f43f5e'],
+            data: [countDados, countOperac, countRpa, countAutomacao],
+            backgroundColor: ['#10b981', '#f59e0b', '#f43f5e', '#8b5cf6'],
             borderWidth: 3,
             borderColor: chartBorder,
             hoverOffset: 6
@@ -2815,8 +2858,8 @@ const app = {
     }
 
     tbody.innerHTML = blocked.map((item, idx) => {
-      const squadName = item.squadId === 'dados' ? 'Squad de Dados' : item.squadId === 'operacoes' ? 'Squad de Operações' : 'Squad de RPA';
-      const squadColor = item.squadId === 'dados' ? 'text-emerald-400' : item.squadId === 'operacoes' ? 'text-amber-400' : 'text-rose-400';
+      const squadName = item.squadId === 'dados' ? 'Squad de Dados' : item.squadId === 'operacoes' ? 'Squad de Operações' : item.squadId === 'automacao' ? 'Automação' : 'Squad de RPA';
+      const squadColor = item.squadId === 'dados' ? 'text-emerald-400' : item.squadId === 'operacoes' ? 'text-amber-400' : item.squadId === 'automacao' ? 'text-violet-400' : 'text-rose-400';
 
       return `
         <tr class="hover:bg-white/5 transition-all">
