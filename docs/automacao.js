@@ -262,7 +262,7 @@ var AutomacaoModule = window.AutomacaoModule = {
 
     if (this.activeTab === 'backlog') {
       html += '    <div>';
-      html += '      <button type="button" onclick="app.openAutomacaoModal()" class="bg-violet-500 hover:bg-violet-600 text-white font-bold px-4 py-2 rounded-lg text-xs transition-all flex items-center gap-1.5 shadow-lg shadow-violet-500/20 cursor-pointer">';
+      html += '      <button type="button" onclick="app.openAutomacaoModal()" class="btn-new-automacao-demand bg-violet-500 hover:bg-violet-600 text-white font-bold px-4 py-2 rounded-lg text-xs transition-all flex items-center gap-1.5 shadow-lg shadow-violet-500/20 cursor-pointer">';
       html += '        <i class="fa-solid fa-plus"></i> Adicionar Demanda';
       html += '      </button>';
       html += '    </div>';
@@ -283,7 +283,12 @@ var AutomacaoModule = window.AutomacaoModule = {
     html += '          <th style="min-width: 160px; padding: 10px 8px;">TÍTULO DA DEMANDA</th>';
     html += '          <th style="width: 120px; white-space: nowrap; padding: 10px 8px;">SOLICITANTE</th>';
     html += '          <th style="width: 160px; padding: 10px 8px;">TIME SOLICITANTE</th>';
-    html += '          <th style="width: 125px; white-space: nowrap; padding: 10px 8px;">STATUS</th>';
+    var isAdminUser = window.app && window.app.userRole === 'admin';
+    var showStatusCol = (this.activeTab !== 'backlog') || isAdminUser;
+
+    if (showStatusCol) {
+      html += '          <th style="width: 125px; white-space: nowrap; padding: 10px 8px;">STATUS</th>';
+    }
     html += '          <th style="width: 95px; white-space: nowrap; padding: 10px 8px;">DATA DE CRIAÇÃO</th>';
     html += '          <th style="width: 85px; white-space: nowrap; padding: 10px 8px;">CRITICIDADE</th>';
     html += '          <th style="width: 65px; text-align: right; white-space: nowrap; padding: 10px 8px;">AÇÕES</th>';
@@ -292,7 +297,9 @@ var AutomacaoModule = window.AutomacaoModule = {
     html += '      <tbody>';
 
     if (filteredItems.length === 0) {
-      var colSpan = this.activeTab === 'backlog' ? 9 : 8;
+      var colSpan = 8;
+      if (this.activeTab === 'backlog') colSpan += 1;
+      if (!showStatusCol) colSpan -= 1;
       html += '        <tr>';
       html += '          <td colspan="' + colSpan + '" style="padding: 40px 16px; text-align: center;">';
       html += '            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-800/50 mb-2">';
@@ -337,14 +344,16 @@ var AutomacaoModule = window.AutomacaoModule = {
         html += '            ' + (item.team || 'Conciliação, Parâmetros, Processamento e Adquirência');
         html += '          </td>';
 
-        // 6. COLUNA STATUS
-        html += '          <td onclick="event.stopPropagation();" style="white-space:nowrap; padding: 10px 8px;">';
-        html += '            <select class="status-select-dropdown ' + statusClass + '" style="width: 115px !important; min-width: 115px !important; max-width: 115px !important; font-size: 10px !important; padding: 4px 16px 4px 6px !important;" onchange="app.moveAutomacaoTo(\'' + item.id + '\', this.value)">';
-        html += '              <option value="backlog" ' + (item.status === 'backlog' ? 'selected' : '') + '>Backlog</option>';
-        html += '              <option value="em-andamento" ' + (item.status === 'em-andamento' ? 'selected' : '') + '>Em Andamento</option>';
-        html += '              <option value="concluido" ' + (item.status === 'concluido' ? 'selected' : '') + '>Concluído</option>';
-        html += '            </select>';
-        html += '          </td>';
+        // 6. COLUNA STATUS (somente se showStatusCol)
+        if (showStatusCol) {
+          html += '          <td onclick="event.stopPropagation();" style="white-space:nowrap; padding: 10px 8px;">';
+          html += '            <select class="status-select-dropdown ' + statusClass + '" style="width: 115px !important; min-width: 115px !important; max-width: 115px !important; font-size: 10px !important; padding: 4px 16px 4px 6px !important;" onchange="app.moveAutomacaoTo(\'' + item.id + '\', this.value)">';
+          html += '              <option value="backlog" ' + (item.status === 'backlog' ? 'selected' : '') + '>Backlog</option>';
+          html += '              <option value="em-andamento" ' + (item.status === 'em-andamento' ? 'selected' : '') + '>Em Andamento</option>';
+          html += '              <option value="concluido" ' + (item.status === 'concluido' ? 'selected' : '') + '>Concluído</option>';
+          html += '            </select>';
+          html += '          </td>';
+        }
 
         // 7. DATA DE CRIAÇÃO
         html += '          <td style="padding: 10px 8px;" class="text-xs text-slate-400 font-semibold">' + formattedDate + '</td>';
@@ -355,15 +364,25 @@ var AutomacaoModule = window.AutomacaoModule = {
         html += '          </td>';
 
         // 9. AÇÕES
+        var isAdmin = window.app && window.app.userRole === 'admin';
+        var isGerencial = window.app && window.app.userRole === 'gerencial';
+        var currentUserEmail = (window.app && window.app.userEmail || '').toLowerCase();
+        var isOwner = item.createdBy && currentUserEmail && item.createdBy.toLowerCase() === currentUserEmail;
+        var canEditOrDelete = isAdmin || (isGerencial && isOwner);
+
         html += '          <td style="padding: 10px 8px; text-align: right;">';
-        html += '            <div class="flex items-center justify-end gap-1">';
-        html += '              <button onclick="app.openAutomacaoModal(\'' + item.id + '\')" class="btn btn-secondary text-[11px] py-1 px-1.5" title="Editar Demanda">';
-        html += '                <i class="fa-solid fa-pen text-slate-300"></i>';
-        html += '              </button>';
-        html += '              <button onclick="app.deleteAutomacaoDemand(\'' + item.id + '\')" class="btn btn-secondary text-[11px] py-1 px-1.5 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30" title="Excluir Demanda">';
-        html += '                <i class="fa-solid fa-trash-can"></i>';
-        html += '              </button>';
-        html += '            </div>';
+        if (canEditOrDelete) {
+          html += '            <div class="flex items-center justify-end gap-1">';
+          html += '              <button onclick="app.openAutomacaoModal(\'' + item.id + '\')" class="btn btn-secondary text-[11px] py-1 px-1.5" title="Editar Demanda">';
+          html += '                <i class="fa-solid fa-pen text-slate-300"></i>';
+          html += '              </button>';
+          html += '              <button onclick="app.deleteAutomacaoDemand(\'' + item.id + '\')" class="btn btn-secondary text-[11px] py-1 px-1.5 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30" title="Excluir Demanda">';
+          html += '                <i class="fa-solid fa-trash-can"></i>';
+          html += '              </button>';
+          html += '            </div>';
+        } else {
+          html += '            <span class="text-[10px] text-slate-500 font-mono">Somente Leitura</span>';
+        }
         html += '          </td>';
 
         html += '        </tr>';
@@ -497,6 +516,7 @@ var AutomacaoModule = window.AutomacaoModule = {
         criticality: criticality,
         status: 'backlog',
         treatmentOrder: nextOrder,
+        createdBy: window.app && window.app.userEmail ? window.app.userEmail : '',
         createdDate: createdFormatted,
         createdAt: nowIso,
         updatedAt: nowIso
@@ -511,6 +531,19 @@ var AutomacaoModule = window.AutomacaoModule = {
 
   deleteDemand: function(id) {
     if (!id) return;
+    var item = this.items.find(i => i.id === id);
+    if (!item) return;
+
+    var isAdmin = window.app && window.app.userRole === 'admin';
+    var isGerencial = window.app && window.app.userRole === 'gerencial';
+    var currentUserEmail = (window.app && window.app.userEmail || '').toLowerCase();
+    var isOwner = item.createdBy && currentUserEmail && item.createdBy.toLowerCase() === currentUserEmail;
+
+    if (!isAdmin && !(isGerencial && isOwner)) {
+      alert('Acesso negado: Você só pode excluir demandas criadas por você mesmo.');
+      return;
+    }
+
     if (confirm('Tem certeza que deseja excluir esta demanda de automação?')) {
       this.items = this.items.filter(i => i.id !== id);
       this.saveLocal();

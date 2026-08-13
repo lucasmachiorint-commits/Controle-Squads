@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Controle de Squads - Enterprise Board [PRD] v6.81.0-prd</title>
+    <title>Controle de Squads - Enterprise Board [PRD] v6.83.0-prd</title>
     
     <script>
       (function() {
@@ -20,11 +20,11 @@
             for (let name of names) { caches.delete(name); }
           });
         }
-        const TARGET_RELEASE = 'v6.81.0-prd';
+        const TARGET_RELEASE = 'v6.83.0-prd';
         const currentLock = localStorage.getItem('cs_deployed_release_lock_prd');
-        if (currentLock !== TARGET_RELEASE || !window.location.search.includes('v=6.81.0-prd')) {
+        if (currentLock !== TARGET_RELEASE || !window.location.search.includes('v=6.83.0-prd')) {
           localStorage.setItem('cs_deployed_release_lock_prd', TARGET_RELEASE);
-          window.location.href = window.location.pathname + '?v=6.81.0-prd&t=' + Date.now();
+          window.location.href = window.location.pathname + '?v=6.83.0-prd&t=' + Date.now();
         }
       })();
     </script>
@@ -56,7 +56,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=20260813_v6.81.0">
+    <link rel="stylesheet" href="style.css?v=20260813_v6.81.0-hml">
 </head>
 <body>
 
@@ -696,7 +696,7 @@
 
         <div class="table-responsive">
           <table class="custom-table">
-            <thead>
+            <thead id="backlog-table-head">
               <tr>
                 <th style="width: 55px; white-space: nowrap;">Ordem</th>
                 <th style="width: 95px; white-space: nowrap;">GAU / Chave</th>
@@ -830,7 +830,7 @@
             </p>
           </div>
           <div class="flex items-center gap-2">
-            <button type="button" onclick="app.openNewRpaPendencyModal()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 rounded-lg text-xs transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-500/10 cursor-pointer">
+            <button type="button" onclick="app.openNewRpaPendencyModal()" class="btn-new-rpa-pendency bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 rounded-lg text-xs transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-500/10 cursor-pointer">
               <i class="fa-solid fa-plus"></i> Nova Pendência RPA
             </button>
             <button type="button" class="btn btn-secondary text-xs py-2 px-3.5" onclick="app.printRpaPDF()">
@@ -1291,6 +1291,7 @@
         <label class="form-label text-xs text-slate-300 font-bold">Perfil de Acesso</label>
         <select class="form-control text-xs py-2.5" id="user-modal-role" style="background: rgba(15,23,42,0.95); color:#fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;">
           <option value="consulta">👁️ Consulta (Somente Leitura)</option>
+          <option value="gerencial">📋 Gerencial (Leitura + Ações Seletivas)</option>
           <option value="admin">👨‍💻 Admin (Acesso Total)</option>
         </select>
       </div>
@@ -1621,12 +1622,12 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=20260813_v6.81.0-prd"></script>
-<script src="app.js?v=20260813_v6.81.0-prd"></script>
+<script src="jira-sync.js?v=20260813_v6.83.0-prd"></script>
+<script src="app.js?v=20260813_v6.83.0-prd"></script>
 <!-- MÓDULO AUTÔNOMO ISOLADO DA SQUAD RPA -->
-<script src="rpa-pendencies.js?v=20260813_v6.81.0-prd"></script>
+<script src="rpa-pendencies.js?v=20260813_v6.83.0-prd"></script>
 <!-- MÓDULO AUTÔNOMO ISOLADO DE AUTOMAÇÃO -->
-<script src="automacao.js?v=20260813_v6.81.0-prd"></script>
+<script src="automacao.js?v=20260813_v6.83.0-prd"></script>
 
 </body>
 </html>
