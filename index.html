@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Controle de Squads - Enterprise Board [PRD] v6.87.0-prd</title>
+    <title>Controle de Squads - Enterprise Board [PRD] v6.88.0-prd</title>
     
     <script>
       (function() {
@@ -20,11 +20,11 @@
             for (let name of names) { caches.delete(name); }
           });
         }
-        const TARGET_RELEASE = 'v6.87.0-prd';
+        const TARGET_RELEASE = 'v6.88.0-prd';
         const currentLock = localStorage.getItem('cs_deployed_release_lock_prd');
-        if (currentLock !== TARGET_RELEASE || !window.location.search.includes('v=6.87.0-prd')) {
+        if (currentLock !== TARGET_RELEASE || !window.location.search.includes('v=6.88.0-prd')) {
           localStorage.setItem('cs_deployed_release_lock_prd', TARGET_RELEASE);
-          window.location.href = window.location.pathname + '?v=6.87.0-prd&t=' + Date.now();
+          window.location.href = window.location.pathname + '?v=6.88.0-prd&t=' + Date.now();
         }
       })();
     </script>
@@ -1622,12 +1622,12 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=20260813_v6.87.0-prd"></script>
-<script src="app.js?v=20260813_v6.87.0-prd"></script>
+<script src="jira-sync.js?v=20260813_v6.88.0-prd"></script>
+<script src="app.js?v=20260813_v6.88.0-prd"></script>
 <!-- MÓDULO AUTÔNOMO ISOLADO DA SQUAD RPA -->
-<script src="rpa-pendencies.js?v=20260813_v6.87.0-prd"></script>
+<script src="rpa-pendencies.js?v=20260813_v6.88.0-prd"></script>
 <!-- MÓDULO AUTÔNOMO ISOLADO DE AUTOMAÇÃO -->
-<script src="automacao.js?v=20260813_v6.87.0-prd"></script>
+<script src="automacao.js?v=20260813_v6.88.0-prd"></script>
 
 </body>
 </html>
