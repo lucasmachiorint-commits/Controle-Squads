@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-13T16:12:04.205Z",
+  "updatedAt": "2026-08-13T19:47:37.880Z",
   "totalCards": 123,
   "cards": [
     {
@@ -1528,8 +1528,8 @@
       "jiraKey": "GAU-76",
       "title": "Squad Dados |  Cliente COTIT",
       "summary": "Squad Dados |  Cliente COTIT",
-      "status": "Aguardando Squad",
-      "categoriaStatus": "Itens Pendentes",
+      "status": "Em Análise",
+      "categoriaStatus": "Em andamento",
       "customfield_12475": {
         "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
         "value": "Dados Operações",
