@@ -130,11 +130,44 @@ const JiraSyncEngine = {
       const statusLower = rawStatus.toLowerCase();
       const catStatusLower = rawCatStatus.toLowerCase();
 
+      const cleanRequesterName = (name) => {
+        if (!name || typeof name !== 'string') return name || '';
+        let str = name.trim();
+        if (!str) return '';
+
+        const sepMatch = str.match(/[\-–—]/);
+        if (sepMatch) {
+          const parts = str.split(/[\-–—]/);
+          if (parts[0] && parts[0].trim()) {
+            str = parts[0].trim();
+          }
+        }
+
+        const lowerWords = new Set(['de', 'da', 'do', 'dos', 'das', 'e', 'del']);
+        const acronyms = new Set(['RPA', 'TI', 'BKO', 'PJ', 'SCD', 'GAU', 'CRM', 'API']);
+        const subParts = str.split(/([;/])/);
+
+        return subParts.map(sub => {
+          if (sub === ';' || sub === '/') return sub;
+          const words = sub.trim().split(/\s+/).filter(Boolean);
+          if (!words.length) return '';
+
+          return words.map((w, idx) => {
+            const upperW = w.toUpperCase();
+            if (acronyms.has(upperW)) return upperW;
+            const cleanW = w.toLowerCase();
+            if (idx > 0 && lowerWords.has(cleanW)) return cleanW;
+            return cleanW.replace(/[a-zà-ú]/i, letter => letter.toUpperCase());
+          }).join(' ');
+        }).join(' ');
+      };
+
       const rawJiraKey = card.key || card.jiraKey || (card.id && card.id.toString().startsWith('GAU-') ? card.id : `GAU-${100 + idx}`);
       const jiraKey = extractJiraKey({ jiraKey: rawJiraKey }) || `GAU-${100 + idx}`;
       const title = card.title || card.summary || card.nome || 'Demanda do Jira';
       const description = card.description || card.descricao || card.notes || 'Sincronizado via Jira API';
-      const requester = card.requester || card.reporter || card.solicitante || 'Solicitante Jira';
+      const rawRequester = card.requester || card.reporter || card.solicitante || 'Solicitante Jira';
+      const requester = cleanRequesterName(rawRequester);
 
       // Extração do campo Time Solicitante (customfield_11010)
       const cfTeam = card.customfield_11010 || card.fields?.customfield_11010;
@@ -443,6 +476,39 @@ const JiraSyncEngine = {
         state.backlogItems[squadId] = (state.backlogItems[squadId] || []).concat(newBacklogItemsBySquad[squadId]);
         console.log(`[Jira Sync] ${newBacklogItemsBySquad[squadId].length} novo(s) card(s) inserido(s) no backlog de ${squadId}.`);
       }
+    });
+
+    // ATRIBUIÇÃO DE ID SEQUENCIAL POR SQUAD (baseado na Data de Criação)
+    const parseCreationTs = (item) => {
+      if (!item) return 0;
+      const raw = item.rawCreated || item.createdDate || item.createdAt || item.date || item.created;
+      if (!raw) return 0;
+      if (typeof raw === 'number') return raw;
+      const str = String(raw).trim();
+      if (str.includes('/')) {
+        const parts = str.split('/');
+        if (parts.length >= 3) {
+          const day = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1;
+          let rest = parts[2].trim();
+          let year = parseInt(rest.split(' ')[0], 10);
+          if (year < 100) year += 2000;
+          return new Date(year, month, day).getTime();
+        }
+      }
+      const parsed = new Date(str).getTime();
+      return isNaN(parsed) ? 0 : parsed;
+    };
+
+    ['dados', 'operacoes', 'rpa'].forEach(squadId => {
+      const backlog = state.backlogItems[squadId] || [];
+      const completed = state.completedTasks[squadId] || [];
+      const allSquadItems = [].concat(backlog, completed);
+      if (allSquadItems.length === 0) return;
+      allSquadItems.sort((a, b) => parseCreationTs(a) - parseCreationTs(b));
+      allSquadItems.forEach((item, idx) => {
+        item.seqId = idx + 1;
+      });
     });
 
     // Salvar estado e atualizar interface

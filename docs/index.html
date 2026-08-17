@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Controle de Squads - Enterprise Board [PRD] v6.88.0-prd</title>
+    <title>Controle de Squads - Enterprise Board [PRD] v7.5.0-prd</title>
     
     <script>
       (function() {
@@ -20,11 +20,11 @@
             for (let name of names) { caches.delete(name); }
           });
         }
-        const TARGET_RELEASE = 'v6.88.0-prd';
+        const TARGET_RELEASE = 'v7.5.0-prd';
         const currentLock = localStorage.getItem('cs_deployed_release_lock_prd');
-        if (currentLock !== TARGET_RELEASE || !window.location.search.includes('v=6.88.0-prd')) {
+        if (currentLock !== TARGET_RELEASE || !window.location.search.includes('v=7.5.0-prd')) {
           localStorage.setItem('cs_deployed_release_lock_prd', TARGET_RELEASE);
-          window.location.href = window.location.pathname + '?v=6.88.0-prd&t=' + Date.now();
+          window.location.href = window.location.pathname + '?v=7.5.0-prd&t=' + Date.now();
         }
       })();
     </script>
@@ -56,7 +56,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
     
     <!-- Custom Theme Stylesheet -->
-    <link rel="stylesheet" href="style.css?v=20260813_v6.81.0-hml">
+    <link rel="stylesheet" href="style.css?v=20260817_v7.5.0-prd">
 </head>
 <body>
 
@@ -597,7 +597,7 @@
         <div class="panel-header-row">
           <div class="panel-header-left">
             <h2 style="font-size:20px; font-weight:800; color:#fff; margin:0;" id="board-squad-title">Em Andamento</h2>
-            <p style="font-size:12px; color:#94a3b8; margin:4px 0 0 0;" id="board-squad-desc">Acompanhamento e monitoramento de demandas em andamento</p>
+            <p style="font-size:12px; color:#94a3b8; margin:4px 0 0 0;"><span class="badge badge-medium" id="board-count-badge">0 demandas</span></p>
           </div>
           <div class="flex items-center gap-2">
             <button type="button" class="btn btn-secondary btn-export" onclick="app.exportExcel()">
@@ -629,13 +629,13 @@
           <table class="custom-table">
             <thead>
               <tr>
-                <th style="width: 40px; white-space: nowrap;">#</th>
-                <th style="width: 95px; white-space: nowrap;">GAU / Chave</th>
-                <th style="min-width: 170px;">Título da Demanda</th>
-                <th style="width: 130px; white-space: nowrap;">Solicitante</th>
-                <th style="width: 135px; white-space: nowrap;">Time Solicitante</th>
-                <th style="width: 130px; white-space: nowrap;">Status</th>
-                <th style="width: 100px; white-space: nowrap;">Data de Criação</th>
+                <th style="width: 48px; white-space: nowrap;">ID</th>
+                <th style="width: 85px; white-space: nowrap;">GAU / Chave</th>
+                <th style="min-width: 150px;">Título da Demanda</th>
+                <th style="width: 115px; white-space: nowrap;">Solicitante</th>
+                <th style="width: 118px; white-space: nowrap;">Time Solicitante</th>
+                <th style="width: 105px; white-space: nowrap;">Status</th>
+                <th style="width: 90px; white-space: nowrap;">Data de Criação</th>
               </tr>
             </thead>
             <tbody id="board-table-body">
@@ -666,7 +666,7 @@
         <div class="panel-header-row">
           <div class="panel-header-left">
             <h2 style="font-size:20px; font-weight:800; color:#fff; margin:0;" id="backlog-squad-title">Backlog</h2>
-            <p style="font-size:12px; color:#94a3b8; margin:4px 0 0 0;">Listagem de solicitações aguardando início de tratamento na squad</p>
+            <p style="font-size:12px; color:#94a3b8; margin:4px 0 0 0;"><span class="badge badge-medium" id="backlog-count-badge">0 demandas</span></p>
           </div>
           <div class="flex items-center gap-2">
             <button type="button" class="btn btn-secondary btn-export" onclick="app.exportExcel()">
@@ -698,13 +698,14 @@
           <table class="custom-table">
             <thead id="backlog-table-head">
               <tr>
-                <th style="width: 55px; white-space: nowrap;">Ordem</th>
-                <th style="width: 95px; white-space: nowrap;">GAU / Chave</th>
-                <th style="min-width: 170px;">Título da Demanda</th>
-                <th style="width: 130px; white-space: nowrap;">Solicitante</th>
-                <th style="width: 135px; white-space: nowrap;">Time Solicitante</th>
-                <th style="width: 130px; white-space: nowrap;">Status</th>
-                <th style="width: 100px; white-space: nowrap;">Data de Criação</th>
+                <th style="width: 48px; white-space: nowrap;">ID</th>
+                <th style="width: 50px; white-space: nowrap;">Ordem</th>
+                <th style="width: 85px; white-space: nowrap;">GAU / Chave</th>
+                <th style="min-width: 150px;">Título da Demanda</th>
+                <th style="width: 115px; white-space: nowrap;">Solicitante</th>
+                <th style="width: 118px; white-space: nowrap;">Time Solicitante</th>
+                <th style="width: 105px; white-space: nowrap;">Status</th>
+                <th style="width: 90px; white-space: nowrap;">Data de Criação</th>
               </tr>
             </thead>
             <tbody id="backlog-table-body">
@@ -767,13 +768,14 @@
           <table class="custom-table">
             <thead>
               <tr>
-                <th style="width: 95px; white-space: nowrap;">GAU</th>
-                <th style="min-width: 170px;">Demanda</th>
-                <th style="width: 130px; white-space: nowrap;">Responsável</th>
-                <th style="width: 135px; white-space: nowrap;">Time Solicitante</th>
-                <th style="width: 100px; white-space: nowrap;">Data de criação</th>
-                <th style="width: 100px; white-space: nowrap;">Data de conclusão</th>
-                <th style="min-width: 150px;">Ganhos</th>
+                <th style="width: 48px; white-space: nowrap;">ID</th>
+                <th style="width: 85px; white-space: nowrap;">GAU</th>
+                <th style="min-width: 150px;">Demanda</th>
+                <th style="width: 115px; white-space: nowrap;">Responsável</th>
+                <th style="width: 118px; white-space: nowrap;">Time Solicitante</th>
+                <th style="width: 90px; white-space: nowrap;">Data de criação</th>
+                <th style="width: 90px; white-space: nowrap;">Data de conclusão</th>
+                <th style="min-width: 130px;">Ganhos</th>
               </tr>
             </thead>
             <tbody id="completed-table-body">
@@ -804,10 +806,6 @@
 
       <!-- 2. TRÊS QUADROS DE MÉTRICAS DE RESUMO DAS PENDÊNCIAS RPA -->
       <div class="triage-metrics-row mb-6 flex items-center gap-4">
-        <div class="metric-box-card metric-box-amber flex-1 p-4 rounded-xl bg-[#111827] border border-[#1f2937]">
-          <span class="metric-box-lbl text-amber-500 text-xs font-bold block mb-1">TOTAL DE PENDÊNCIAS</span>
-          <div class="metric-box-val text-amber-400 text-2xl font-black" id="metric-rpa-total">0 pendências</div>
-        </div>
         <div class="metric-box-card metric-box-rose flex-1 p-4 rounded-xl bg-[#111827] border border-[#1f2937]">
           <span class="metric-box-lbl text-rose-400 text-xs font-bold block mb-1">EM ABERTO / CRÍTICAS</span>
           <div class="metric-box-val text-rose-400 text-2xl font-black" id="metric-rpa-open">0 abertas</div>
@@ -815,6 +813,10 @@
         <div class="metric-box-card metric-box-emerald flex-1 p-4 rounded-xl bg-[#111827] border border-[#1f2937]">
           <span class="metric-box-lbl text-emerald-400 text-xs font-bold block mb-1">RESOLVIDAS / MONITORADAS</span>
           <div class="metric-box-val text-emerald-400 text-2xl font-black" id="metric-rpa-resolved">0 concluídas</div>
+        </div>
+        <div class="metric-box-card metric-box-amber flex-1 p-4 rounded-xl bg-[#111827] border border-[#1f2937]">
+          <span class="metric-box-lbl text-amber-500 text-xs font-bold block mb-1">TOTAL DE PENDÊNCIAS</span>
+          <div class="metric-box-val text-amber-400 text-2xl font-black" id="metric-rpa-total">0 pendências</div>
         </div>
       </div>
 
@@ -1096,11 +1098,15 @@
     <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 14px; margin-bottom: 16px;">
       <div style="display: flex; align-items: center; gap: 8px;">
         <span class="badge badge-medium" style="font-size: 12px; font-weight: 800;" id="detail-gau-key">GAU-128</span>
-        <span class="badge badge-high" style="font-size: 11px;" id="detail-priority">2 - Alta</span>
       </div>
-      <button type="button" class="detail-close-btn" title="Fechar Modal" onclick="app.closeModal('modal-demand-details', event)">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button type="button" class="btn btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5" onclick="app.exportDemandModalPDF()" title="Exportar Histórico Completo em PDF" style="display: inline-flex; margin-right: 4px;">
+          <i class="fa-solid fa-file-pdf" style="color:#a855f7;"></i> Exportar PDF
+        </button>
+        <button type="button" class="detail-close-btn" title="Fechar Modal" onclick="app.closeModal('modal-demand-details', event)">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
     </div>
 
     <!-- Título da Demanda -->
@@ -1374,9 +1380,14 @@
           <p class="text-xs text-slate-400">Cadastro de Incidente ou Ocorrência Técnica</p>
         </div>
       </div>
-      <button class="text-slate-400 hover:text-white transition-colors" onclick="app.closeRpaPendencyModal()">
-        <i class="fa-solid fa-xmark text-lg"></i>
-      </button>
+      <div class="flex items-center gap-2">
+        <button type="button" class="btn btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5" id="btn-rpa-edit-export-pdf" onclick="app.exportRpaPendencyModalPDF()" title="Exportar Histórico Completo em PDF" style="display: none;">
+          <i class="fa-solid fa-file-pdf" style="color:#a855f7;"></i> Exportar PDF
+        </button>
+        <button type="button" class="text-slate-400 hover:text-white transition-colors" onclick="app.closeRpaPendencyModal()">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
     </div>
 
     <form onsubmit="app.saveRpaPendency(event); return false;">
@@ -1523,9 +1534,14 @@
           <p class="text-xs text-slate-400" id="rpa-det-sub">Histórico e Evolução do Robô</p>
         </div>
       </div>
-      <button class="text-slate-400 hover:text-white transition-colors" onclick="app.closeRpaPendencyDetailsModal()">
-        <i class="fa-solid fa-xmark text-lg"></i>
-      </button>
+      <div class="flex items-center gap-2">
+        <button type="button" class="btn btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5" onclick="app.exportRpaPendencyModalPDF()" title="Exportar Histórico Completo em PDF">
+          <i class="fa-solid fa-file-pdf" style="color:#a855f7;"></i> Exportar PDF
+        </button>
+        <button class="text-slate-400 hover:text-white transition-colors" onclick="app.closeRpaPendencyDetailsModal()">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
     </div>
 
     <div id="rpa-det-content"></div>
@@ -1573,7 +1589,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
           <label class="block text-xs font-semibold text-gray-300 mb-1.5">Data de Criação</label>
           <div class="relative flex items-center">
@@ -1588,15 +1604,6 @@
           <select id="auto-edit-application" class="app-custom-select" required>
             <option value="Controle de Squads">Controle de Squads</option>
             <option value="Sistema de Governança Operacional">Sistema de Governança Operacional</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-gray-300 mb-1.5">Criticidade <span class="text-violet-400">*</span></label>
-          <select id="auto-edit-criticality" class="app-custom-select" required>
-            <option value="Alta">Alta</option>
-            <option value="Média" selected>Média</option>
-            <option value="Baixa">Baixa</option>
           </select>
         </div>
       </div>
@@ -1622,12 +1629,12 @@
 </div>
 
 <!-- JIRA ENGINE MODULE & CORE APP LOGIC -->
-<script src="jira-sync.js?v=20260813_v6.88.0-prd"></script>
-<script src="app.js?v=20260813_v6.88.0-prd"></script>
+<script src="jira-sync.js?v=20260817_v7.5.0-prd"></script>
+<script src="app.js?v=20260817_v7.5.0-prd"></script>
 <!-- MÓDULO AUTÔNOMO ISOLADO DA SQUAD RPA -->
-<script src="rpa-pendencies.js?v=20260813_v6.88.0-prd"></script>
+<script src="rpa-pendencies.js?v=20260817_v7.5.0-prd"></script>
 <!-- MÓDULO AUTÔNOMO ISOLADO DE AUTOMAÇÃO -->
-<script src="automacao.js?v=20260813_v6.88.0-prd"></script>
+<script src="automacao.js?v=20260817_v7.5.0-prd"></script>
 
 </body>
 </html>

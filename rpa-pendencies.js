@@ -35,7 +35,10 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       window.app.closeRpaPendencyDetailsModal = function () { self.closeDetailsModal(); };
       window.app.renderRpaPendenciesView = function () { self.renderView(); };
       window.app.addRpaTimelineUpdate = function () { self.addTimelineUpdate(); };
+      window.app.editRpaTimelineUpdate = function (idx) { self.editTimelineUpdate(idx); };
       window.app.removeRpaTimelineUpdate = function (idx) { self.removeTimelineUpdate(idx); };
+      window.app.editRpaNote = function (idx) { self.editNote(idx); };
+      window.app.deleteRpaNote = function (idx) { self.deleteNote(idx); };
       window.app.printRpaReport = function () { self.printReport(); };
       window.app.printRpaPDF = function () { self.printReport(); };
       window.app.resetRpaFilters = function () { self.resetFilters(); };
@@ -385,13 +388,43 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
 
     normalizeResponsible(respStr) {
       if (!respStr) return 'Redesign';
+      const cleanPersonName = (name) => {
+        if (!name || typeof name !== 'string') return name || '';
+        let str = name.trim();
+        if (!str) return '';
+
+        const sepMatch = str.match(/[\-–—]/);
+        if (sepMatch) {
+          const parts = str.split(/[\-–—]/);
+          if (parts[0] && parts[0].trim()) str = parts[0].trim();
+        }
+
+        const lowerWords = new Set(['de', 'da', 'do', 'dos', 'das', 'e', 'del']);
+        const acronyms = new Set(['RPA', 'TI', 'BKO', 'PJ', 'SCD', 'GAU', 'CRM', 'API']);
+        const subParts = str.split(/([;/])/);
+
+        return subParts.map(sub => {
+          if (sub === ';' || sub === '/') return sub;
+          const words = sub.trim().split(/\s+/).filter(Boolean);
+          if (!words.length) return '';
+
+          return words.map((w, idx) => {
+            const upperW = w.toUpperCase();
+            if (acronyms.has(upperW)) return upperW;
+            const cleanW = w.toLowerCase();
+            if (idx > 0 && lowerWords.has(cleanW)) return cleanW;
+            return cleanW.replace(/[a-zà-ú]/i, letter => letter.toUpperCase());
+          }).join(' ');
+        }).join(' ');
+      };
+
       const parts = String(respStr).split(/;|;/).map(s => s.trim()).filter(Boolean);
       const mapped = parts.map(p => {
         const lower = p.toLowerCase();
         if (lower.includes('redesign')) return 'Redesign';
         if (lower.includes('caio')) return 'Caio';
         if (lower.includes('skytel') || lower.includes('ambos') || lower.includes('emanapay') || lower.includes('squad rpa')) return 'Emanapay';
-        return p;
+        return cleanPersonName(p);
       });
       return [...new Set(mapped)].join('; ');
     },
@@ -807,10 +840,24 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       this.renderTimelineList();
     },
 
+    editTimelineUpdate(index) {
+      if (index >= 0 && index < this.selectedTimelineUpdates.length) {
+        const item = this.selectedTimelineUpdates[index];
+        const currentText = item.text || '';
+        const newText = prompt('Editar atualização semanal:', currentText);
+        if (newText !== null && newText.trim() !== '') {
+          item.text = newText.trim();
+          this.renderTimelineList();
+        }
+      }
+    },
+
     removeTimelineUpdate(index) {
       if (index >= 0 && index < this.selectedTimelineUpdates.length) {
-        this.selectedTimelineUpdates.splice(index, 1);
-        this.renderTimelineList();
+        if (confirm('Tem certeza que deseja remover esta atualização?')) {
+          this.selectedTimelineUpdates.splice(index, 1);
+          this.renderTimelineList();
+        }
       }
     },
 
@@ -834,9 +881,14 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
               </div>
               <p class="text-slate-200 text-[11px] leading-relaxed break-words margin-0">${item.text}</p>
             </div>
-            <button type="button" onclick="app.removeRpaTimelineUpdate(${idx})" class="text-slate-500 hover:text-rose-400 cursor-pointer text-xs p-1 transition-colors" title="Remover atualização">
-              <i class="fa-solid fa-trash-can"></i>
-            </button>
+            <div class="flex items-center gap-1 shrink-0">
+              <button type="button" onclick="app.editRpaTimelineUpdate(${idx})" class="text-slate-400 hover:text-sky-400 cursor-pointer text-xs p-1 transition-colors" title="Editar atualização">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button type="button" onclick="app.removeRpaTimelineUpdate(${idx})" class="text-slate-400 hover:text-rose-400 cursor-pointer text-xs p-1 transition-colors" title="Remover atualização">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
           </div>
         `;
       }).join('');
@@ -1254,6 +1306,10 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
         }
       };
 
+      this.activeId = id || null;
+      const pdfBtn = document.getElementById('btn-rpa-edit-export-pdf');
+      if (pdfBtn) pdfBtn.style.display = id ? 'inline-flex' : 'none';
+
       if (id) {
         const item = this.pendencies.find(i => i.id === id);
         if (item) {
@@ -1464,15 +1520,80 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
         return;
       }
 
-      listEl.innerHTML = notes.map(n => `
-        <div class="mb-2.5 pb-2.5 border-b border-white/5 last:border-none last:mb-0 last:pb-0">
-          <div class="flex items-center justify-between gap-2 mb-1">
-            <span class="text-[11px] font-bold text-emerald-400"><i class="fa-solid fa-user me-1"></i>${n.author || 'Usuário'}</span>
-            <span class="text-[10px] text-slate-400 font-mono">${new Date(n.date).toLocaleDateString('pt-BR')}</span>
+      listEl.innerHTML = notes.map((n, idx) => `
+        <div class="mb-2.5 pb-2.5 border-b border-white/5 last:border-none last:mb-0 last:pb-0 flex items-start justify-between gap-2">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <span class="text-[11px] font-bold text-emerald-400"><i class="fa-solid fa-user me-1"></i>${n.author || 'Usuário'}</span>
+              <span class="text-[10px] text-slate-400 font-mono">${new Date(n.date).toLocaleDateString('pt-BR')}</span>
+            </div>
+            <p class="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">${n.text}</p>
           </div>
-          <p class="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">${n.text}</p>
+          <div class="flex items-center gap-1 shrink-0 mt-0.5">
+            <button type="button" onclick="app.editRpaNote(${idx})" class="text-slate-400 hover:text-sky-400 cursor-pointer text-xs p-1 transition-colors" title="Editar nota">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button type="button" onclick="app.deleteRpaNote(${idx})" class="text-slate-400 hover:text-rose-400 cursor-pointer text-xs p-1 transition-colors" title="Excluir nota">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
         </div>
       `).join('');
+    },
+
+    async editNote(index) {
+      const id = this.activeId;
+      if (!id) return;
+
+      const item = this.pendencies.find(i => i.id === id);
+      if (!item || !Array.isArray(item.history_notes) || !item.history_notes[index]) return;
+
+      const currentText = item.history_notes[index].text || '';
+      const newText = prompt('Editar nota / cobrança:', currentText);
+
+      if (newText !== null && newText.trim() !== '') {
+        item.history_notes[index].text = newText.trim();
+        const nowIso = new Date().toISOString();
+        item.updated_at = nowIso;
+
+        this.saveLocal();
+        this.renderNotesList(item);
+
+        if (window.supabaseClient) {
+          try {
+            await window.supabaseClient.from('rpa_pendencies').update({
+              history_notes: item.history_notes,
+              updated_at: nowIso
+            }).eq('id', id);
+          } catch (_) {}
+        }
+      }
+    },
+
+    async deleteNote(index) {
+      const id = this.activeId;
+      if (!id) return;
+
+      const item = this.pendencies.find(i => i.id === id);
+      if (!item || !Array.isArray(item.history_notes) || !item.history_notes[index]) return;
+
+      if (!confirm('Tem certeza que deseja excluir esta nota de cobrança?')) return;
+
+      item.history_notes.splice(index, 1);
+      const nowIso = new Date().toISOString();
+      item.updated_at = nowIso;
+
+      this.saveLocal();
+      this.renderNotesList(item);
+
+      if (window.supabaseClient) {
+        try {
+          await window.supabaseClient.from('rpa_pendencies').update({
+            history_notes: item.history_notes,
+            updated_at: nowIso
+          }).eq('id', id);
+        } catch (_) {}
+      }
     },
 
     closeDetailsModal() {
@@ -1581,7 +1702,7 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
       this.renderView();
     },
 
-    printReport() {
+    printReport(targetId = null) {
       let printContainer = document.getElementById('rpa-print-report-container');
       if (!printContainer) {
         printContainer = document.createElement('div');
@@ -1590,15 +1711,34 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
         document.body.appendChild(printContainer);
       }
 
+      const isLightTheme = document.body.classList.contains('light-theme');
       const nowStr = new Date().toLocaleDateString('pt-BR') + ' às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-      const items = this.getFilteredPendencies();
+      let items = [];
+      let isSingle = false;
+
+      if (targetId) {
+        const found = this.pendencies.find(i => i.id === targetId || i.seqId === targetId);
+        if (found) {
+          items = [found];
+          isSingle = true;
+        }
+      }
+
+      if (!items.length) {
+        items = this.getFilteredPendencies();
+      }
+
       const totalCount = items.length;
       const openCount = items.filter(i => i.status !== 'RESOLVIDO').length;
       const resolvedCount = items.filter(i => i.status === 'RESOLVIDO').length;
       const authorStr = window.app?.userName || 'Administrador';
 
+      const reportTitle = isSingle 
+        ? `Relatório Executivo de Ocorrência — Robô: ${items[0]?.robo_name || items[0]?.robotName || items[0]?.title}`
+        : 'Relatório Executivo de Pendências de Robôs em Produção';
+
       const cardsHtml = items.map((item, idx) => {
-        const robotList = (item.robo_name || '').split(',').map(s => s.trim()).filter(Boolean);
+        const robotList = (item.robo_name || item.robotName || '').split(',').map(s => s.trim()).filter(Boolean);
         const robotPills = robotList.map(r => `<span class="rpa-print-pill-robot">🤖 ${r}</span>`).join(' ');
 
         const respList = (item.responsible || '').split(/;|;/).map(s => s.trim()).filter(Boolean);
@@ -1615,6 +1755,9 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
         if (item.status === 'EM_VALIDACAO') { statusLabel = 'Em Validação'; statusClass = 'rpa-print-badge-analysis'; }
         else if (item.status === 'RESOLVIDO') { statusLabel = 'Resolvido'; statusClass = 'rpa-print-badge-resolved'; }
 
+        const createdDate = item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : '—';
+        const updatedDate = item.updated_at ? new Date(item.updated_at).toLocaleDateString('pt-BR') : createdDate;
+
         const notes = item.history_notes || [];
         let timelineRows = '';
         if (Array.isArray(notes) && notes.length > 0) {
@@ -1626,14 +1769,12 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
                   <span class="rpa-print-timeline-date">📅 ${dStr}</span>
                   <span class="rpa-print-timeline-author">por ${n.author || 'Usuário'}</span>
                 </div>
-                <div class="rpa-print-timeline-text">${n.text}</div>
+                <div class="rpa-print-timeline-text" style="white-space: pre-wrap; word-break: break-word;">${n.text || ''}</div>
               </div>
             `;
           }).join('');
-        } else if (item.description) {
-          timelineRows = `<div class="rpa-print-timeline-text">${item.description}</div>`;
         } else {
-          timelineRows = `<div style="color:#94a3b8; font-style:italic; font-size:11px;">Sem atualizações registradas</div>`;
+          timelineRows = `<div style="opacity:0.7; font-style:italic; font-size:11px;">Sem observações ou notas de cobrança adicionais.</div>`;
         }
 
         return `
@@ -1648,13 +1789,21 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
 
             <h3 class="rpa-print-card-title">${idx + 1}. ${item.title}</h3>
 
-            <div class="rpa-print-card-resp-row">
-              <span class="rpa-print-label">Responsável(is):</span>
-              <div class="rpa-print-resps">${respPills || item.responsible}</div>
+            <div class="rpa-print-card-resp-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; padding: 10px; border-radius: 8px; border: 1px solid rgba(128,128,128,0.2);">
+              <div><span class="rpa-print-label">Responsável(is):</span> <strong>${item.responsible || '—'}</strong></div>
+              <div><span class="rpa-print-label">Data Ocorrência:</span> <strong>${createdDate}</strong></div>
+              <div><span class="rpa-print-label">Última Atualização:</span> <strong>${updatedDate}</strong></div>
             </div>
 
+            ${item.description ? `
+              <div class="rpa-print-timeline-box" style="margin-bottom: 12px;">
+                <div class="rpa-print-timeline-title">📄 Descrição / Ocorrência Detalhada:</div>
+                <div class="rpa-print-timeline-text" style="white-space: pre-wrap; word-break: break-word; font-size: 12px; line-height: 1.5;">${item.description}</div>
+              </div>
+            ` : ''}
+
             <div class="rpa-print-timeline-box">
-              <div class="rpa-print-timeline-title">🕒 Linha do Tempo de Evolução:</div>
+              <div class="rpa-print-timeline-title">🕒 Linha do Tempo & Histórico de Cobrança:</div>
               ${timelineRows}
             </div>
           </div>
@@ -1674,23 +1823,25 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
                 <div><strong>Gerado por:</strong> ${authorStr}</div>
               </div>
             </div>
-            <h1 class="rpa-print-title">Relatório Executivo de Pendências de Robôs em Produção</h1>
+            <h1 class="rpa-print-title">${reportTitle}</h1>
           </div>
 
-          <div class="rpa-print-kpi-grid">
-            <div class="rpa-print-kpi-box">
-              <div class="rpa-print-kpi-num text-amber-600">${totalCount}</div>
-              <div class="rpa-print-kpi-label">TOTAL DE PENDÊNCIAS</div>
+          ${isSingle ? '' : `
+            <div class="rpa-print-kpi-grid">
+              <div class="rpa-print-kpi-box">
+                <div class="rpa-print-kpi-num text-rose-600">${openCount}</div>
+                <div class="rpa-print-kpi-label">EM ABERTO / CRÍTICAS</div>
+              </div>
+              <div class="rpa-print-kpi-box">
+                <div class="rpa-print-kpi-num text-emerald-600">${resolvedCount}</div>
+                <div class="rpa-print-kpi-label">RESOLVIDAS / MONITORADAS</div>
+              </div>
+              <div class="rpa-print-kpi-box">
+                <div class="rpa-print-kpi-num text-amber-600">${totalCount}</div>
+                <div class="rpa-print-kpi-label">TOTAL DE PENDÊNCIAS</div>
+              </div>
             </div>
-            <div class="rpa-print-kpi-box">
-              <div class="rpa-print-kpi-num text-rose-600">${openCount}</div>
-              <div class="rpa-print-kpi-label">EM ABERTO / CRÍTICAS</div>
-            </div>
-            <div class="rpa-print-kpi-box">
-              <div class="rpa-print-kpi-num text-emerald-600">${resolvedCount}</div>
-              <div class="rpa-print-kpi-label">RESOLVIDAS</div>
-            </div>
-          </div>
+          `}
 
           <div class="rpa-print-cards-list">
             ${cardsHtml}
@@ -1702,10 +1853,20 @@ var RpaPendenciesModule = window.RpaPendenciesModule = {
         </div>
       `;
 
+      const originalTitle = document.title;
+      document.title = `Relatorio_Executivo_RPA_${new Date().toISOString().split('T')[0]}`;
+
       document.body.classList.add('printing-rpa-report');
+      if (isLightTheme) {
+        document.body.classList.add('printing-light-theme');
+      }
+
       window.print();
+
       setTimeout(() => {
         document.body.classList.remove('printing-rpa-report');
+        document.body.classList.remove('printing-light-theme');
+        document.title = originalTitle;
         if (printContainer) printContainer.innerHTML = '';
       }, 500);
     },

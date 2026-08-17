@@ -98,6 +98,38 @@ const app = {
         .replace(/Ã/g, 'À'); // Fallback final para 'Ã' isolado que não foi pego pelo decode
     };
 
+    const cleanRequesterNameHelper = (name) => {
+      if (!name || typeof name !== 'string') return name || '';
+      let str = name.trim();
+      if (!str) return '';
+
+      const sepMatch = str.match(/[\-–—]/);
+      if (sepMatch) {
+        const parts = str.split(/[\-–—]/);
+        if (parts[0] && parts[0].trim()) {
+          str = parts[0].trim();
+        }
+      }
+
+      const lowerWords = new Set(['de', 'da', 'do', 'dos', 'das', 'e', 'del']);
+      const acronyms = new Set(['RPA', 'TI', 'BKO', 'PJ', 'SCD', 'GAU', 'CRM', 'API']);
+      const subParts = str.split(/([;/])/);
+
+      return subParts.map(sub => {
+        if (sub === ';' || sub === '/') return sub;
+        const words = sub.trim().split(/\s+/).filter(Boolean);
+        if (!words.length) return '';
+
+        return words.map((w, idx) => {
+          const upperW = w.toUpperCase();
+          if (acronyms.has(upperW)) return upperW;
+          const cleanW = w.toLowerCase();
+          if (idx > 0 && lowerWords.has(cleanW)) return cleanW;
+          return cleanW.replace(/[a-zà-ú]/i, letter => letter.toUpperCase());
+        }).join(' ');
+      }).join(' ');
+    };
+
     const cleanItem = (item) => {
       if (!item) return item;
       if (item.title) item.title = fixText(item.title);
@@ -105,9 +137,10 @@ const app = {
       if (item.description) item.description = fixText(item.description);
       if (item.taskDescription) item.taskDescription = fixText(item.taskDescription);
       if (item.notes) item.notes = fixText(item.notes);
-      if (item.requester) item.requester = fixText(item.requester);
-      if (item.requesterName) item.requesterName = fixText(item.requesterName);
-      if (item.completedBy) item.completedBy = fixText(item.completedBy);
+      if (item.requester) item.requester = cleanRequesterNameHelper(fixText(item.requester));
+      if (item.requesterName) item.requesterName = cleanRequesterNameHelper(fixText(item.requesterName));
+      if (item.completedBy && item.completedBy !== 'Analista Squad') item.completedBy = cleanRequesterNameHelper(fixText(item.completedBy));
+      if (item.responsible) item.responsible = cleanRequesterNameHelper(fixText(item.responsible));
       if (item.gains) item.gains = fixText(item.gains);
       return item;
     };
@@ -145,7 +178,7 @@ const app = {
   // INICIALIZAÇÃO
   // ============================================================
   async init() {
-    console.log('[APP INIT v10.0.0] Iniciando Controle de Squads [PRD]...');
+    console.log('[APP INIT v10.0.0] Iniciando Controle de Squads [HML]...');
     this.ensureStateSanity();
     this.loadTheme();
     this.setupInactivityMonitor();
@@ -415,6 +448,7 @@ const app = {
             await this.loadStateFromSupabase();
             this.loadUsersState();
             this.seedDefaultDataIfEmpty();
+            this.ensureSquadSeqIds();
             this.setupRealtimeSync();
             this.restoreLastSyncTime();
             this.render();
@@ -976,6 +1010,77 @@ const app = {
         if (searchInput) searchInput.focus();
       }
     });
+  },
+
+  // Garantir IDs sequenciais por squad baseados na Data de Criação (mais antigo = 1)
+  ensureSquadSeqIds() {
+    const parseCreationTs = (item) => {
+      if (!item) return 0;
+      const raw = item.rawCreated || item.createdDate || item.createdAt || item.date || item.created;
+      if (!raw) return 0;
+      if (typeof raw === 'number') return raw;
+      const str = String(raw).trim();
+      if (str.includes('/')) {
+        const parts = str.split('/');
+        if (parts.length >= 3) {
+          const day = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1;
+          let rest = parts[2].trim();
+          let year = parseInt(rest.split(' ')[0], 10);
+          if (year < 100) year += 2000;
+          return new Date(year, month, day).getTime();
+        }
+      }
+      const parsed = new Date(str).getTime();
+      return isNaN(parsed) ? 0 : parsed;
+    };
+
+    ['dados', 'operacoes', 'rpa'].forEach(squadId => {
+      const backlog = this.state.backlogItems[squadId] || [];
+      const completed = this.state.completedTasks[squadId] || [];
+      const allItems = [].concat(backlog, completed);
+      if (allItems.length === 0) return;
+      allItems.sort((a, b) => parseCreationTs(a) - parseCreationTs(b));
+      allItems.forEach((item, idx) => {
+        item.seqId = idx + 1;
+      });
+    });
+
+    this.saveState();
+    console.log('[SeqId] IDs sequenciais atribuídos a todas as squads.');
+  },
+
+  // Higienizar nome do solicitante descartando sufixos (ex: "- Natura Pay") e formatando caixas altas em Title Case
+  cleanRequesterName(name) {
+    if (!name || typeof name !== 'string') return name || '';
+    let str = name.trim();
+    if (!str) return '';
+
+    const sepMatch = str.match(/[\-–—]/);
+    if (sepMatch) {
+      const parts = str.split(/[\-–—]/);
+      if (parts[0] && parts[0].trim()) {
+        str = parts[0].trim();
+      }
+    }
+
+    const lowerWords = new Set(['de', 'da', 'do', 'dos', 'das', 'e', 'del']);
+    const acronyms = new Set(['RPA', 'TI', 'BKO', 'PJ', 'SCD', 'GAU', 'CRM', 'API']);
+    const subParts = str.split(/([;/])/);
+
+    return subParts.map(sub => {
+      if (sub === ';' || sub === '/') return sub;
+      const words = sub.trim().split(/\s+/).filter(Boolean);
+      if (!words.length) return '';
+
+      return words.map((w, idx) => {
+        const upperW = w.toUpperCase();
+        if (acronyms.has(upperW)) return upperW;
+        const cleanW = w.toLowerCase();
+        if (idx > 0 && lowerWords.has(cleanW)) return cleanW;
+        return cleanW.replace(/[a-zà-ú]/i, letter => letter.toUpperCase());
+      }).join(' ');
+    }).join(' ');
   },
 
   restoreLastSyncTime() {
@@ -2037,7 +2142,8 @@ const app = {
     this.activeDemandItemId = item.id;
 
     document.getElementById('detail-gau-key').textContent = item.jiraKey || item.gau || 'GAU-000';
-    document.getElementById('detail-priority').textContent = item.priority || '2 - Alta';
+    const priorityEl = document.getElementById('detail-priority');
+    if (priorityEl) priorityEl.style.display = 'none';
     document.getElementById('detail-title').textContent = item.title || item.taskTitle || 'Demanda do Jira';
     document.getElementById('detail-requester').textContent = item.requesterName || item.requester || item.completedBy || item.requesterArea || 'Solicitante Jira';
     
@@ -2350,7 +2456,44 @@ const app = {
     this.renderTimelineList(item);
   },
 
-  // Renderizar a lista em formato de Linha do Tempo com Scrollbar
+  // Editar entrada da linha do tempo da demanda
+  editTimelineEntry(idx) {
+    if (!this.activeDemandItemId) return;
+    const squadKey = this.activeDemandSquadKey || this.activeSquad;
+    const item = (this.state.backlogItems[squadKey] || []).find(i => i.id === this.activeDemandItemId || i.gau === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId) ||
+                 (this.state.completedTasks[squadKey] || []).find(i => i.id === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId) ||
+                 (this.state.triageItems || []).find(i => i.id === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId);
+
+    if (!item || !Array.isArray(item.timelineEntries) || !item.timelineEntries[idx]) return;
+
+    const currentText = item.timelineEntries[idx].text || '';
+    const newText = prompt('Editar atualização da linha do tempo:', currentText);
+
+    if (newText !== null && newText.trim() !== '') {
+      item.timelineEntries[idx].text = newText.trim();
+      this.saveState();
+      this.renderTimelineList(item);
+    }
+  },
+
+  // Excluir entrada da linha do tempo da demanda
+  deleteTimelineEntry(idx) {
+    if (!this.activeDemandItemId) return;
+    const squadKey = this.activeDemandSquadKey || this.activeSquad;
+    const item = (this.state.backlogItems[squadKey] || []).find(i => i.id === this.activeDemandItemId || i.gau === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId) ||
+                 (this.state.completedTasks[squadKey] || []).find(i => i.id === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId) ||
+                 (this.state.triageItems || []).find(i => i.id === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId);
+
+    if (!item || !Array.isArray(item.timelineEntries) || !item.timelineEntries[idx]) return;
+
+    if (confirm('Tem certeza que deseja excluir esta atualização da linha do tempo?')) {
+      item.timelineEntries.splice(idx, 1);
+      this.saveState();
+      this.renderTimelineList(item);
+    }
+  },
+
+  // Renderizar a lista em formato de Linha do Tempo com Scrollbar e botões de Editar e Excluir
   renderTimelineList(item) {
     const listEl = document.getElementById('followup-timeline-list');
     if (!listEl) return;
@@ -2362,11 +2505,23 @@ const app = {
       return;
     }
 
-    listEl.innerHTML = entries.map(entry => `
-      <div class="timeline-item">
-        <div class="timeline-dot"></div>
-        <div class="timeline-date">${entry.date}</div>
-        <div class="timeline-text">${entry.text}</div>
+    listEl.innerHTML = entries.map((entry, idx) => `
+      <div class="timeline-item" style="display:flex; align-items:flex-start; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+        <div style="flex:1; min-width:0;">
+          <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
+            <span style="color:#34d399; font-weight:700; font-size:10px; font-family:monospace;">📅 ${entry.date}</span>
+            ${entry.author ? `<span style="color:#94a3b8; font-size:10px;">por ${entry.author}</span>` : ''}
+          </div>
+          <div style="color:#e2e8f0; font-size:11px; line-height:1.4; word-break:break-word;">${entry.text}</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:4px; shrink:0;">
+          <button type="button" onclick="app.editTimelineEntry(${idx})" style="background:none; border:none; color:#60a5fa; cursor:pointer; font-size:11px; padding:2px 4px;" title="Editar atualização">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+          <button type="button" onclick="app.deleteTimelineEntry(${idx})" style="background:none; border:none; color:#f87171; cursor:pointer; font-size:11px; padding:2px 4px;" title="Excluir atualização">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
       </div>
     `).join('');
   },
@@ -3069,6 +3224,9 @@ const app = {
       return matchSearch && matchTeam;
     });
 
+    const boardBadge = document.getElementById('board-count-badge');
+    if (boardBadge) boardBadge.textContent = `${filteredItems.length} demandas`;
+
     if (filteredItems.length === 0) {
       tbody.innerHTML = `
         <tr>
@@ -3080,11 +3238,11 @@ const app = {
 
     tbody.innerHTML = filteredItems.map((item, idx) => `
       <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
-        <td class="font-bold text-slate-400" style="white-space:nowrap; width:40px;">${idx + 1}</td>
-        <td class="font-extrabold text-emerald-400" style="white-space:nowrap; width:95px;">${item.gau || item.jiraKey || 'GAU-000'}</td>
+        <td class="font-black text-sky-400" style="white-space:nowrap; width:48px;">${item.seqId ? '#' + item.seqId : '—'}</td>
+        <td class="font-extrabold text-emerald-400" style="white-space:nowrap; width:85px;">${item.gau || item.jiraKey || 'GAU-000'}</td>
         <td class="font-semibold text-white" style="white-space:normal; word-break:break-word; line-height:1.4;">${item.title}</td>
-        <td class="text-slate-300" style="white-space:nowrap; width:130px;">${item.requester || 'Solicitante Jira'}</td>
-        <td onclick="event.stopPropagation();" style="white-space:nowrap; width:135px;">
+        <td class="text-slate-300" style="white-space:nowrap; width:115px;">${this.cleanRequesterName(item.requester || 'Solicitante Jira')}</td>
+        <td onclick="event.stopPropagation();" style="white-space:nowrap; width:118px;">
           <select class="team-solicitante-select" onchange="app.changeTeamSolicitante('${item.id}', this.value)">
             <option value="">— Selecione —</option>
             <option value="Atendimento" ${item.teamSolicitante === 'Atendimento' ? 'selected' : ''}>Atendimento</option>
@@ -3092,7 +3250,7 @@ const app = {
             <option value="Suporte Operacional" ${item.teamSolicitante === 'Suporte Operacional' ? 'selected' : ''}>Suporte Operacional</option>
           </select>
         </td>
-        <td onclick="event.stopPropagation();" style="white-space:nowrap; width:130px;">
+        <td onclick="event.stopPropagation();" style="white-space:nowrap; width:105px;">
           <select class="status-select-dropdown status-em-andamento ${item.status === 'Bloqueado' ? 'status-bloqueado' : ''}" onchange="app.changeDemandStatus('${item.id}', this.value)">
             <option value="Em Andamento" ${item.status === 'Em Andamento' ? 'selected' : ''}>Em Andamento</option>
             <option value="Bloqueado" ${item.status === 'Bloqueado' ? 'selected' : ''}>Bloqueado</option>
@@ -3100,7 +3258,7 @@ const app = {
             <option value="Concluído" ${item.status === 'Concluído' ? 'selected' : ''}>Concluído</option>
           </select>
         </td>
-        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; width:100px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
+        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; width:90px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
       </tr>
     `).join('');
   },
@@ -3115,13 +3273,14 @@ const app = {
     if (headEl) {
       headEl.innerHTML = `
         <tr>
-          <th style="width: 55px; white-space: nowrap;">Ordem</th>
-          <th style="width: 95px; white-space: nowrap;">GAU / Chave</th>
-          <th style="min-width: 170px;">Título da Demanda</th>
-          <th style="width: 130px; white-space: nowrap;">Solicitante</th>
-          <th style="width: 135px; white-space: nowrap;">Time Solicitante</th>
-          ${isAdmin ? '<th style="width: 130px; white-space: nowrap;">Status</th>' : ''}
-          <th style="width: 100px; white-space: nowrap;">Data de Criação</th>
+          <th style="width: 48px; white-space: nowrap;">ID</th>
+          <th style="width: 50px; white-space: nowrap;">Ordem</th>
+          <th style="width: 85px; white-space: nowrap;">GAU / Chave</th>
+          <th style="min-width: 150px;">Título da Demanda</th>
+          <th style="width: 115px; white-space: nowrap;">Solicitante</th>
+          <th style="width: 118px; white-space: nowrap;">Time Solicitante</th>
+          ${isAdmin ? '<th style="width: 105px; white-space: nowrap;">Status</th>' : ''}
+          <th style="width: 90px; white-space: nowrap;">Data de Criação</th>
         </tr>
       `;
     }
@@ -3202,7 +3361,10 @@ const app = {
       return matchSearch && matchTeam;
     });
 
-    const colSpan = isAdmin ? 7 : 6;
+    const backlogBadge = document.getElementById('backlog-count-badge');
+    if (backlogBadge) backlogBadge.textContent = `${filteredItems.length} demandas`;
+
+    const colSpan = isAdmin ? 8 : 7;
     if (filteredItems.length === 0) {
       tbody.innerHTML = `
         <tr>
@@ -3214,6 +3376,7 @@ const app = {
 
     tbody.innerHTML = filteredItems.map((item) => `
       <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
+        <td class="font-black text-sky-400" style="white-space:nowrap; width:50px;">${item.seqId ? '#' + item.seqId : '—'}</td>
         <td onclick="event.stopPropagation();" style="white-space:nowrap; width:55px;">
           <input type="number" min="1" value="${item.treatmentOrder}"
             class="order-input-field"
@@ -3225,10 +3388,10 @@ const app = {
             autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other"
           />
         </td>
-        <td class="font-extrabold text-emerald-400" style="white-space:nowrap; width:95px;">${item.gau || item.jiraKey || 'GAU-000'}</td>
+        <td class="font-extrabold text-emerald-400" style="white-space:nowrap; width:85px;">${item.gau || item.jiraKey || 'GAU-000'}</td>
         <td class="font-semibold text-white" style="white-space:normal; word-break:break-word; line-height:1.4;">${item.title}</td>
-        <td class="text-slate-300" style="white-space:nowrap; width:130px;">${item.requester || 'Solicitante Jira'}</td>
-        <td onclick="event.stopPropagation();" style="white-space:nowrap; width:135px;">
+        <td class="text-slate-300" style="white-space:nowrap; width:115px;">${this.cleanRequesterName(item.requester || 'Solicitante Jira')}</td>
+        <td onclick="event.stopPropagation();" style="white-space:nowrap; width:118px;">
           <select class="team-solicitante-select" onchange="app.changeTeamSolicitante('${item.id}', this.value)" ${isAdmin ? '' : 'disabled="true" style="pointer-events:none; opacity:0.75;"'}>
             <option value="">— Selecione —</option>
             <option value="Atendimento" ${item.teamSolicitante === 'Atendimento' ? 'selected' : ''}>Atendimento</option>
@@ -3237,7 +3400,7 @@ const app = {
           </select>
         </td>
         ${isAdmin ? `
-          <td onclick="event.stopPropagation();" style="white-space:nowrap; width:130px;">
+          <td onclick="event.stopPropagation();" style="white-space:nowrap; width:105px;">
             <select class="status-select-dropdown status-backlog ${item.status === 'Bloqueado' ? 'status-bloqueado' : ''}" onchange="app.changeDemandStatus('${item.id}', this.value)">
               <option value="Backlog" ${item.status === 'Backlog' ? 'selected' : ''}>Backlog</option>
               <option value="Em Andamento" ${item.status === 'Em Andamento' ? 'selected' : ''}>Em Andamento</option>
@@ -3245,7 +3408,7 @@ const app = {
             </select>
           </td>
         ` : ''}
-        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; width:100px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
+        <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; width:90px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
       </tr>
     `).join('');
   },
@@ -3374,15 +3537,16 @@ const app = {
     document.getElementById('completed-count-badge').textContent = `${filteredItems.length} entregas`;
 
     if (filteredItems.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-500 font-semibold">Nenhuma entrega concluída encontrada.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-500 font-semibold">Nenhuma entrega concluída encontrada.</td></tr>`;
       return;
     }
 
     tbody.innerHTML = filteredItems.map(item => `
       <tr class="hover:bg-white/5 cursor-pointer transition-all" onclick="app.openDemandDetailsModal('${item.id}')">
+        <td class="font-black text-sky-400" style="white-space:nowrap; width:50px;">${item.seqId ? '#' + item.seqId : '—'}</td>
         <td class="font-extrabold text-emerald-400" style="white-space:nowrap; width:95px;">${this.getItemGau(item)}</td>
         <td class="font-semibold text-white" style="white-space:normal; word-break:break-word; line-height:1.4;">${item.title || item.taskTitle}</td>
-        <td class="text-slate-300" style="white-space:nowrap; width:130px;">${item.requester || item.completedBy || item.requesterName || 'Solicitante Jira'}</td>
+        <td class="text-slate-300" style="white-space:nowrap; width:130px;">${this.cleanRequesterName(item.requester || item.completedBy || item.requesterName || 'Solicitante Jira')}</td>
         <td class="text-sky-300 font-semibold text-xs" style="white-space:nowrap; width:135px;">${item.teamSolicitante || '—'}</td>
         <td class="text-amber-400 font-semibold text-xs" style="white-space:nowrap; width:100px;">${this.formatOnlyDate(item.createdDate || item.date || item.createdAt)}</td>
         <td class="text-slate-300 font-semibold text-xs" style="white-space:nowrap; width:100px;">${this.formatOnlyDate(item.completionDate || item.completedAt)}</td>
@@ -3473,11 +3637,12 @@ const app = {
       });
 
       exportData = filtered.map((item) => ({
+        'ID': item.seqId ? `#${item.seqId}` : '',
         'Ordem': item.treatmentOrder || '',
         'GAU / Chave': item.gau || item.jiraKey || 'GAU-000',
         'Título da Demanda': item.title || '',
         'Descrição Completa do Chamado': item.notes || item.description || item.taskDescription || '',
-        'Solicitante': item.requester || 'Solicitante Jira',
+        'Solicitante': this.cleanRequesterName(item.requester || 'Solicitante Jira'),
         'Time Solicitante': item.teamSolicitante || '',
         'Status': item.status || 'Backlog',
         'Data de Criação': this.formatOnlyDate(item.createdDate || item.date || item.createdAt)
@@ -3505,12 +3670,12 @@ const app = {
         return matchSearch && matchTeam;
       });
 
-      exportData = filtered.map((item, idx) => ({
-        'Item #': idx + 1,
+      exportData = filtered.map((item) => ({
+        'ID': item.seqId ? `#${item.seqId}` : '',
         'GAU / Chave': item.gau || item.jiraKey || 'GAU-000',
         'Título da Demanda': item.title || '',
         'Descrição Completa do Chamado': item.notes || item.description || item.taskDescription || '',
-        'Solicitante': item.requester || 'Solicitante Jira',
+        'Solicitante': this.cleanRequesterName(item.requester || 'Solicitante Jira'),
         'Time Solicitante': item.teamSolicitante || '',
         'Status': item.status || 'Em Andamento',
         'Data de Criação': this.formatOnlyDate(item.createdDate || item.date || item.createdAt)
@@ -3538,10 +3703,11 @@ const app = {
       });
 
       exportData = filtered.map((item) => ({
+        'ID': item.seqId ? `#${item.seqId}` : '',
         'GAU / Chave': this.getItemGau(item),
         'Título da Demanda': item.title || item.taskTitle || '',
         'Descrição Completa do Chamado': item.description || item.notes || item.taskDescription || '',
-        'Solicitante': item.requester || item.completedBy || item.requesterName || 'Solicitante Jira',
+        'Solicitante': this.cleanRequesterName(item.requester || item.completedBy || item.requesterName || 'Solicitante Jira'),
         'Time Solicitante': item.teamSolicitante || '',
         'Data de Criação': this.formatOnlyDate(item.createdDate || item.date || item.createdAt),
         'Data de Conclusão': this.formatOnlyDate(item.completionDate || item.completedAt),
@@ -3661,6 +3827,176 @@ const app = {
 
     document.body.classList.remove('printing-mode');
     document.title = originalTitle;
+  },
+
+  // Exportar Detalhes da Demanda Ativa no Modal para PDF (Com Histórico Completo)
+  exportDemandModalPDF() {
+    const itemId = this.activeDemandItemId;
+    let item = null;
+
+    if (itemId) {
+      item = (this.state.triageItems || []).find(i => i.id === itemId || i.jiraKey === itemId) || 
+             (this.state.backlogItems?.dados || []).find(i => i.id === itemId || i.gau === itemId || i.jiraKey === itemId) ||
+             (this.state.backlogItems?.operacoes || []).find(i => i.id === itemId || i.gau === itemId || i.jiraKey === itemId) ||
+             (this.state.backlogItems?.rpa || []).find(i => i.id === itemId || i.gau === itemId || i.jiraKey === itemId) ||
+             (this.state.completedTasks?.dados || []).find(i => i.id === itemId || i.jiraKey === itemId) ||
+             (this.state.completedTasks?.operacoes || []).find(i => i.id === itemId || i.jiraKey === itemId) ||
+             (this.state.completedTasks?.rpa || []).find(i => i.id === itemId || i.jiraKey === itemId);
+    }
+
+    const isLightTheme = document.body.classList.contains('light-theme');
+    const key = item?.seqId ? `#${item.seqId}` : (document.getElementById('detail-gau-key')?.textContent || item?.gau || item?.jiraKey || 'GAU-000');
+    const gauKey = item?.gau || item?.jiraKey || document.getElementById('detail-gau-key')?.textContent || 'GAU-000';
+    const title = item?.title || item?.taskTitle || document.getElementById('detail-title')?.textContent || 'Demanda do Jira';
+    const requester = this.cleanRequesterName(item?.requesterName || item?.requester || item?.completedBy || document.getElementById('detail-requester')?.textContent || 'Solicitante Jira');
+    const team = item?.teamSolicitante || document.getElementById('detail-team-solicitante')?.textContent || '—';
+    const status = item?.status || document.getElementById('detail-status')?.textContent || 'Acompanhamento';
+    const createdDate = this.formatOnlyDate(item?.createdDate || item?.date || item?.createdAt || document.getElementById('detail-created-date')?.textContent);
+    const completionDate = (item?.completionDate || item?.completedAt) ? this.formatOnlyDate(item.completionDate || item.completedAt) : null;
+    const squadName = document.getElementById('detail-squad')?.textContent || 'Squad Operacional';
+    const treatmentOrder = item?.treatmentOrder ? `Ordem #${item.treatmentOrder}` : '—';
+    
+    let description = item?.description || item?.notes || item?.taskDescription || document.getElementById('detail-description')?.textContent || 'Sem descrição fornecida.';
+    
+    // Suporte para parse de ADF JSON (Jira v3) caso ainda venha no formato bruto
+    try {
+      const docPrefix = String.fromCharCode(123) + '"type":"doc"';
+      if (typeof description === 'string' && description.startsWith(docPrefix)) {
+        const doc = JSON.parse(description);
+        if (doc.type === 'doc' && Array.isArray(doc.content)) {
+          let texts = [];
+          function traverse(node) {
+            if (node.type === 'text' && node.text) texts.push(node.text);
+            if (node.type === 'hardBreak' || node.type === 'paragraph') texts.push('\n');
+            if (Array.isArray(node.content)) node.content.forEach(traverse);
+          }
+          doc.content.forEach(traverse);
+          description = texts.join('').trim().replace(/\n{3,}/g, '\n\n') || 'Sem descrição';
+        }
+      }
+    } catch (_) {}
+
+    const gains = item?.gains || document.getElementById('detail-gains')?.value || '';
+
+    // Coletar histórico completo de comentários / anotações / linha do tempo
+    const historyNotes = [].concat(
+      item?.timelineEntries || [],
+      item?.history_notes || [],
+      item?.comments || [],
+      item?.timeline || []
+    ).filter(Boolean);
+
+    let historyHtml = '';
+    if (Array.isArray(historyNotes) && historyNotes.length > 0) {
+      historyHtml = historyNotes.map(n => `
+        <div class="rpa-print-timeline-item">
+          <div class="rpa-print-timeline-header">
+            <span class="rpa-print-timeline-date">📅 ${n.displayDate || n.date || ''}</span>
+            <span class="rpa-print-timeline-author">por ${n.author || 'Usuário'}</span>
+          </div>
+          <div class="rpa-print-timeline-text" style="white-space: pre-wrap; word-break: break-word;">${n.text || n.comment || ''}</div>
+        </div>
+      `).join('');
+    } else {
+      historyHtml = `<div class="rpa-print-timeline-text" style="white-space: pre-wrap; font-size:12px; opacity:0.7; font-style:italic;">Sem observações adicionais registradas no histórico.</div>`;
+    }
+
+    let printContainer = document.getElementById('rpa-print-report-container');
+    if (!printContainer) {
+      printContainer = document.createElement('div');
+      printContainer.id = 'rpa-print-report-container';
+      printContainer.className = 'rpa-print-only-container';
+      document.body.appendChild(printContainer);
+    }
+
+    const nowStr = new Date().toLocaleDateString('pt-BR') + ' às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const authorStr = this.userName || 'Visitante';
+
+    printContainer.innerHTML = `
+      <div class="rpa-print-report-page">
+        <div class="rpa-print-header">
+          <div class="rpa-print-logo-row">
+            <div class="rpa-print-logo">
+              <img src="assets/emanapay-logo.png" alt="Natura Avon EmanaPay Logo" class="rpa-print-logo-img" />
+              <span class="rpa-print-logo-sub">Gestão de Squads & Governança Jira</span>
+            </div>
+            <div class="rpa-print-meta">
+              <div><strong>Emissão:</strong> ${nowStr}</div>
+              <div><strong>Gerado por:</strong> ${authorStr}</div>
+            </div>
+          </div>
+          <h1 class="rpa-print-title">Histórico Completo da Demanda — ${key} (${gauKey})</h1>
+        </div>
+
+        <div class="rpa-print-card" style="margin-top: 16px;">
+          <div class="rpa-print-card-header">
+            <div class="rpa-print-card-robots"><span class="rpa-print-pill-robot">📌 ${squadName}</span></div>
+            <div class="rpa-print-card-badges" style="display:flex; gap:6px;">
+              <span class="rpa-print-badge-partner">${key}</span>
+              <span class="rpa-print-badge-analysis">${gauKey}</span>
+              <span class="rpa-print-badge-resolved">${status}</span>
+            </div>
+          </div>
+
+          <h2 class="rpa-print-card-title" style="font-size: 16px; margin: 14px 0 16px 0;">${title}</h2>
+
+          <div class="rpa-print-card-resp-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; padding: 12px; border-radius: 8px; border: 1px solid rgba(128,128,128,0.2);">
+            <div><span class="rpa-print-label">Solicitante:</span> <strong>${requester}</strong></div>
+            <div><span class="rpa-print-label">Time Solicitante:</span> <strong>${team}</strong></div>
+            <div><span class="rpa-print-label">Squad Alvo:</span> <strong>${squadName}</strong></div>
+            <div><span class="rpa-print-label">Data de Criação:</span> <strong>${createdDate}</strong></div>
+            ${completionDate ? `<div><span class="rpa-print-label">Data de Conclusão:</span> <strong>${completionDate}</strong></div>` : ''}
+            <div><span class="rpa-print-label">Prioridade / Ordem:</span> <strong>${treatmentOrder}</strong></div>
+          </div>
+
+          <div class="rpa-print-timeline-box" style="margin-top: 16px;">
+            <div class="rpa-print-timeline-title">📄 Descrição Completa do Chamado:</div>
+            <div class="rpa-print-timeline-text" style="white-space: pre-wrap; word-break: break-word; font-size: 12px; line-height: 1.6; margin-top: 8px;">${description}</div>
+          </div>
+
+          ${gains && gains !== '—' ? `
+            <div class="rpa-print-timeline-box" style="margin-top: 14px;">
+              <div class="rpa-print-timeline-title">🎁 Ganhos & Entregáveis Registrados:</div>
+              <div class="rpa-print-timeline-text" style="white-space: pre-wrap; word-break: break-word; font-size: 12px; line-height: 1.5; margin-top: 6px;">${gains}</div>
+            </div>
+          ` : ''}
+
+          <div class="rpa-print-timeline-box" style="margin-top: 16px;">
+            <div class="rpa-print-timeline-title">🕒 Linha do Tempo & Histórico de Evolução:</div>
+            ${historyHtml}
+          </div>
+        </div>
+
+        <div class="rpa-print-footer">
+          EmanaPay Control Squads · Relatório Executivo de Acompanhamento da Demanda ${key}
+        </div>
+      </div>
+    `;
+
+    const originalTitle = document.title;
+    document.title = `Demanda_${key.replace('#', '')}_${new Date().toISOString().split('T')[0]}`;
+
+    document.body.classList.add('printing-rpa-report');
+    if (isLightTheme) {
+      document.body.classList.add('printing-light-theme');
+    }
+
+    window.print();
+
+    setTimeout(() => {
+      document.body.classList.remove('printing-rpa-report');
+      document.body.classList.remove('printing-light-theme');
+      document.title = originalTitle;
+      if (printContainer) printContainer.innerHTML = '';
+    }, 500);
+  },
+
+  // Exportar Pendência RPA do Modal para PDF
+  exportRpaPendencyModalPDF() {
+    if (window.RpaPendenciesModule) {
+      const activeId = window.RpaPendenciesModule.activeId || document.getElementById('rpa-edit-id')?.value;
+      window.RpaPendenciesModule.printReport(activeId);
+    }
   },
 
   // Modais Handlers
