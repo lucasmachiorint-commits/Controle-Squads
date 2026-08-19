@@ -1,7 +1,36 @@
 {
-  "updatedAt": "2026-08-19T16:32:29.829Z",
-  "totalCards": 128,
+  "updatedAt": "2026-08-19T17:23:16.499Z",
+  "totalCards": 129,
   "cards": [
+    {
+      "id": "1454188",
+      "key": "GAU-147",
+      "jiraKey": "GAU-147",
+      "title": "Profissão Base Cadastral (Atualização/Inclusão) Recebidos de Eventos de Onboarding",
+      "summary": "Profissão Base Cadastral (Atualização/Inclusão) Recebidos de Eventos de Onboarding",
+      "status": "Aguardando Squad",
+      "categoriaStatus": "Itens Pendentes",
+      "customfield_12475": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+        "value": "Operações NPay",
+        "id": "16005"
+      },
+      "customfield_11010": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/24154",
+        "value": "Conciliação, Parâmetros, Processamento e Adquirência",
+        "id": "24154"
+      },
+      "squad": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+        "value": "Operações NPay",
+        "id": "16005"
+      },
+      "requester": "Bruno Giglio Rocco",
+      "priority": "Média",
+      "category": "Geral",
+      "createdDate": "19/08/2026",
+      "description": "Atualmente a Base Cadastral já possui os campos desenvolvidos de Profissão, em uma tabela.\n\nOs dados de profissão são atualizados, a partir da rotina diária de dados, que captura a informação recebido do Dock Morpheus (tabelas people e people registration).\nEntretanto, hoje na prática o dado não é informado pelo cliente e portanto os dados armazenados são “genéricos”.\nO time de conta está desenvolvendo o campo de profissão no app. Dessa forma, os clientes passarão a informar a profissão no APP.\nO processo do APP de conta, passará a enviar esta profissão informada para a Dock, e é de desejo mandar também para a base Cadastral.\n\nPara a Base Cadastral poder receber este dado e realizar insert/update, é necessário a criação das APIs, para receber este estimulo.\n\nAssim, a demanda é o desenvolvimento desta API para viabilizar o processo de receber de onboarding a profissão, para gravar diretamente na base cadastral, e não precisar esperar o fluxo de dados, que demora pelo menos 1 dia.\n\nAo enviar a informação para a Dock, o time de conta informa um idProfession.\n\nNa Base Cadastral, existe também a tabela de ids, porém na base cadastral existem 2 campos\n - id_profession\n - profession_code\nPara que o id utilizado, seja o mesmo que enviado para a Dock, o campo correspondente é o “profession_code“.\nSe for utilizado o “id_profession”, pode ocorrer descasamento.\n\nDemanda atende pedido de compliance, de capturarmos e termos armazenadsos os dados de profissão declarada pelos nossos clientes."
+    },
     {
       "id": "1437529",
       "key": "GAU-146",
