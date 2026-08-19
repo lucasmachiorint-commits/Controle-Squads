@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-19T17:59:19.606Z",
+  "updatedAt": "2026-08-19T18:29:16.169Z",
   "totalCards": 129,
   "cards": [
     {
@@ -2302,8 +2302,8 @@
       "jiraKey": "GAU-51",
       "title": "Squad Ops | Sustentação - Investigar e corrigir o erro de \"A P2P transaction is already being processed\" - Sistema único de BKO (Zord)",
       "summary": "Squad Ops | Sustentação - Investigar e corrigir o erro de \"A P2P transaction is already being processed\" - Sistema único de BKO (Zord)",
-      "status": "Aguardando Squad",
-      "categoriaStatus": "Itens Pendentes",
+      "status": "Concluído",
+      "categoriaStatus": "Itens concluídos",
       "customfield_12475": {
         "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
         "value": "Operações NPay",
