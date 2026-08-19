@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-19T17:49:36.785Z",
+  "updatedAt": "2026-08-19T17:57:28.343Z",
   "totalCards": 129,
   "cards": [
     {
@@ -727,8 +727,8 @@
       "jiraKey": "GAU-115",
       "title": "Atualização Telefone e Email Dados GPP na Base Cadastral e Dock",
       "summary": "Atualização Telefone e Email Dados GPP na Base Cadastral e Dock",
-      "status": "Aguardando Squad",
-      "categoriaStatus": "Itens Pendentes",
+      "status": "Concluído",
+      "categoriaStatus": "Itens concluídos",
       "customfield_12475": {
         "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
         "value": "Operações NPay",
