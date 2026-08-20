@@ -1,7 +1,26 @@
 {
-  "updatedAt": "2026-08-20T11:54:19.400Z",
-  "totalCards": 129,
+  "updatedAt": "2026-08-20T12:40:37.862Z",
+  "totalCards": 130,
   "cards": [
+    {
+      "id": "1457295",
+      "key": "GAU-148",
+      "jiraKey": "GAU-148",
+      "title": "Consumo de dados da API Equals ",
+      "summary": "Consumo de dados da API Equals ",
+      "status": "Backlog",
+      "categoriaStatus": "Itens Pendentes",
+      "customfield_11010": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/24154",
+        "value": "Conciliação, Parâmetros, Processamento e Adquirência",
+        "id": "24154"
+      },
+      "requester": "Katia Fernanda Barros - Natura",
+      "priority": "Média",
+      "category": "Geral",
+      "createdDate": "20/08/2026",
+      "description": "Objetivo Implementar um pipeline de dados automatizado para consumir a API de Remessa de Integração da Equals e ingerir os dados financeiros e contábeis de vendas, ajustes e transações. O objetivo é carregar essas informações diretamente em nosso Banco de Dados/Data Lake para automatizar a conciliação operacional e contábil."
+    },
     {
       "id": "1454188",
       "key": "GAU-147",
