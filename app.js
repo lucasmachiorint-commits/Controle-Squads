@@ -2407,16 +2407,43 @@ const app = {
     const progressSelect = document.getElementById('followup-dev-progress');
     const gainsTextarea = document.getElementById('followup-ganhos');
 
-    if (roleSelect) item.devRole = roleSelect.value;
-    if (nameInput) item.devName = nameInput.value;
-    if (dateInput) item.targetDeliveryDate = dateInput.value;
-    if (progressSelect) item.devProgress = progressSelect.value;
-    if (gainsTextarea) item.gains = gainsTextarea.value;
+    const devRoleVal = roleSelect ? roleSelect.value : (item.devRole || '');
+    const devNameVal = nameInput ? nameInput.value : (item.devName || '');
+    const targetDeliveryDateVal = dateInput ? dateInput.value : (item.targetDeliveryDate || '');
+    const devProgressVal = progressSelect ? progressSelect.value : (item.devProgress || '0%');
+    const gainsVal = gainsTextarea ? gainsTextarea.value : (item.gains || '');
+
+    item.devRole = devRoleVal;
+    item.devName = devNameVal;
+    item.targetDeliveryDate = targetDeliveryDateVal;
+    item.devProgress = devProgressVal;
+    item.gains = gainsVal;
+
+    // Sincronizar em todos os arrays onde o item possa existir
+    for (const sq of ['dados', 'operacoes', 'rpa']) {
+      const bItem = (this.state.backlogItems[sq] || []).find(i => i.id === this.activeDemandItemId || i.gau === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId);
+      if (bItem && bItem !== item) {
+        bItem.devRole = devRoleVal;
+        bItem.devName = devNameVal;
+        bItem.targetDeliveryDate = targetDeliveryDateVal;
+        bItem.devProgress = devProgressVal;
+        bItem.gains = gainsVal;
+      }
+      const cItem = (this.state.completedTasks[sq] || []).find(i => i.id === this.activeDemandItemId || i.gau === this.activeDemandItemId || i.jiraKey === this.activeDemandItemId);
+      if (cItem && cItem !== item) {
+        cItem.devRole = devRoleVal;
+        cItem.devName = devNameVal;
+        cItem.targetDeliveryDate = targetDeliveryDateVal;
+        cItem.devProgress = devProgressVal;
+        cItem.gains = gainsVal;
+      }
+    }
 
     this.saveState();
     this.renderCompletedView();
     this.renderBoardView();
     this.renderBacklogView();
+    this.renderDashboardView();
   },
 
   // Adicionar entrada na linha do tempo com auto-save no localStorage
@@ -2454,6 +2481,7 @@ const app = {
     if (textInput) textInput.value = '';
     this.saveState();
     this.renderTimelineList(item);
+    this.renderDashboardView();
   },
 
   // Editar entrada da linha do tempo da demanda
@@ -2473,6 +2501,7 @@ const app = {
       item.timelineEntries[idx].text = newText.trim();
       this.saveState();
       this.renderTimelineList(item);
+      this.renderDashboardView();
     }
   },
 
@@ -2490,6 +2519,7 @@ const app = {
       item.timelineEntries.splice(idx, 1);
       this.saveState();
       this.renderTimelineList(item);
+      this.renderDashboardView();
     }
   },
 
@@ -2639,6 +2669,9 @@ const app = {
       }
     } else if (newStatus === 'Concluído' || newStatus === 'Concluido') {
       item.phase = 'concluido';
+      if (!item.completionDate) {
+        item.completionDate = new Date().toLocaleDateString('pt-BR');
+      }
     }
 
     // Se alterado para Concluído, registra no histórico de entregas se não existir
@@ -2711,23 +2744,31 @@ const app = {
   getAllDashboardDemands() {
     let allDemands = [];
     ['dados', 'operacoes', 'rpa'].forEach(squadId => {
-      // 1. Demanda em Backlog / Em Andamento / Bloqueado
-      (this.state.backlogItems[squadId] || []).forEach(item => {
-        allDemands.push({
-          ...item,
-          squadId,
-          itemType: 'active'
-        });
-      });
-
-      // 2. Demandas Concluídas
+      // 1. Demandas Concluídas (Prioridade de dados para itens concluídos como ganhos e data de conclusão)
       (this.state.completedTasks[squadId] || []).forEach(item => {
         allDemands.push({
           ...item,
           squadId,
           status: 'Concluído',
-          itemType: 'completed'
+          itemType: 'completed',
+          gains: item.gains || item.ganhos || item.results || item.beneficios || ''
         });
+      });
+
+      // 2. Demanda em Backlog / Em Andamento / Bloqueado
+      (this.state.backlogItems[squadId] || []).forEach(item => {
+        const matchingCompleted = allDemands.find(d => (d.id && d.id === item.id) || (d.gau && item.gau && d.gau === item.gau) || (d.jiraKey && item.jiraKey && d.jiraKey === item.jiraKey));
+        if (matchingCompleted) {
+          if (!matchingCompleted.teamSolicitante && item.teamSolicitante) matchingCompleted.teamSolicitante = item.teamSolicitante;
+          if (!matchingCompleted.gains && item.gains) matchingCompleted.gains = item.gains;
+        } else {
+          allDemands.push({
+            ...item,
+            squadId,
+            itemType: (item.status === 'Concluído' || item.status === 'Concluido' || item.phase === 'concluido') ? 'completed' : 'active',
+            gains: item.gains || item.ganhos || item.results || item.beneficios || ''
+          });
+        }
       });
     });
 
@@ -2736,7 +2777,7 @@ const app = {
     autoItems.forEach(item => {
       let mappedStatus = 'Backlog';
       if (item.status === 'em-andamento') mappedStatus = 'Em Andamento';
-      else if (item.status === 'concluido') mappedStatus = 'Concluído';
+      else if (item.status === 'concluido' || item.status === 'Concluído' || item.status === 'Concluido') mappedStatus = 'Concluído';
 
       allDemands.push({
         ...item,
@@ -2745,7 +2786,9 @@ const app = {
         teamSolicitante: item.team || 'Conciliação, Parâmetros, Processamento e Adquirência',
         requester: item.requester || 'Solicitante Automação',
         createdDate: item.createdDate || item.createdAt,
-        itemType: item.status === 'concluido' ? 'completed' : 'active'
+        gains: item.gains || item.ganhos || item.results || item.beneficios || '',
+        completionDate: item.completionDate || item.concludedAt || item.completedAt || (mappedStatus === 'Concluído' ? (item.updatedAt || item.createdDate || item.createdAt) : null),
+        itemType: mappedStatus === 'Concluído' ? 'completed' : 'active'
       });
     });
 
@@ -2899,6 +2942,12 @@ const app = {
     // Renderizar a Matriz de 4 Gráficos & Tabela de Bloqueados
     this.renderCharts(demands);
     this.renderDashboardBlockedTable(demands);
+
+    // Renderizar Report Mensal Executivo
+    if (!document.getElementById('monthly-report-month')?.options?.length) {
+      this.populateMonthlyReportMonthSelect();
+    }
+    this.renderMonthlyReportPanel();
   },
 
   renderCharts(demands) {
@@ -3105,16 +3154,24 @@ const app = {
       const squadName = item.squadId === 'dados' ? 'Squad de Dados' : item.squadId === 'operacoes' ? 'Squad de Operações' : item.squadId === 'automacao' ? 'Automação' : 'Squad de RPA';
       const squadColor = item.squadId === 'dados' ? 'text-emerald-400' : item.squadId === 'operacoes' ? 'text-amber-400' : item.squadId === 'automacao' ? 'text-violet-400' : 'text-rose-400';
 
+      let latestReason = '';
+      const entries = (item.timelineEntries && item.timelineEntries.length) ? item.timelineEntries : (this.state.backlogItems[item.squadId] || []).find(i => i.id === item.id || i.gau === item.gau || i.jiraKey === item.jiraKey)?.timelineEntries || [];
+      if (entries.length > 0 && entries[0].text) {
+        latestReason = entries[0].text;
+      } else {
+        latestReason = item.reason || item.bloqueioMotivo || item.impediment || item.notes || 'Aguardando insumo/dependência externa';
+      }
+
       return `
         <tr class="hover:bg-white/5 transition-all">
           <td class="text-slate-400 text-xs font-mono py-3.5 px-4">${idx + 1}</td>
           <td class="text-xs font-bold text-slate-200 font-mono py-3.5 px-4">${item.gau || item.key || 'N/A'}</td>
           <td class="py-3.5 px-4">
             <span class="font-bold text-white text-xs block">${item.title || item.nome}</span>
-            <span class="text-[10px] text-rose-400 block mt-0.5"><i class="fa-solid fa-triangle-exclamation me-1"></i> ${item.reason || item.bloqueioMotivo || 'Aguardando insumo/dependência externa'}</span>
+            <span class="text-[10px] text-rose-400 block mt-0.5"><i class="fa-solid fa-triangle-exclamation me-1"></i> ${latestReason}</span>
           </td>
           <td class="text-xs font-semibold ${squadColor} py-3.5 px-4">${squadName}</td>
-          <td class="text-xs text-slate-300 py-3.5 px-4">${item.requester || item.solicitante || 'N/A'}</td>
+          <td class="text-xs text-slate-300 py-3.5 px-4">${this.cleanRequesterName(item.requester || item.solicitante || 'N/A')}</td>
           <td class="text-xs text-sky-300 font-semibold py-3.5 px-4">${item.teamSolicitante || '—'}</td>
           <td class="py-3.5 px-4">
             <span class="badge bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[11px] px-2.5 py-1 rounded-full font-bold">
@@ -3129,6 +3186,329 @@ const app = {
         </tr>
       `;
     }).join('');
+  },
+
+  // Popula o seletor de meses do Report Mensal
+  populateMonthlyReportMonthSelect() {
+    const sel = document.getElementById('monthly-report-month');
+    if (!sel) return;
+    const now = new Date();
+    const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    sel.innerHTML = '';
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const label = `${months[d.getMonth()]} ${d.getFullYear()}`;
+      const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const opt = document.createElement('option');
+      opt.value = val;
+      opt.textContent = label;
+      sel.appendChild(opt);
+    }
+  },
+
+  // RENDER: Report Mensal Executivo de Status das Squads
+  renderMonthlyReportPanel() {
+    const container = document.getElementById('monthly-report-content');
+    if (!container) return;
+
+    const selVal = document.getElementById('monthly-report-month')?.value;
+    if (!selVal) { this.populateMonthlyReportMonthSelect(); return; }
+
+    const [yearStr, monthStr] = selVal.split('-');
+    const year = parseInt(yearStr);
+    const month = parseInt(monthStr) - 1;
+    const monthStart = new Date(year, month, 1, 0, 0, 0);
+    const monthEnd = new Date(year, month + 1, 0, 23, 59, 59);
+
+    const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const monthLabel = months[month];
+
+    const allDemands = this.getAllDashboardDemands();
+
+    // Filtrar se demanda foi criada no mês
+    const isCreatedInMonth = (d) => {
+      const dateObj = this.parseItemDate(d.createdDate || d.createdAt || d.date);
+      if (!dateObj) return false;
+      return dateObj >= monthStart && dateObj <= monthEnd;
+    };
+
+    // Filtrar se demanda foi concluída no mês
+    const isCompletedInMonth = (d) => {
+      const dateObj = this.parseItemDate(d.completionDate || d.completedAt || d.concludedAt || d.dateConcluded || d.updatedAt || d.date || d.createdDate || d.createdAt);
+      if (!dateObj) return false;
+      return dateObj >= monthStart && dateObj <= monthEnd;
+    };
+
+    const squads = [
+      {
+        id: 'operacoes',
+        name: 'Squad Operações',
+        shortName: 'Operações',
+        desc: 'Centralização de atividades e Expansão via Zord',
+        barColor: '#38bdf8',
+        badgeBg: 'rgba(56, 189, 248, 0.15)',
+        badgeBorder: 'rgba(56, 189, 248, 0.4)',
+        badgeText: '#38bdf8',
+        icon: 'fa-solid fa-gears'
+      },
+      {
+        id: 'rpa',
+        name: 'Squad RPA',
+        shortName: 'RPA',
+        desc: 'Automação de processos',
+        barColor: '#f97316',
+        badgeBg: 'rgba(249, 115, 22, 0.15)',
+        badgeBorder: 'rgba(249, 115, 22, 0.4)',
+        badgeText: '#fb923c',
+        icon: 'fa-solid fa-robot'
+      },
+      {
+        id: 'dados',
+        name: 'Squad Dados',
+        shortName: 'Dados',
+        desc: 'Ingestão de Dados via Databricks e Criação de Dashboard via Tableau',
+        barColor: '#eab308',
+        badgeBg: 'rgba(234, 179, 8, 0.15)',
+        badgeBorder: 'rgba(234, 179, 8, 0.4)',
+        badgeText: '#facc15',
+        icon: 'fa-solid fa-chart-pie'
+      },
+      {
+        id: 'automacao',
+        name: 'Automação (Demandas Internas)',
+        shortName: 'Automação',
+        desc: 'Demandas Internas e Soluções de Automação',
+        barColor: '#a855f7',
+        badgeBg: 'rgba(168, 85, 247, 0.15)',
+        badgeBorder: 'rgba(168, 85, 247, 0.4)',
+        badgeText: '#c084fc',
+        icon: 'fa-solid fa-wand-magic-sparkles'
+      }
+    ];
+
+    let conquistas = [];
+    let bloqueios = [];
+    let cardsHtml = '';
+
+    squads.forEach(squad => {
+      const squadDemands = allDemands.filter(d => d.squadId === squad.id);
+      const totalEntradas = squadDemands.filter(isCreatedInMonth).length;
+      const concluidos = squadDemands.filter(d => d.status === 'Concluído' || d.status === 'Concluido' || d.itemType === 'completed' || d.phase === 'concluido');
+      const concluidosMes = concluidos.filter(isCompletedInMonth);
+      const emDesenvolvimento = squadDemands.filter(d => d.status === 'Em Andamento');
+      const bloqueados = squadDemands.filter(d => d.status === 'Bloqueado');
+
+      concluidosMes.forEach(d => {
+        let finalGains = d.gains || d.ganhos || d.beneficios || d.businessValue || d.impact || d.results || '';
+        if (!finalGains && squad.id !== 'automacao') {
+          const ctMatch = (this.state.completedTasks[squad.id] || []).find(ct => (ct.id && ct.id === d.id) || (ct.gau && d.gau && ct.gau === d.gau) || (ct.jiraKey && d.jiraKey && ct.jiraKey === d.jiraKey));
+          if (ctMatch && (ctMatch.gains || ctMatch.ganhos)) {
+            finalGains = ctMatch.gains || ctMatch.ganhos;
+          }
+        }
+        conquistas.push({
+          squad: squad,
+          gau: d.gau || d.jiraKey || d.key || '',
+          title: d.title || d.taskTitle || d.nome || '',
+          gains: finalGains
+        });
+      });
+
+      bloqueados.forEach(d => {
+        let latestReason = '';
+        const entries = (d.timelineEntries && d.timelineEntries.length) ? d.timelineEntries : (this.state.backlogItems[squad.id] || []).find(i => i.id === d.id || i.gau === d.gau || i.jiraKey === d.jiraKey)?.timelineEntries || [];
+        if (entries.length > 0 && entries[0].text) {
+          latestReason = entries[0].text;
+        } else {
+          latestReason = d.reason || d.bloqueioMotivo || d.impediment || d.notes || 'Aguardando insumo/dependência externa';
+        }
+
+        bloqueios.push({
+          squad: squad,
+          gau: d.gau || d.jiraKey || d.key || '',
+          title: d.title || d.taskTitle || d.nome || '',
+          reason: latestReason
+        });
+      });
+
+      cardsHtml += `
+        <div class="monthly-squad-card">
+          <div style="width: 5px; min-height: 100%; background: ${squad.barColor}; flex-shrink: 0;"></div>
+          <div style="flex: 1; display: grid; grid-template-columns: 240px repeat(4, 1fr); align-items: center; padding: 14px 18px; gap: 12px;">
+            <div>
+              <div style="font-size: 15px; font-weight: 800; color: var(--text-primary, #fff);">${squad.name}</div>
+              <div style="font-size: 11px; color: var(--text-secondary, #94a3b8); margin-top: 2px; line-height: 1.3;">${squad.desc}</div>
+            </div>
+            <div class="monthly-kpi-col">
+              <div style="font-size: 11px; font-weight: 800; color: var(--text-primary, #fff);">${monthLabel}</div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-secondary, #94a3b8); margin-top: 2px;">${totalEntradas} Demandas</div>
+            </div>
+            <div class="monthly-kpi-col">
+              <div style="font-size: 11px; font-weight: 700; color: var(--text-secondary, #94a3b8);">Concluído</div>
+              <div style="font-size: 20px; font-weight: 900; color: #10b981; margin-top: 2px;">${concluidosMes.length}</div>
+            </div>
+            <div class="monthly-kpi-col">
+              <div style="font-size: 11px; font-weight: 700; color: var(--text-secondary, #94a3b8);">Em desenvolvimento</div>
+              <div style="font-size: 20px; font-weight: 900; color: #0284c7; margin-top: 2px;">${emDesenvolvimento.length}</div>
+            </div>
+            <div class="monthly-kpi-col">
+              <div style="font-size: 11px; font-weight: 700; color: var(--text-secondary, #94a3b8);">Bloqueio</div>
+              <div style="font-size: 20px; font-weight: 900; color: #e11d48; margin-top: 2px;">${bloqueados.length}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    // Seção de Conquistas com Badge de Squad e Exibição Enriquecida de Ganhos
+    let conquistasHtml = '';
+    if (conquistas.length > 0) {
+      conquistasHtml = conquistas.map(c => {
+        const hasGains = c.gains && String(c.gains).trim().length > 0;
+        const gainText = hasGains ? c.gains : 'Entrega concluída e homologada com sucesso';
+        const gainClass = hasGains ? 'text-emerald-700 font-semibold' : 'text-slate-500 italic';
+        const gainIcon = hasGains ? 'fa-solid fa-gift text-emerald-500' : 'fa-solid fa-circle-check text-emerald-500/70';
+
+        return `
+          <div class="monthly-item-row">
+            <span class="squad-badge-${c.squad.id}" style="font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 6px; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; margin-top: 1px;">
+              <i class="${c.squad.icon}"></i> ${c.squad.shortName}
+            </span>
+            <div style="flex: 1;">
+              <strong style="color: #059669;">${c.gau}</strong> — <span>${c.title}</span>
+              <div style="font-size: 11px; margin-top: 3px; line-height: 1.4;" class="${gainClass}">
+                <i class="${gainIcon} me-1.5"></i><strong>Ganho:</strong> ${gainText}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } else {
+      conquistasHtml = '<div style="padding: 16px; font-size: 12px; color: var(--text-secondary, #94a3b8); font-style: italic;">Nenhuma demanda concluída neste período.</div>';
+    }
+
+    // Seção de Bloqueios com Badge de Squad e Motivo Atualizado da Timeline
+    let bloqueiosHtml = '';
+    if (bloqueios.length > 0) {
+      bloqueiosHtml = bloqueios.map(b => `
+        <div class="monthly-item-row">
+          <span class="squad-badge-${b.squad.id}" style="font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 6px; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; margin-top: 1px;">
+            <i class="${b.squad.icon}"></i> ${b.squad.shortName}
+          </span>
+          <div style="flex: 1;">
+            <strong style="color: #e11d48;">${b.gau}</strong> — <span>${b.title}</span>
+            <div style="color: #be123c; font-size: 11px; margin-top: 3px; font-weight: 600; line-height: 1.4;"><i class="fa-solid fa-triangle-exclamation text-rose-500 me-1.5"></i><strong>Motivo:</strong> ${b.reason}</div>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      bloqueiosHtml = '<div style="padding: 16px; font-size: 12px; color: var(--text-secondary, #94a3b8); font-style: italic;">Nenhuma demanda bloqueada neste período.</div>';
+    }
+
+    container.innerHTML = `
+      ${cardsHtml}
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px;">
+        <div class="monthly-conquistas-box">
+          <div class="monthly-conquistas-header">
+            <span>🏆</span> Principais Conquistas
+          </div>
+          ${conquistasHtml}
+        </div>
+        <div class="monthly-bloqueios-box">
+          <div class="monthly-bloqueios-header">
+            <span>🛑</span> Bloqueios e Riscos
+          </div>
+          ${bloqueiosHtml}
+        </div>
+      </div>
+    `;
+  },
+
+  // Exportar Report Mensal como PDF para Impressão
+  exportMonthlyReportPDF() {
+    const container = document.getElementById('monthly-report-content');
+    if (!container) return;
+
+    const selVal = document.getElementById('monthly-report-month')?.value;
+    const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    let monthLabel = 'Mês';
+    if (selVal) {
+      const [y, m] = selVal.split('-');
+      monthLabel = `${months[parseInt(m) - 1]} ${y}`;
+    }
+
+    const isLight = document.body.classList.contains('light-theme');
+    const nowStr = new Date().toLocaleDateString('pt-BR') + ' às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const authorStr = this.userName || 'Administrador';
+
+    let printContainer = document.getElementById('rpa-print-report-container');
+    if (!printContainer) {
+      printContainer = document.createElement('div');
+      printContainer.id = 'rpa-print-report-container';
+      printContainer.className = 'rpa-print-only-container';
+      document.body.appendChild(printContainer);
+    }
+
+    // Clonar o conteúdo do report e forçar cores para impressão
+    const cloned = container.cloneNode(true);
+    // Forçar cores sólidas para impressão
+    cloned.querySelectorAll('*').forEach(el => {
+      const cs = el.style;
+      if (cs.color && cs.color.indexOf('var' + String.fromCharCode(40)) >= 0) {
+        cs.color = isLight ? '#0f172a' : '#e2e8f0';
+      }
+    });
+
+    if (!isLight) {
+      cloned.querySelectorAll('.text-emerald-700').forEach(el => {
+        el.style.setProperty('color', '#34d399', 'important');
+      });
+      cloned.querySelectorAll('.text-slate-500').forEach(el => {
+        el.style.setProperty('color', '#94a3b8', 'important');
+      });
+    }
+
+    printContainer.innerHTML = `
+      <div class="rpa-print-report-page">
+        <div class="rpa-print-header">
+          <div class="rpa-print-logo-row">
+            <div class="rpa-print-logo">
+              <img src="assets/emanapay-logo.png" alt="EmanaPay Logo" class="rpa-print-logo-img" />
+              <span class="rpa-print-logo-sub">Gestão de Squads & Governança</span>
+            </div>
+            <div class="rpa-print-meta">
+              <div><strong>Emissão:</strong> ${nowStr}</div>
+              <div><strong>Gerado por:</strong> ${authorStr}</div>
+            </div>
+          </div>
+          <h1 class="rpa-print-title">Report Mensal — Status das Squads — ${monthLabel}</h1>
+        </div>
+
+        <div style="margin-top: 20px;">
+          ${cloned.innerHTML}
+        </div>
+
+        <div class="rpa-print-footer">
+          EmanaPay Control Squads · Report Mensal Executivo · ${monthLabel}
+        </div>
+      </div>
+    `;
+
+    const originalTitle = document.title;
+    document.title = `Report_Mensal_Squads_${selVal || 'atual'}`;
+
+    document.body.classList.add('printing-rpa-report');
+    if (isLight) document.body.classList.add('printing-light-theme');
+
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => {
+        document.body.classList.remove('printing-rpa-report', 'printing-light-theme');
+        document.title = originalTitle;
+        if (printContainer) printContainer.innerHTML = '';
+      }, 600);
+    }, 300);
   },
 
   // RENDER: Aba "Em Andamento"
