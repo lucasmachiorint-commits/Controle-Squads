@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-21T19:47:21.741Z",
+  "updatedAt": "2026-08-21T20:21:28.279Z",
   "totalCards": 131,
   "cards": [
     {
@@ -8,12 +8,22 @@
       "jiraKey": "GAU-149",
       "title": "ANTIGA GAU-72 Cancelamento de Id Contas Dock em Lote",
       "summary": "ANTIGA GAU-72 Cancelamento de Id Contas Dock em Lote",
-      "status": "Em Análise",
-      "categoriaStatus": "Em andamento",
+      "status": "Aguardando Squad",
+      "categoriaStatus": "Itens Pendentes",
+      "customfield_12475": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+        "value": "Operações NPay",
+        "id": "16005"
+      },
       "customfield_11010": {
         "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/24154",
         "value": "Conciliação, Parâmetros, Processamento e Adquirência",
         "id": "24154"
+      },
+      "squad": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+        "value": "Operações NPay",
+        "id": "16005"
       },
       "requester": "Lucas da Silva Machiori - Natura",
       "priority": "Média",
