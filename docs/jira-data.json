@@ -1,7 +1,26 @@
 {
-  "updatedAt": "2026-08-21T19:23:08.596Z",
-  "totalCards": 130,
+  "updatedAt": "2026-08-21T19:47:21.741Z",
+  "totalCards": 131,
   "cards": [
+    {
+      "id": "1465761",
+      "key": "GAU-149",
+      "jiraKey": "GAU-149",
+      "title": "ANTIGA GAU-72 Cancelamento de Id Contas Dock em Lote",
+      "summary": "ANTIGA GAU-72 Cancelamento de Id Contas Dock em Lote",
+      "status": "Em Análise",
+      "categoriaStatus": "Em andamento",
+      "customfield_11010": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/24154",
+        "value": "Conciliação, Parâmetros, Processamento e Adquirência",
+        "id": "24154"
+      },
+      "requester": "Lucas da Silva Machiori - Natura",
+      "priority": "Média",
+      "category": "Geral",
+      "createdDate": "21/08/2026",
+      "description": "Existem contas na Dock que foram criadas indevidamente e precisam ser encerradas.\nPor conta do esforço operacional de encerra-las manualmente via Dock Console, solicito via demanda uma funcionalidade no sistema de backoffice (Zord), onde seja possivel realizar um upload de um arquivo com a lista de id conta a serem cancelados e seja executado um processo para cancelar todos os id contas da lista.\nAntes de executar o arquivo, necessário o sistema realizar uma validação de saldo e status. O sistema deverá cancelar somente contas que estejam sem saldo e limite, e com o status conta normal (status id = 0).\nAs contas que encontram-se na necessidade de serem canceladas atualmente são:\nContas Sem Onboarding → Legado de pré cadastro, e que não foram canceladas na ação de cancelamento massiva, por não estarem inclusas no levantamento de dados da época.\nCaixinhas Criadas em duplicidade → Cada cliente só deve ter uma conta de caixinha. Porém, houve um volume de contas criadas incorretamente que precisam ser canceladas.\nContas Criadas em Duplicidade → Contas geradas em duplicidade que devem ser canceladas, pois cada cliente só deve ter uma conta ativa de cada id produto."
+    },
     {
       "id": "1457295",
       "key": "GAU-148",
@@ -1821,8 +1840,8 @@
       "jiraKey": "GAU-72",
       "title": "Squad Ops | Cancelamento de Id Contas Dock em Lote",
       "summary": "Squad Ops | Cancelamento de Id Contas Dock em Lote",
-      "status": "Aguardando Squad",
-      "categoriaStatus": "Itens Pendentes",
+      "status": "Cancelado",
+      "categoriaStatus": "Itens concluídos",
       "customfield_12475": {
         "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
         "value": "Operações NPay",
