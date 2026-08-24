@@ -1,7 +1,45 @@
 {
-  "updatedAt": "2026-08-24T16:32:51.364Z",
-  "totalCards": 131,
+  "updatedAt": "2026-08-24T17:27:27.050Z",
+  "totalCards": 133,
   "cards": [
+    {
+      "id": "1471282",
+      "key": "GAU-151",
+      "jiraKey": "GAU-151",
+      "title": "ID28 - Amortização Reembolso (Amortização de notas de Crédito)",
+      "summary": "ID28 - Amortização Reembolso (Amortização de notas de Crédito)",
+      "status": "Backlog",
+      "categoriaStatus": "Itens Pendentes",
+      "customfield_11010": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/24152",
+        "value": "Suporte Operacional",
+        "id": "24152"
+      },
+      "requester": "Jailton Gomes Dos Santos",
+      "priority": "Média",
+      "category": "Geral",
+      "createdDate": "24/08/2026",
+      "description": "Demanda para Squad de Dados"
+    },
+    {
+      "id": "1471279",
+      "key": "GAU-150",
+      "jiraKey": "GAU-150",
+      "title": "ID27 - Amortização Performer (Amortização de Notas de Crédito)",
+      "summary": "ID27 - Amortização Performer (Amortização de Notas de Crédito)",
+      "status": "Backlog",
+      "categoriaStatus": "Itens Pendentes",
+      "customfield_11010": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/24152",
+        "value": "Suporte Operacional",
+        "id": "24152"
+      },
+      "requester": "Jailton Gomes Dos Santos",
+      "priority": "Média",
+      "category": "Geral",
+      "createdDate": "24/08/2026",
+      "description": "Demanda para Squad de Dados"
+    },
     {
       "id": "1465761",
       "key": "GAU-149",
