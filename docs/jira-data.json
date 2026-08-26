@@ -1,19 +1,58 @@
 {
-  "updatedAt": "2026-08-26T17:45:51.553Z",
-  "totalCards": 133,
+  "updatedAt": "2026-08-26T18:13:21.882Z",
+  "totalCards": 134,
   "cards": [
+    {
+      "id": "1490771",
+      "key": "GAU-152",
+      "jiraKey": "GAU-152",
+      "title": "Squad Ops | Criação Base Cadastral Hispana",
+      "summary": "Squad Ops | Criação Base Cadastral Hispana",
+      "status": "Aguardando Squad",
+      "categoriaStatus": "Itens Pendentes",
+      "customfield_12475": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+        "value": "Operações NPay",
+        "id": "16005"
+      },
+      "customfield_11010": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/24152",
+        "value": "Suporte Operacional",
+        "id": "24152"
+      },
+      "squad": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16005",
+        "value": "Operações NPay",
+        "id": "16005"
+      },
+      "requester": "Jailton Gomes Dos Santos",
+      "priority": "Média",
+      "category": "Geral",
+      "createdDate": "26/08/2026",
+      "description": "Os produtos do Emana Pay estão sendo expandidos para a Hispana.\nJá temos a Conta Digital na Argentina, por exemplo, e serão lançados produtos de crédito também.\nAtualmente não existe uma Base Cadastral Emana Pay SCD para os países da Hispana, nos mesmos moldes que existe no Brasil.\nEsta criação é necessária, principalmente para habilitar os produtos de crédito.\nHoje, pegando a Argentina como exemplo, temos os dados das consultoras do país no GPP e armazenados na Thinkit no caso dos clientes que possuem conta.\nÉ necessário ter uma base cadastral, contendo os clientes que possuem ou já possuíram relacionamento com o Emana Pay (ex produto de conta ou crédito), para que esta base seja consumida pelos processos de tecnologia e produtos.\nApós criada a base, será necessário o desenvolvimento de serviços e APIs de consulta dessas bases.\nO formato e dados necessários está sendo discutido junto com as áreas de negócios (monicacezario@natura.net)."
+    },
     {
       "id": "1471282",
       "key": "GAU-151",
       "jiraKey": "GAU-151",
       "title": "ID28 - Amortização Reembolso (Amortização de notas de Crédito)",
       "summary": "ID28 - Amortização Reembolso (Amortização de notas de Crédito)",
-      "status": "Backlog",
+      "status": "Aguardando Squad",
       "categoriaStatus": "Itens Pendentes",
+      "customfield_12475": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16007",
+        "value": "RPA",
+        "id": "16007"
+      },
       "customfield_11010": {
         "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/24152",
         "value": "Suporte Operacional",
         "id": "24152"
+      },
+      "squad": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16007",
+        "value": "RPA",
+        "id": "16007"
       },
       "requester": "Jailton Gomes Dos Santos",
       "priority": "Média",
@@ -27,12 +66,22 @@
       "jiraKey": "GAU-150",
       "title": "ID27 - Amortização Performer (Amortização de Notas de Crédito)",
       "summary": "ID27 - Amortização Performer (Amortização de Notas de Crédito)",
-      "status": "Backlog",
+      "status": "Aguardando Squad",
       "categoriaStatus": "Itens Pendentes",
+      "customfield_12475": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16007",
+        "value": "RPA",
+        "id": "16007"
+      },
       "customfield_11010": {
         "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/24152",
         "value": "Suporte Operacional",
         "id": "24152"
+      },
+      "squad": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16007",
+        "value": "RPA",
+        "id": "16007"
       },
       "requester": "Jailton Gomes Dos Santos",
       "priority": "Média",
@@ -75,12 +124,22 @@
       "jiraKey": "GAU-148",
       "title": "Consumo de dados da API Equals ",
       "summary": "Consumo de dados da API Equals ",
-      "status": "Backlog",
+      "status": "Aguardando Squad",
       "categoriaStatus": "Itens Pendentes",
+      "customfield_12475": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+        "value": "Dados Operações",
+        "id": "16006"
+      },
       "customfield_11010": {
         "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/24154",
         "value": "Conciliação, Parâmetros, Processamento e Adquirência",
         "id": "24154"
+      },
+      "squad": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+        "value": "Dados Operações",
+        "id": "16006"
       },
       "requester": "Katia Fernanda Barros - Natura",
       "priority": "Média",
@@ -761,8 +820,8 @@
       "id": "919490",
       "key": "GAU-117",
       "jiraKey": "GAU-117",
-      "title": "Squad Ops | Criação Base Cadastral Hispana",
-      "summary": "Squad Ops | Criação Base Cadastral Hispana",
+      "title": "Dados | Criação Base Cadastral Hispana",
+      "summary": "Dados | Criação Base Cadastral Hispana",
       "status": "Aguardando Squad",
       "categoriaStatus": "Itens Pendentes",
       "customfield_12475": {
