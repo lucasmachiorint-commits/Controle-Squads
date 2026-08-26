@@ -1,7 +1,36 @@
 {
-  "updatedAt": "2026-08-26T18:33:33.175Z",
-  "totalCards": 134,
+  "updatedAt": "2026-08-26T20:13:47.231Z",
+  "totalCards": 135,
   "cards": [
+    {
+      "id": "1491516",
+      "key": "GAU-153",
+      "jiraKey": "GAU-153",
+      "title": "SUSTENTAÇÂO - prd.trusted_operacoes_agenda_view.dview_transactions_authorization_snapshot",
+      "summary": "SUSTENTAÇÂO - prd.trusted_operacoes_agenda_view.dview_transactions_authorization_snapshot",
+      "status": "Aguardando Squad",
+      "categoriaStatus": "Itens Pendentes",
+      "customfield_12475": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+        "value": "Dados Operações",
+        "id": "16006"
+      },
+      "customfield_11010": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/24154",
+        "value": "Conciliação, Parâmetros, Processamento e Adquirência",
+        "id": "24154"
+      },
+      "squad": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+        "value": "Dados Operações",
+        "id": "16006"
+      },
+      "requester": "Rafael Luiz Soares Silva Lira",
+      "priority": "Média",
+      "category": "Geral",
+      "createdDate": "26/08/2026",
+      "description": "Boa tarde!\n\nTemos 95 transaction_id que podem ser localizados na tabela prd.trusted_operacoes_agenda_view.dview_receivables_snapshot, mas suas autorizações e NSU não existem na tabela prd.trusted_operacoes_agenda_view.dview_transactions_authorization_snapshot"
+    },
     {
       "id": "1490771",
       "key": "GAU-152",
