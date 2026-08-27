@@ -1,7 +1,26 @@
 {
-  "updatedAt": "2026-08-26T20:31:08.987Z",
-  "totalCards": 135,
+  "updatedAt": "2026-08-27T00:25:10.127Z",
+  "totalCards": 136,
   "cards": [
+    {
+      "id": "1492175",
+      "key": "GAU-154",
+      "jiraKey": "GAU-154",
+      "title": "[Sustentação] - Dado não atualizado na tabela  (prd.trusted_operacoes_agenda_view.dview_receivables_snapshot)",
+      "summary": "[Sustentação] - Dado não atualizado na tabela  (prd.trusted_operacoes_agenda_view.dview_receivables_snapshot)",
+      "status": "Backlog",
+      "categoriaStatus": "Itens Pendentes",
+      "customfield_11010": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/24154",
+        "value": "Conciliação, Parâmetros, Processamento e Adquirência",
+        "id": "24154"
+      },
+      "requester": "Gabriela Alves Sampaio",
+      "priority": "Média",
+      "category": "Geral",
+      "createdDate": "26/08/2026",
+      "description": "Boa noite, pessoal!! \nA tabela prd.trusted_operacoes_agenda_view.dview_receivables_snapshot esteja com algum problema. \nAlguns recebíveis apresentaram erro na atualização do status. \nNa aplicação todos estão PAGO no dia 20/08/2026, porém no Bricks eles continuaram com o status AGENDADO."
+    },
     {
       "id": "1491516",
       "key": "GAU-153",
