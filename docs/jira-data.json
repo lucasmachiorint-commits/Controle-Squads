@@ -1,7 +1,26 @@
 {
-  "updatedAt": "2026-08-28T05:04:58.942Z",
-  "totalCards": 136,
+  "updatedAt": "2026-08-28T17:34:56.916Z",
+  "totalCards": 137,
   "cards": [
+    {
+      "id": "1500568",
+      "key": "GAU-155",
+      "jiraKey": "GAU-155",
+      "title": "Ingestão carta de circularização Gsurf ",
+      "summary": "Ingestão carta de circularização Gsurf ",
+      "status": "Backlog",
+      "categoriaStatus": "Itens Pendentes",
+      "customfield_11010": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/24154",
+        "value": "Conciliação, Parâmetros, Processamento e Adquirência",
+        "id": "24154"
+      },
+      "requester": "Katia Fernanda Barros - Natura",
+      "priority": "Média",
+      "category": "Geral",
+      "createdDate": "28/08/2026",
+      "description": "Ingestão dos dados atraves da API da Gsurf da carta de circularização"
+    },
     {
       "id": "1492175",
       "key": "GAU-154",
