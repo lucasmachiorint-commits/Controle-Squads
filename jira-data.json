@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-31T14:11:58.307Z",
+  "updatedAt": "2026-08-31T14:48:37.252Z",
   "totalCards": 138,
   "cards": [
     {
@@ -8,12 +8,22 @@
       "jiraKey": "GAU-156",
       "title": "sustentação - prd.trusted_cybersource_view.dview_transactions_mexico_history",
       "summary": "sustentação - prd.trusted_cybersource_view.dview_transactions_mexico_history",
-      "status": "Backlog",
+      "status": "Aguardando Squad",
       "categoriaStatus": "Itens Pendentes",
+      "customfield_12475": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+        "value": "Dados Operações",
+        "id": "16006"
+      },
       "customfield_11010": {
         "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/24154",
         "value": "Conciliação, Parâmetros, Processamento e Adquirência",
         "id": "24154"
+      },
+      "squad": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+        "value": "Dados Operações",
+        "id": "16006"
       },
       "requester": "Victor Hugo Soares de Mello",
       "priority": "Média",
@@ -27,12 +37,22 @@
       "jiraKey": "GAU-155",
       "title": "Ingestão carta de circularização Gsurf ",
       "summary": "Ingestão carta de circularização Gsurf ",
-      "status": "Backlog",
+      "status": "Aguardando Squad",
       "categoriaStatus": "Itens Pendentes",
+      "customfield_12475": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+        "value": "Dados Operações",
+        "id": "16006"
+      },
       "customfield_11010": {
         "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/24154",
         "value": "Conciliação, Parâmetros, Processamento e Adquirência",
         "id": "24154"
+      },
+      "squad": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+        "value": "Dados Operações",
+        "id": "16006"
       },
       "requester": "Katia Fernanda Barros - Natura",
       "priority": "Média",
@@ -46,12 +66,22 @@
       "jiraKey": "GAU-154",
       "title": "[Sustentação] - Dado não atualizado na tabela  (prd.trusted_operacoes_agenda_view.dview_receivables_snapshot)",
       "summary": "[Sustentação] - Dado não atualizado na tabela  (prd.trusted_operacoes_agenda_view.dview_receivables_snapshot)",
-      "status": "Backlog",
+      "status": "Aguardando Squad",
       "categoriaStatus": "Itens Pendentes",
+      "customfield_12475": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+        "value": "Dados Operações",
+        "id": "16006"
+      },
       "customfield_11010": {
         "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/24154",
         "value": "Conciliação, Parâmetros, Processamento e Adquirência",
         "id": "24154"
+      },
+      "squad": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+        "value": "Dados Operações",
+        "id": "16006"
       },
       "requester": "Gabriela Alves Sampaio",
       "priority": "Média",
