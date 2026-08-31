@@ -1,7 +1,36 @@
 {
-  "updatedAt": "2026-08-31T14:48:37.252Z",
-  "totalCards": 138,
+  "updatedAt": "2026-08-31T18:19:09.582Z",
+  "totalCards": 139,
   "cards": [
+    {
+      "id": "1510533",
+      "key": "GAU-157",
+      "jiraKey": "GAU-157",
+      "title": "[Sustentação] Tabela Payment Details com dados incompletos",
+      "summary": "[Sustentação] Tabela Payment Details com dados incompletos",
+      "status": "Aguardando Squad",
+      "categoriaStatus": "Itens Pendentes",
+      "customfield_12475": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+        "value": "Dados Operações",
+        "id": "16006"
+      },
+      "customfield_11010": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/24154",
+        "value": "Conciliação, Parâmetros, Processamento e Adquirência",
+        "id": "24154"
+      },
+      "squad": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/16006",
+        "value": "Dados Operações",
+        "id": "16006"
+      },
+      "requester": "Gabriela Alves Sampaio",
+      "priority": "Média",
+      "category": "Geral",
+      "createdDate": "31/08/2026",
+      "description": "Boa tarde! \n\nA tabela “prd.trusted_operacoes_agenda_view.dview_payment_details_snapshot” está incompleta, com dados faltantes do dia 18/08 pra cá (em anexo um print do levantamento realizado)."
+    },
     {
       "id": "1504767",
       "key": "GAU-156",
