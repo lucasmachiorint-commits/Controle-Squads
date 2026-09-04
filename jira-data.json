@@ -1,7 +1,26 @@
 {
-  "updatedAt": "2026-09-04T17:30:56.396Z",
-  "totalCards": 139,
+  "updatedAt": "2026-09-04T20:13:52.516Z",
+  "totalCards": 140,
   "cards": [
+    {
+      "id": "1551481",
+      "key": "GAU-158",
+      "jiraKey": "GAU-158",
+      "title": "[Sustentação] Tabela authorization_snapshot e authorization_snapshot com defasagem de dados",
+      "summary": "[Sustentação] Tabela authorization_snapshot e authorization_snapshot com defasagem de dados",
+      "status": "Backlog",
+      "categoriaStatus": "Itens Pendentes",
+      "customfield_11010": {
+        "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/24154",
+        "value": "Conciliação, Parâmetros, Processamento e Adquirência",
+        "id": "24154"
+      },
+      "requester": "Gabriela Alves Sampaio",
+      "priority": "Média",
+      "category": "Geral",
+      "createdDate": "04/09/2026",
+      "description": "Boa tarde! \nAs tabelas “prd.trusted_operacoes_agenda_view.dview_transactions_authorization_snapshot” e estão apresentando defasagem de dados em relação à transactions (considerando o volume de transações aprovadas somente), com um pico no dia 20/08/2026. \nPodem avaliar por favor?"
+    },
     {
       "id": "1510533",
       "key": "GAU-157",
