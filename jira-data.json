@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-09-08T12:47:14.871Z",
+  "updatedAt": "2026-09-08T13:17:34.753Z",
   "totalCards": 140,
   "cards": [
     {
@@ -8,8 +8,8 @@
       "jiraKey": "GAU-158",
       "title": "[Sustentação] Tabela authorization_snapshot e authorization_snapshot com defasagem de dados",
       "summary": "[Sustentação] Tabela authorization_snapshot e authorization_snapshot com defasagem de dados",
-      "status": "Backlog",
-      "categoriaStatus": "Itens Pendentes",
+      "status": "Em Análise",
+      "categoriaStatus": "Em andamento",
       "customfield_11010": {
         "self": "https://naturapay.atlassian.net/rest/api/3/customFieldOption/24154",
         "value": "Conciliação, Parâmetros, Processamento e Adquirência",
